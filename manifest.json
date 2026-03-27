@@ -1,0 +1,20 @@
+{
+  "name": "Pale Signal",
+  "short_name": "PALE SIGNAL",
+  "description": "Scan. Build. Seize the Pale. A game that gets better when your real life does.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#05080f",
+  "theme_color": "#8fa8ff",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%2305080f'/><text x='256' y='320' font-size='260' text-anchor='middle' fill='%238fa8ff'>◈</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "entertainment", "lifestyle"],
+  "prefer_related_applications": false
+}

@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Chemical Universe · Pale Signal</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100%;background:#05080f;color:#d8e8ff;font-family:'Courier New',Courier,monospace;overscroll-behavior:none}
+body{background:#05080f;min-height:100vh}
+/* Pale Signal scan-line CRT overlay */
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);}
+
+/* Hub nav */
+.hub-nav{
+  display:flex;align-items:center;gap:10px;
+  padding:6px 16px;background:#05080f;
+  border-bottom:1px solid rgba(143,168,255,.18);
+  font-family:'Courier New',Courier,monospace;font-size:10px;
+  letter-spacing:1px;
+}
+.hub-nav a{
+  color:#8fa8ff;text-decoration:none;
+  padding:3px 8px;border:1px solid rgba(143,168,255,.3);
+  border-radius:3px;transition:border-color .15s,color .15s;
+}
+.hub-nav a:hover{color:#d8e8ff;border-color:#8fa8ff}
+.hub-nav .sep{color:rgba(143,168,255,.25)}
+.hub-nav .title{color:#4a5e99;font-size:9px;letter-spacing:2px}
+
+/* Header */
+.hdr{text-align:center;padding:16px 16px 10px;border-bottom:1px solid rgba(100,150,255,.1)}
+.hdr-sub{font-size:8px;letter-spacing:3px;color:#4dabf7;text-transform:uppercase;margin-bottom:4px;font-family:'Courier New',Courier,monospace}
+.hdr h1{font-size:clamp(18px,5vw,32px);background:linear-gradient(135deg,#74c0fc,#fff,#a9e34b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:3px;font-weight:bold;font-style:normal;margin-bottom:4px;font-family:'Courier New',Courier,monospace}
+.hdr p{color:#7a8a9a;font-size:11px}
+
+/* Tabs */
+.tabs{display:flex;justify-content:center;gap:4px;padding:12px 16px 0;flex-wrap:wrap}
+.tab{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);color:#889;padding:7px 16px;border-radius:40px;cursor:pointer;font-size:10px;letter-spacing:.5px;transition:all .2s;font-family:'Courier New',Courier,monospace}
+.tab.active{background:rgba(77,171,247,.18);border-color:rgba(77,171,247,.55);color:#74c0fc}
+
+/* Filter bar */
+.filters{display:flex;justify-content:center;flex-wrap:wrap;gap:3px;padding:10px 8px;max-width:1080px;margin:0 auto}
+.filt{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);color:#666;padding:3px 9px;border-radius:20px;cursor:pointer;font-size:9px;font-family:inherit;transition:all .15s}
+
+/* Table wrapper */
+.tbl-wrap{overflow-x:auto;padding:0 4px 8px;-webkit-overflow-scrolling:touch}
+.tbl-grid{display:grid;grid-template-columns:repeat(18,minmax(28px,1fr));gap:2px;max-width:1060px;margin:0 auto;min-width:440px}
+.cell{border-radius:3px;padding:3px 1px;cursor:pointer;text-align:center;transition:transform .1s,background .1s;user-select:none;-webkit-user-select:none;position:relative}
+.cell:active{transform:scale(0.95)}
+.cell .cn{font-size:7px;line-height:1}
+.cell .sy{font-size:clamp(9px,1.2vw,13px);font-weight:bold;line-height:1.1;margin:1px 0}
+.cell .nm{font-size:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1;padding-bottom:1px;color:#667}
+@media(max-width:500px){
+  .tbl-grid,.sub-grid{grid-template-columns:repeat(18,minmax(22px,1fr));gap:1px;min-width:360px}
+  .cell{padding:2px 1px}
+  .cell .sym{font-size:8px}
+  .cell .num{font-size:5px}
+  .cell .nm{display:none}
+}
+.cell.dimmed{opacity:.18}
+.ph{border-radius:3px;display:flex;align-items:center;justify-content:center;opacity:.5}
+.ph span{font-size:6px;text-align:center}
+
+/* Sub-rows (lanthanide/actinide) */
+.sub-label{display:flex;align-items:center;gap:6px;margin-bottom:3px;padding-left:4px}
+.sub-dot{width:9px;height:9px;border-radius:2px}
+.sub-label span{font-size:8px;letter-spacing:1px}
+.sub-grid{display:grid;grid-template-columns:repeat(18,minmax(28px,1fr));gap:2px;max-width:1060px;margin:0 auto;min-width:440px;margin-bottom:8px}
+
+/* Detail panel */
+.detail{max-width:800px;margin:16px auto 0;background:linear-gradient(135deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border-radius:14px;padding:18px;border:1px solid rgba(255,255,255,.1)}
+.detail-top{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;margin-bottom:12px;position:relative}
+.detail-badge{text-align:center;border-radius:9px;padding:10px 14px;min-width:70px;border-width:2px;border-style:solid}
+.detail-badge .d-n{font-size:9px;margin-bottom:1px}
+.detail-badge .d-sy{font-size:30px;font-weight:bold;line-height:1}
+.detail-badge .d-m{font-size:9px;color:#999;margin-top:2px}
+.detail-info h2{font-size:18px;color:#eef;font-weight:normal;margin-bottom:2px}
+.cat-pill{display:inline-block;border-radius:20px;padding:1px 10px;font-size:10px;margin-bottom:7px;border-width:1px;border-style:solid}
+.detail-info p{color:#9ab0c0;font-size:12px;line-height:1.75;max-width:480px}
+.close-btn{position:absolute;top:0;right:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#889;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:4px;margin-bottom:10px}
+.stat{background:rgba(255,255,255,.03);border-radius:6px;padding:5px 8px}
+.stat .sl{font-size:8px;color:#445;text-transform:uppercase;letter-spacing:.5px;margin-bottom:1px}
+.stat .sv{font-size:11px;color:#bcc}
+.detail-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dc{background:rgba(255,255,255,.03);border-radius:7px;padding:10px 12px}
+.dc-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.dc p{font-size:11px;color:#99b0c0;line-height:1.65}
+
+/* Concepts */
+.concepts{padding:20px 16px;max-width:840px;margin:0 auto;display:grid;gap:8px}
+.concept{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:9px;cursor:pointer;overflow:hidden;transition:all .15s}
+.concept.open{background:rgba(255,255,255,.05)}
+.concept-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 15px}
+.concept-hdr h3{font-size:13px;color:#bbc;font-weight:normal}
+.concept-arrow{font-size:13px;transition:transform .18s}
+.concept.open .concept-arrow{transform:rotate(180deg)}
+.concept-body{padding:0 15px 13px;display:none}
+.concept.open .concept-body{display:block}
+.concept-bar{width:30px;height:2px;border-radius:2px;margin-bottom:9px}
+.concept-body p{color:#8aacbc;font-size:12px;line-height:1.85}
+
+/* Search */
+.search-wrap{padding:20px 16px;max-width:840px;margin:0 auto}
+.search-input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(77,171,247,.4);border-radius:10px;padding:12px 16px;color:#eef;font-size:14px;outline:none;font-family:'Courier New',Courier,monospace;margin-bottom:14px;-webkit-appearance:none}
+.search-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:7px}
+.sr-card{background:rgba(255,255,255,.04);border-radius:10px;padding:11px 13px;cursor:pointer;display:flex;gap:11px;transition:background .12s;border-width:1px;border-style:solid}
+.sr-card:active{background:rgba(255,255,255,.08)}
+.sr-icon{text-align:center;min-width:40px}
+.sr-icon .si-n{font-size:9px;margin-bottom:1px}
+.sr-icon .si-sy{font-size:20px;font-weight:bold;line-height:1}
+.sr-icon .si-m{font-size:8px;color:#556;margin-top:1px}
+.sr-info .si-name{color:#dde;font-size:13px;margin-bottom:1px}
+.sr-info .si-cat{font-size:10px;margin-bottom:3px}
+.sr-info .si-desc{font-size:10px;color:#668;line-height:1.5}
+.search-empty{text-align:center;padding:44px 0;color:#334}
+.search-empty .se-icon{font-size:32px;margin-bottom:8px}
+.search-empty p{font-size:13px}
+
+/* Legend */
+.legend{padding:20px 16px;max-width:880px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.leg-card{border-radius:12px;padding:14px;cursor:pointer;transition:all .15s;border-width:1px;border-style:solid}
+.leg-top{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.leg-icon{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;border-width:2px;border-style:solid}
+.leg-name{font-weight:bold;font-size:12px;margin-bottom:1px}
+.leg-count{color:#556;font-size:9px}
+.leg-card p{color:#778;font-size:11px;line-height:1.6}
+
+.spacer{height:40px}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* Table section container */
+.tbl-section{padding:12px 4px 0}
+.sub-section{max-width:1060px;margin:10px auto 0;min-width:440px;padding:0 4px}
+</style>
+</head>
+<body>
+
+<div class="hub-nav">
+  <a href="./index.html">◈ HOME</a>
+  <span class="sep">·</span>
+  <span class="title">CHEMICAL UNIVERSE · v1.1 · PALE SIGNAL</span>
+</div>
+
+<div class="hdr">
+  <div class="hdr-sub">PALE SIGNAL · LIBRARY REFERENCE</div>
+  <div class="hdr-sub">ALL 118 ELEMENTS · COMPREHENSIVE REFERENCE</div>
+  <h1>THE CHEMICAL UNIVERSE</h1>
+  <p style="font-size:11px;color:#7a8a9a">Periodic Table · Bonding · Thermodynamics · Materials Science · Nuclear Chemistry</p>
+  <p style="font-size:9px;color:#334;margin-top:6px;letter-spacing:1px">FULLY OFFLINE · NO SERVER · ALL DEVICES</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('table')">🧪 Periodic Table</button>
+  <button class="tab" onclick="switchTab('concepts')">📐 Concepts</button>
+  <button class="tab" onclick="switchTab('legend')">🎨 Categories</button>
+  <button class="tab" onclick="switchTab('search')">🔍 Search</button>
+</div>
+
+<!-- TABLE TAB -->
+<div id="tab-table" class="tab-content active">
+  <div class="tbl-section">
+    <div class="filters" id="filters"></div>
+    <div class="tbl-wrap">
+      <div class="tbl-grid" id="main-grid"></div>
+    </div>
+    <div class="sub-section">
+      <div class="sub-label">
+        <div class="sub-dot" style="background:#f783ac35;border:1px solid #f783ac"></div>
+        <span style="color:#f783ac">LANTHANIDES 57–71</span>
+      </div>
+      <div class="tbl-wrap">
+        <div class="sub-grid" id="lant-grid"></div>
+      </div>
+      <div class="sub-label" style="margin-top:6px">
+        <div class="sub-dot" style="background:#ff878735;border:1px solid #ff8787"></div>
+        <span style="color:#ff8787">ACTINIDES 89–103</span>
+      </div>
+      <div class="tbl-wrap">
+        <div class="sub-grid" id="acti-grid"></div>
+      </div>
+    </div>
+    <div id="detail-panel"></div>
+  </div>
+</div>
+
+<!-- CONCEPTS TAB -->
+<div id="tab-concepts" class="tab-content">
+  <div class="concepts" id="concepts-list"></div>
+</div>
+
+<!-- LEGEND TAB -->
+<div id="tab-legend" class="tab-content">
+  <div class="legend" id="legend-grid"></div>
+</div>
+
+<!-- SEARCH TAB -->
+<div id="tab-search" class="tab-content">
+  <div class="search-wrap">
+    <input class="search-input" id="search-input" type="search" placeholder="Search by name, symbol, or atomic number…" oninput="doSearch(this.value)">
+    <div id="search-results"></div>
+  </div>
+</div>
+
+<div class="spacer"></div>
+
+<script>
+const catColors = {
+  alkali:    {bg:"#ff6b6b",dark:"#c0392b",label:"Alkali Metal"},
+  alkaline:  {bg:"#ffa94d",dark:"#d68910",label:"Alkaline Earth"},
+  transition:{bg:"#4dabf7",dark:"#1a6fa8",label:"Transition Metal"},
+  "post-trans":{bg:"#74c0fc",dark:"#2980b9",label:"Post-transition"},
+  metalloid: {bg:"#69db7c",dark:"#27ae60",label:"Metalloid"},
+  nonmetal:  {bg:"#a9e34b",dark:"#5d8a1f",label:"Nonmetal"},
+  halogen:   {bg:"#ffd43b",dark:"#b7950b",label:"Halogen"},
+  noble:     {bg:"#da77f2",dark:"#8e44ad",label:"Noble Gas"},
+  lanthanide:{bg:"#f783ac",dark:"#a93226",label:"Lanthanide"},
+  actinide:  {bg:"#ff8787",dark:"#922b21",label:"Actinide"},
+};
+
+const concepts = [
+  {title:"⚛️ Atomic Structure",content:"Atoms consist of a nucleus containing protons (positive) and neutrons (neutral), surrounded by electrons in quantized orbitals (s, p, d, f subshells). Atomic number = proton count, uniquely defining the element. Electron configuration governs chemical behavior — noble gases have filled shells (maximum stability), and other elements react to approach this state. Isotopes share the same element identity but differ in neutron count, giving different masses and sometimes radioactivity."},
+  {title:"🔗 Chemical Bonding",content:"Ionic bonds form via electron transfer between metals and nonmetals, creating charged ions in crystal lattices (e.g., NaCl). Covalent bonds involve shared electron pairs — single, double, or triple bonds of increasing strength (N₂ has a triple bond). Metallic bonding features a delocalized electron 'sea' explaining conductivity, ductility, and luster. Van der Waals forces and hydrogen bonding govern molecular interactions, determining boiling and melting points."},
+  {title:"🌡️ Thermodynamics",content:"Enthalpy (ΔH) measures heat exchange at constant pressure — exothermic reactions have ΔH < 0. Entropy (ΔS) quantifies disorder. Gibbs free energy ΔG = ΔH − TΔS predicts spontaneity: ΔG < 0 means reaction proceeds. Le Chatelier's Principle: equilibrium shifts to counteract applied stress (T, P, concentration changes). Hess's Law lets us calculate ΔH for reactions indirectly from known thermochemical data."},
+  {title:"⚡ Electrochemistry",content:"Redox reactions transfer electrons: oxidation (lose electrons) and reduction (gain electrons). Standard electrode potentials (E°) predict cell voltage. Faraday's laws govern electrolysis stoichiometry (m = MIt/nF). The Nernst equation adjusts voltage for non-standard concentrations. Applications: Li-ion batteries (4V cells), PEM fuel cells (H₂ + O₂ → H₂O + electricity), electroplating, anodizing aluminum, the chlor-alkali process for NaOH and Cl₂."},
+  {title:"🏗️ Materials Engineering",content:"Crystal structure governs properties: FCC metals (Al, Cu, Au) are ductile; BCC (Fe, W) are stronger; HCP (Ti, Zn) less ductile. Phase diagrams map phase boundaries vs. temperature and composition. Heat treatment controls microstructure — annealing restores ductility, quenching traps hard martensite in steel, tempering balances hardness and toughness. Composites combine matrix and reinforcement (carbon fiber/epoxy, WC/Co) for optimized specific properties."},
+  {title:"💻 Semiconductor Physics",content:"Silicon's 1.1 eV bandgap is ideal for transistors. N-type doping (phosphorus adds electrons) and p-type (boron creates holes) form p-n junctions — the fundamental device. MOSFETs control current via gate voltage: modern 3nm processes fit ~100 billion transistors per chip. Compound semiconductors (GaAs, GaN, InP) enable LEDs, diode lasers, and high-frequency RF devices. SiC handles high-voltage power switching for EVs and grid systems."},
+  {title:"🧪 Kinetics & Catalysis",content:"Reaction rate depends on concentration, temperature, and catalysts. Arrhenius equation k = Ae^(−Ea/RT) shows temperature exponentially accelerates rate. Catalysts lower activation energy without being consumed. The Haber-Bosch process (N₂ + 3H₂ ⇌ 2NH₃, Fe catalyst, 400°C, 200 atm) produces fertilizer nitrogen for ~50% of humanity's food. Enzyme catalysis achieves extraordinary specificity at body temperature."},
+  {title:"☢️ Nuclear Chemistry",content:"Nuclear fission of U-235 releases ~million× more energy per atom than combustion. Critical mass sustains chain reactions in controlled reactors or weapons. Fusion (²H + ³H → ⁴He + n + 17.6 MeV) powers stars — commercial fusion (ITER, NIF) is the holy grail of clean energy. Radioactive decay (α, β, γ) follows first-order kinetics with characteristic half-lives used in radiometric dating (¹⁴C, U-Pb, K-Ar)."},
+  {title:"🔬 Nanotechnology",content:"Below ~100 nm, quantum mechanical effects and surface-area-to-volume ratios dominate. Carbon nanotubes have tensile strength ~100× steel. Graphene (one-atom-thick carbon) conducts electrons ballistically at room temperature. Gold nanoparticles appear red-purple (not gold) due to localized plasmon resonance shifting with particle size. Quantum dots (CdSe, InP) emit tunable colors used in QLED displays. STM and AFM can image and manipulate individual atoms."},
+  {title:"🌍 Green Chemistry",content:"The 12 Principles of Green Chemistry guide sustainable molecular design: maximize atom economy; use catalytic reagents; choose renewable feedstocks; design for degradation; minimize waste. Lithium-ion batteries, electrolyzers, and hydrogen fuel cells enable energy transition. Carbon capture uses amine scrubbing, zeolites, or metal-organic frameworks (MOFs — some with surface areas >6,000 m²/g). Circular economy materials design considers end-of-life recycling from the molecular structure up."},
+];
+
+const catDescs = {
+  alkali:"Group 1 metals, one valence electron. Extremely reactive, form +1 ions. Soft, low-density: Li, Na, K, Rb, Cs, Fr.",
+  alkaline:"Group 2, two valence electrons. Less reactive than alkalis. Mg (lightweight), Ca (concrete), Ba (drilling). Includes Be to Ra.",
+  transition:"d-block with partially filled d orbitals. Multiple oxidation states, magnetic behavior, catalytic activity. The engineering metals: Fe, Cu, Ti, Pt, Au...",
+  "post-trans":"Metals beyond the d-block: Al, Ga, In, Sn, Tl, Pb, Bi, plus Nh, Fl, Mc, Lv. Include Al (aerospace), Pb (shielding), Sn (solder), Bi (non-toxic).",
+  metalloid:"Intermediate properties. Semiconductor behavior makes Si and Ge foundations of electronics. B, Si, Ge, As, Sb, Te, At, Po.",
+  nonmetal:"Diverse group: reactive gases (H, O, N, S) and solids (C, P, I). Building blocks of life and most industrial chemistry.",
+  halogen:"Group 17 — one electron from full shell, highly reactive. F (most reactive element) → I → At → Ts. Form salts with metals.",
+  noble:"Group 18 — completely filled shells, minimal reactivity. He to Rn (+ Og). Inert atmospheres, lighting, MRI cooling, ion thrusters.",
+  lanthanide:"f-block rare earths 57–71. Critical for magnets (Nd, Dy), telecom (Er), MRI contrast (Gd), LEDs (Eu, Tb).",
+  actinide:"Heavy f-block 89–103, mostly radioactive. Nuclear fuels (U, Pu, Th), targeted cancer therapy (Ac-225, Lu-177), space power (Pu-238), smoke detectors (Am-241).",
+};
+
+let currentFilter = "all";
+let selectedEl = null;
+
+// ─── ELEMENTS DATA ───────────────────────────────────────────────────
+const elements = [
+  {n:1,sym:"H",name:"Hydrogen",mass:1.008,cat:"nonmetal",col:1,row:1,config:"1s¹",bp:-252.9,mp:-259.1,density:0.00009,discovery:1766,discoverer:"Cavendish",desc:"The lightest and most abundant element in the universe. Powers stars via nuclear fusion. Foundation of water and all organic chemistry.",uses:"Rocket fuel, ammonia production, hydrogen fuel cells, petroleum refining",eng:"Fuel cells, hydrogen economy, aerospace propulsion, Haber-Bosch process"},
+  {n:2,sym:"He",name:"Helium",mass:4.003,cat:"noble",col:18,row:1,config:"1s²",bp:-268.9,mp:-272.2,density:0.000178,discovery:1868,discoverer:"Janssen",desc:"Second most abundant element in the universe. Inert noble gas — the only element that cannot be solidified at atmospheric pressure.",uses:"MRI coolant, balloons, deep-sea diving, arc welding shield",eng:"Cryogenic cooling for superconducting magnets, semiconductor manufacturing"},
+  {n:3,sym:"Li",name:"Lithium",mass:6.941,cat:"alkali",col:1,row:2,config:"[He] 2s¹",bp:1342,mp:180.5,density:0.534,discovery:1817,discoverer:"Arfwedson",desc:"Lightest solid element. Highly reactive alkali metal. Essential for modern battery technology and psychiatric medicine.",uses:"Li-ion batteries, bipolar disorder treatment, aerospace alloys",eng:"Battery technology, aerospace alloys, nuclear reactor tritium breeding"},
+  {n:4,sym:"Be",name:"Beryllium",mass:9.012,cat:"alkaline",col:2,row:2,config:"[He] 2s²",bp:2469,mp:1287,density:1.85,discovery:1797,discoverer:"Vauquelin",desc:"Extremely stiff, lightweight metal. Highly toxic dust. High stiffness-to-weight ratio invaluable in aerospace.",uses:"Aerospace structures, X-ray windows, nuclear reactor reflectors",eng:"Structural aerospace material, X-ray tube windows, beryllium-copper springs"},
+  {n:5,sym:"B",name:"Boron",mass:10.811,cat:"metalloid",col:13,row:2,config:"[He] 2s² 2p¹",bp:3927,mp:2076,density:2.34,discovery:1808,discoverer:"Gay-Lussac & Davy",desc:"Metalloid critical in glass manufacturing, semiconductor doping, and neutron absorption.",uses:"Borosilicate glass, detergents, agriculture, nuclear control rods",eng:"Semiconductor doping, neutron absorption in reactors, high-strength boron fibers"},
+  {n:6,sym:"C",name:"Carbon",mass:12.011,cat:"nonmetal",col:14,row:2,config:"[He] 2s² 2p²",bp:3642,mp:3550,density:2.27,discovery:"Ancient",discoverer:"Antiquity",desc:"Foundation of all known life. Forms more compounds than any other element. Exists as diamond, graphite, graphene, and nanotubes.",uses:"Steel, polymers, diamonds, carbon fiber, fossil fuels",eng:"Carbon fiber composites, graphene electronics, carbon nanotubes, steel alloys"},
+  {n:7,sym:"N",name:"Nitrogen",mass:14.007,cat:"nonmetal",col:15,row:2,config:"[He] 2s² 2p³",bp:-195.8,mp:-210,density:0.00125,discovery:1772,discoverer:"Rutherford",desc:"Makes up 78% of Earth's atmosphere. Triple bond makes N₂ extremely stable. Essential in amino acids and DNA.",uses:"Fertilizers (Haber process), explosives, cryogenics, food preservation",eng:"Liquid nitrogen cooling, nitriding steel, pneumatic systems"},
+  {n:8,sym:"O",name:"Oxygen",mass:15.999,cat:"nonmetal",col:16,row:2,config:"[He] 2s² 2p⁴",bp:-183,mp:-218.8,density:0.00143,discovery:1774,discoverer:"Priestley",desc:"Essential for respiration and combustion. Most abundant element in Earth's crust by mass.",uses:"Steelmaking, medical therapy, water treatment, rocket oxidizer",eng:"Blast furnace steelmaking, combustion engineering, rocket engines"},
+  {n:9,sym:"F",name:"Fluorine",mass:18.998,cat:"halogen",col:17,row:2,config:"[He] 2s² 2p⁵",bp:-188.1,mp:-219.7,density:0.0017,discovery:1886,discoverer:"Moissan",desc:"Most electronegative and reactive of all elements. Forms the strongest single bond to carbon.",uses:"Teflon, toothpaste, refrigerants, uranium hexafluoride",eng:"Non-stick coatings, semiconductor etching, fluoropolymer seals"},
+  {n:10,sym:"Ne",name:"Neon",mass:20.18,cat:"noble",col:18,row:2,config:"[He] 2s² 2p⁶",bp:-246.1,mp:-248.6,density:0.0009,discovery:1898,discoverer:"Ramsay & Travers",desc:"Noble gas producing iconic red-orange light in discharge tubes.",uses:"Neon signs, HeNe lasers, cryogenic refrigeration",eng:"Gas lasers, optical reference wavelengths, lightning arrestors"},
+  {n:11,sym:"Na",name:"Sodium",mass:22.99,cat:"alkali",col:1,row:3,config:"[Ne] 3s¹",bp:883,mp:97.8,density:0.968,discovery:1807,discoverer:"Davy",desc:"Highly reactive metal that explodes in water. Essential electrolyte for nerve impulse transmission.",uses:"Table salt, soap, glass, sodium-vapor street lamps",eng:"Sodium-vapor lamps, liquid metal coolant in fast reactors"},
+  {n:12,sym:"Mg",name:"Magnesium",mass:24.305,cat:"alkaline",col:2,row:3,config:"[Ne] 3s²",bp:1090,mp:650,density:1.738,discovery:1755,discoverer:"Black",desc:"Lightest structural metal. Central atom in chlorophyll. Burns with intense white light.",uses:"Lightweight alloys, fireworks, medical antacids, fertilizers",eng:"Lightweight alloys for aerospace and automotive, die casting"},
+  {n:13,sym:"Al",name:"Aluminum",mass:26.982,cat:"post-trans",col:13,row:3,config:"[Ne] 3s² 3p¹",bp:2519,mp:660.3,density:2.7,discovery:1825,discoverer:"Ørsted",desc:"Most abundant metal in Earth's crust. Self-passivating oxide gives excellent corrosion resistance.",uses:"Packaging, aircraft fuselage, construction, electrical cables",eng:"Aerospace structures, heat exchangers, electrical conductors"},
+  {n:14,sym:"Si",name:"Silicon",mass:28.086,cat:"metalloid",col:14,row:3,config:"[Ne] 3s² 3p²",bp:2900,mp:1414,density:2.33,discovery:1824,discoverer:"Berzelius",desc:"Foundation of the digital revolution. Second most abundant element in Earth's crust. 1.1 eV bandgap makes it the ideal semiconductor.",uses:"Computer chips, solar cells, glass, ceramics, concrete",eng:"CMOS integrated circuits, photovoltaic cells, MEMS, optical fiber"},
+  {n:15,sym:"P",name:"Phosphorus",mass:30.974,cat:"nonmetal",col:15,row:3,config:"[Ne] 3s² 3p³",bp:280.5,mp:44.2,density:1.82,discovery:1669,discoverer:"Brand",desc:"First element discovered by a named individual. Essential for DNA, RNA, and ATP.",uses:"Fertilizers, safety matches, food additives, flame retardants",eng:"Steel production, semiconductor doping, organophosphate chemistry"},
+  {n:16,sym:"S",name:"Sulfur",mass:32.06,cat:"nonmetal",col:16,row:3,config:"[Ne] 3s² 3p⁴",bp:444.6,mp:119.6,density:2.07,discovery:"Ancient",discoverer:"Antiquity",desc:"Bright yellow nonmetal. Sulfuric acid (made from sulfur) is the most-produced industrial chemical.",uses:"Sulfuric acid, rubber vulcanization, fertilizers, gunpowder",eng:"Contact process H₂SO₄, rubber vulcanization, desulfurization"},
+  {n:17,sym:"Cl",name:"Chlorine",mass:35.453,cat:"halogen",col:17,row:3,config:"[Ne] 3s² 3p⁵",bp:-34.1,mp:-101.5,density:0.00321,discovery:1774,discoverer:"Scheele",desc:"Reactive halogen gas that revolutionized public health via water purification.",uses:"Water purification, PVC plastic, bleach, pharmaceuticals",eng:"Water treatment, chlor-alkali process, polyvinyl chloride production"},
+  {n:18,sym:"Ar",name:"Argon",mass:39.948,cat:"noble",col:18,row:3,config:"[Ne] 3s² 3p⁶",bp:-185.9,mp:-189.3,density:0.00178,discovery:1894,discoverer:"Rayleigh & Ramsay",desc:"Most abundant noble gas at ~0.93% of atmosphere. Completely inert.",uses:"MIG/TIG welding shield, incandescent bulb fill, double glazing",eng:"Inert welding atmosphere, semiconductor fabrication"},
+  {n:19,sym:"K",name:"Potassium",mass:39.098,cat:"alkali",col:1,row:4,config:"[Ar] 4s¹",bp:759,mp:63.4,density:0.86,discovery:1807,discoverer:"Davy",desc:"First metal isolated by electrolysis. Essential electrolyte for nerve and muscle function.",uses:"Fertilizers (potash), food additives, glass manufacturing",eng:"Molten salt heat transfer fluid, K-Ar geological dating"},
+  {n:20,sym:"Ca",name:"Calcium",mass:40.078,cat:"alkaline",col:2,row:4,config:"[Ar] 4s²",bp:1484,mp:842,density:1.54,discovery:1808,discoverer:"Davy",desc:"Most abundant mineral in the human body. Fifth most abundant element in Earth's crust.",uses:"Portland cement, plaster, food fortification, steelmaking flux",eng:"Cement and concrete production, steel deoxidation"},
+  {n:21,sym:"Sc",name:"Scandium",mass:44.956,cat:"transition",col:3,row:4,config:"[Ar] 3d¹ 4s²",bp:2836,mp:1541,density:2.99,discovery:1879,discoverer:"Nilson",desc:"Rare transition metal predicted perfectly by Mendeleev as eka-boron.",uses:"Al-Sc aerospace alloys, high-intensity lamps, solid oxide fuel cells",eng:"Aluminum-scandium master alloys, solid oxide fuel cell electrodes"},
+  {n:22,sym:"Ti",name:"Titanium",mass:47.867,cat:"transition",col:4,row:4,config:"[Ar] 3d² 4s²",bp:3287,mp:1668,density:4.51,discovery:1791,discoverer:"Gregor",desc:"Lightweight, incredibly strong, and corrosion-resistant. Biocompatible with human tissue.",uses:"Aircraft, spacecraft, medical implants, sports equipment, TiO₂ pigment",eng:"Aerospace structures, jet engine blades, biomedical implants"},
+  {n:23,sym:"V",name:"Vanadium",mass:50.942,cat:"transition",col:5,row:4,config:"[Ar] 3d³ 4s²",bp:3407,mp:1910,density:6.11,discovery:1801,discoverer:"del Río",desc:"Small additions dramatically strengthen steel. Vanadium redox batteries promise grid-scale energy storage.",uses:"High-strength steel, vanadium redox batteries, V₂O₅ catalyst",eng:"HSLA pipeline steel, vanadium redox flow batteries"},
+  {n:24,sym:"Cr",name:"Chromium",mass:51.996,cat:"transition",col:6,row:4,config:"[Ar] 3d⁵ 4s¹",bp:2671,mp:1907,density:7.19,discovery:1797,discoverer:"Vauquelin",desc:"Hardest pure metal. Passive chromium oxide layer makes stainless steel corrosion-proof.",uses:"Stainless steel, chrome plating, pigments, leather tanning",eng:"Stainless steel alloys, hard chrome plating, refractory brick"},
+  {n:25,sym:"Mn",name:"Manganese",mass:54.938,cat:"transition",col:7,row:4,config:"[Ar] 3d⁵ 4s²",bp:2061,mp:1246,density:7.47,discovery:1774,discoverer:"Gahn",desc:"Essential steel additive for desulfurization. Wide oxidation state range enables rich redox chemistry.",uses:"Steel production, dry cell batteries (MnO₂), pigments",eng:"Steel deoxidizer and desulfurizer, alkaline batteries, water treatment"},
+  {n:26,sym:"Fe",name:"Iron",mass:55.845,cat:"transition",col:8,row:4,config:"[Ar] 3d⁶ 4s²",bp:2861,mp:1538,density:7.87,discovery:"Ancient",discoverer:"Antiquity",desc:"The backbone of human civilization. Most used metal in the world. Forms Earth's core. Oxygen carrier in hemoglobin.",uses:"Steel and cast iron, permanent magnets, catalysts, hemoglobin",eng:"Structural steel, blast furnace, electromagnetic cores"},
+  {n:27,sym:"Co",name:"Cobalt",mass:58.933,cat:"transition",col:9,row:4,config:"[Ar] 3d⁷ 4s²",bp:2927,mp:1495,density:8.86,discovery:1735,discoverer:"Brandt",desc:"Hard blue metal. Critical for rechargeable batteries and jet engine superalloys. Vitamin B12 contains cobalt.",uses:"Li-ion battery cathodes, superalloys, permanent magnets, cobalt blue",eng:"NMC/NCA Li-ion cathode materials, nickel-cobalt superalloys"},
+  {n:28,sym:"Ni",name:"Nickel",mass:58.693,cat:"transition",col:10,row:4,config:"[Ar] 3d⁸ 4s²",bp:2913,mp:1455,density:8.9,discovery:1751,discoverer:"Cronstedt",desc:"Hard, ductile, corrosion-resistant ferromagnetic metal. Critical for stainless steel and superalloys.",uses:"Stainless steel, jet engine superalloys, NiMH batteries, coins",eng:"Inconel superalloys, nickel-metal hydride batteries, Raney nickel catalyst"},
+  {n:29,sym:"Cu",name:"Copper",mass:63.546,cat:"transition",col:11,row:4,config:"[Ar] 3d¹⁰ 4s¹",bp:2567,mp:1085,density:8.96,discovery:"Ancient",discoverer:"Antiquity",desc:"Humanity's first smelted metal. Second-best electrical conductor. Natural antimicrobial properties.",uses:"Electrical wiring, plumbing, bronze and brass alloys, printed circuit boards",eng:"Electrical conductors, heat exchangers, PCB traces, electromagnetic coils"},
+  {n:30,sym:"Zn",name:"Zinc",mass:65.38,cat:"transition",col:12,row:4,config:"[Ar] 3d¹⁰ 4s²",bp:907,mp:419.5,density:7.13,discovery:1746,discoverer:"Marggraf",desc:"Bluish-white metal essential for galvanizing steel. Essential trace element for immune function.",uses:"Galvanizing steel, die casting, brass, sunscreen (ZnO)",eng:"Corrosion-protective zinc coatings, zinc-air batteries, sacrificial anodes"},
+  {n:31,sym:"Ga",name:"Gallium",mass:69.723,cat:"post-trans",col:13,row:4,config:"[Ar] 3d¹⁰ 4s² 4p¹",bp:2229,mp:29.8,density:5.91,discovery:1875,discoverer:"Lecoq de Boisbaudran",desc:"Melts in your hand at 29.8°C. III-V semiconductor enabling high-efficiency LEDs and solar cells.",uses:"GaN LEDs and laser diodes, GaAs solar cells, semiconductors",eng:"GaN power electronics, high-brightness LEDs, 5G RF transistors"},
+  {n:32,sym:"Ge",name:"Germanium",mass:72.63,cat:"metalloid",col:14,row:4,config:"[Ar] 3d¹⁰ 4s² 4p²",bp:2833,mp:938.3,density:5.32,discovery:1886,discoverer:"Winkler",desc:"Metalloid predicted by Mendeleev. Enabled first transistors. Critical for fiber optics and infrared optics.",uses:"Fiber optic cables, infrared optics, semiconductor devices",eng:"Single-mode fiber optic core, IR camera lenses, SiGe transistors"},
+  {n:33,sym:"As",name:"Arsenic",mass:74.922,cat:"metalloid",col:15,row:4,config:"[Ar] 3d¹⁰ 4s² 4p³",bp:616,mp:817,density:5.73,discovery:"Ancient",discoverer:"Albertus Magnus ~1250",desc:"Notorious poison. Grey metalloid enabling III-V compound semiconductors.",uses:"GaAs semiconductors, wood preservatives, pesticides",eng:"GaAs and InGaAs high-speed transistors, LED compound semiconductors"},
+  {n:34,sym:"Se",name:"Selenium",mass:78.971,cat:"nonmetal",col:16,row:4,config:"[Ar] 3d¹⁰ 4s² 4p⁴",bp:685,mp:221,density:4.81,discovery:1817,discoverer:"Berzelius",desc:"Photoconductor whose resistance drops in light. Essential trace element in human biology.",uses:"Photocopiers, glass decolorizing, dandruff shampoo, CIGS solar cells",eng:"Xerographic photoreceptors, CIS/CIGS thin-film solar cells"},
+  {n:35,sym:"Br",name:"Bromine",mass:79.904,cat:"halogen",col:17,row:4,config:"[Ar] 3d¹⁰ 4s² 4p⁵",bp:59,mp:-7.3,density:3.12,discovery:1826,discoverer:"Balard & Löwig",desc:"One of only two elements liquid at room temperature. Red-brown fuming corrosive liquid.",uses:"Flame retardants, fumigants, water treatment, dye intermediates",eng:"Brominated flame retardants for electronics PCBs"},
+  {n:36,sym:"Kr",name:"Krypton",mass:83.798,cat:"noble",col:18,row:4,config:"[Ar] 3d¹⁰ 4s² 4p⁶",bp:-153.2,mp:-157.4,density:0.00375,discovery:1898,discoverer:"Ramsay & Travers",desc:"Noble gas used in high-performance lighting. The metre was once defined by a Kr-86 spectral line.",uses:"KrF excimer lasers, high-intensity flashlamps, specialty lighting",eng:"KrF excimer lasers for semiconductor lithography"},
+  {n:37,sym:"Rb",name:"Rubidium",mass:85.468,cat:"alkali",col:1,row:5,config:"[Kr] 5s¹",bp:688,mp:39.3,density:1.53,discovery:1861,discoverer:"Bunsen & Kirchhoff",desc:"Discovered using the first spectroscope. Ignites spontaneously in air. Used in atomic clocks.",uses:"Atomic clocks (GPS), photomultiplier tubes, magnetometers",eng:"Atomic frequency standards, Rb vapor magnetometers, quantum devices"},
+  {n:38,sym:"Sr",name:"Strontium",mass:87.62,cat:"alkaline",col:2,row:5,config:"[Kr] 5s²",bp:1382,mp:777,density:2.64,discovery:1790,discoverer:"Crawford",desc:"Soft yellowish metal. Sr-90 is a dangerous radioactive fission product. Produces crimson in fireworks.",uses:"Red fireworks, CRT glass, ferrite magnets, sensitive teeth toothpaste",eng:"Strontium ferrite permanent magnets, SrTiO₃ DRAM capacitors"},
+  {n:39,sym:"Y",name:"Yttrium",mass:88.906,cat:"transition",col:3,row:5,config:"[Kr] 4d¹ 5s²",bp:3336,mp:1522,density:4.47,discovery:1794,discoverer:"Gadolin",desc:"Silvery rare earth. YBCO was a breakthrough high-Tc superconductor.",uses:"YAG lasers, LED phosphors, YBCO superconductors, fuel cell electrodes",eng:"YAG laser cutting, yttria-stabilized zirconia TBCs for turbines"},
+  {n:40,sym:"Zr",name:"Zirconium",mass:91.224,cat:"transition",col:4,row:5,config:"[Kr] 4d² 5s²",bp:4409,mp:1855,density:6.52,discovery:1789,discoverer:"Klaproth",desc:"Extraordinarily corrosion-resistant. Nearly transparent to neutrons — ideal for nuclear fuel cladding.",uses:"Nuclear reactor fuel cladding, zirconia ceramics, dental crowns",eng:"Nuclear cladding tubes, yttria-stabilized zirconia thermal barrier coatings"},
+  {n:41,sym:"Nb",name:"Niobium",mass:92.906,cat:"transition",col:5,row:5,config:"[Kr] 4d⁴ 5s¹",bp:4744,mp:2477,density:8.57,discovery:1801,discoverer:"Hatchett",desc:"Superconductor below 9.3 K used in MRI magnets. Dramatically strengthens steel.",uses:"High-strength steel, superconducting MRI magnets, jet engine superalloys",eng:"HSLA pipeline steel, NbTi and Nb₃Sn superconducting wire for MRI"},
+  {n:42,sym:"Mo",name:"Molybdenum",mass:95.96,cat:"transition",col:6,row:5,config:"[Kr] 4d⁵ 5s¹",bp:4639,mp:2623,density:10.22,discovery:1778,discoverer:"Scheele",desc:"High-melting metal essential for elevated-temperature strength. MoS₂ is a solid lubricant.",uses:"High-temperature steel alloys, lubricants, HDS catalyst, electrodes",eng:"Alloy steel for high-T applications, HDS catalyst in petroleum refining"},
+  {n:43,sym:"Tc",name:"Technetium",mass:98,cat:"transition",col:7,row:5,config:"[Kr] 4d⁵ 5s²",bp:4265,mp:2157,density:11.5,discovery:1937,discoverer:"Perrier & Segrè",desc:"First artificially produced element. Tc-99m is the most widely used radiotracer in nuclear medicine.",uses:"Nuclear medicine diagnostic imaging (bone, heart, brain scans)",eng:"Technetium-99m generator systems for hospital nuclear medicine"},
+  {n:44,sym:"Ru",name:"Ruthenium",mass:101.07,cat:"transition",col:8,row:5,config:"[Kr] 4d⁷ 5s¹",bp:4150,mp:2334,density:12.1,discovery:1844,discoverer:"Klaus",desc:"Rare platinum group metal with exceptional catalytic properties.",uses:"Electrical contacts, wear-resistant pen nibs, Grubbs catalyst",eng:"Grubbs olefin metathesis catalyst, Ru dye-sensitized solar cells"},
+  {n:45,sym:"Rh",name:"Rhodium",mass:102.906,cat:"transition",col:9,row:5,config:"[Kr] 4d⁸ 5s¹",bp:3695,mp:1964,density:12.41,discovery:1803,discoverer:"Wollaston",desc:"Rarest and most expensive element. Essential for reducing NOₓ in catalytic converters.",uses:"Automotive catalytic converters, electroplating jewelry, thermocouples",eng:"Three-way catalytic converters (NOₓ reduction), Pt-Rh thermocouples"},
+  {n:46,sym:"Pd",name:"Palladium",mass:106.42,cat:"transition",col:10,row:5,config:"[Kr] 4d¹⁰",bp:2963,mp:1555,density:12.02,discovery:1803,discoverer:"Wollaston",desc:"Absorbs up to 900× its volume of hydrogen. Key in automotive catalysts and cross-coupling chemistry.",uses:"Catalytic converters, ceramic capacitors, white gold jewelry",eng:"Automotive oxidation catalysts, MLCC electrodes, Pd-catalyzed coupling reactions"},
+  {n:47,sym:"Ag",name:"Silver",mass:107.868,cat:"transition",col:11,row:5,config:"[Kr] 4d¹⁰ 5s¹",bp:2162,mp:961.8,density:10.5,discovery:"Ancient",discoverer:"Antiquity",desc:"Highest electrical and thermal conductivity of all metals. Broadest antimicrobial spectrum.",uses:"Solar panel electrodes, electronics contacts, jewelry, photography",eng:"Screen-printed Ag paste for solar cells, electrical contacts, brazing alloys"},
+  {n:48,sym:"Cd",name:"Cadmium",mass:112.411,cat:"transition",col:12,row:5,config:"[Kr] 4d¹⁰ 5s²",bp:767,mp:321.1,density:8.65,discovery:1817,discoverer:"Stromeyer",desc:"Soft toxic metal. CdTe thin-film panels are the leading low-cost photovoltaic technology.",uses:"Ni-Cd batteries, CdTe solar panels, pigments, neutron control rods",eng:"CdTe thin-film solar cells, Ni-Cd batteries, neutron absorber"},
+  {n:49,sym:"In",name:"Indium",mass:114.818,cat:"post-trans",col:13,row:5,config:"[Kr] 4d¹⁰ 5s² 5p¹",bp:2072,mp:156.6,density:7.31,discovery:1863,discoverer:"Reich & Richter",desc:"Indium tin oxide (ITO) is the invisible transparent electrode on every touchscreen and LCD display.",uses:"ITO transparent electrodes (touchscreens, LCDs), solders, InP semiconductors",eng:"Transparent electrode for displays and solar cells, InGaAs semiconductors"},
+  {n:50,sym:"Sn",name:"Tin",mass:118.71,cat:"post-trans",col:14,row:5,config:"[Kr] 4d¹⁰ 5s² 5p²",bp:2602,mp:231.9,density:7.31,discovery:"Ancient",discoverer:"Antiquity",desc:"Non-toxic metal used since the Bronze Age. Lead-free solder essential for modern electronics.",uses:"Tin cans (steel plating), lead-free solder, bronze/pewter alloys",eng:"Lead-free SnAgCu solder, tin-plated steel food cans, tin-copper bronzes"},
+  {n:51,sym:"Sb",name:"Antimony",mass:121.76,cat:"metalloid",col:15,row:5,config:"[Kr] 4d¹⁰ 5s² 5p³",bp:1587,mp:630.6,density:6.68,discovery:"Ancient",discoverer:"Antiquity",desc:"Brittle metalloid. Antimony trioxide is a primary flame retardant synergist.",uses:"Flame retardants, lead-acid battery plates, type metal",eng:"Lead-acid battery grid alloy, Sb₂O₃ flame retardant synergist"},
+  {n:52,sym:"Te",name:"Tellurium",mass:127.6,cat:"metalloid",col:16,row:5,config:"[Kr] 4d¹⁰ 5s² 5p⁴",bp:988,mp:449.5,density:6.24,discovery:1782,discoverer:"von Reichenstein",desc:"Rare brittle metalloid. CdTe is the dominant thin-film solar cell material.",uses:"CdTe solar cells, thermoelectric devices, steel machinability additive",eng:"CdTe thin-film photovoltaics, Bi₂Te₃ thermoelectric coolers"},
+  {n:53,sym:"I",name:"Iodine",mass:126.904,cat:"halogen",col:17,row:5,config:"[Kr] 4d¹⁰ 5s² 5p⁵",bp:184.3,mp:113.7,density:4.93,discovery:1811,discoverer:"Courtois",desc:"Only halogen solid at room temperature. Violet vapor. Essential for thyroid hormone synthesis.",uses:"Antiseptic, thyroid medication, salt iodization, X-ray contrast agents",eng:"I-125 brachytherapy seeds, tungsten halogen lamp cycle, LCD polarizing film"},
+  {n:54,sym:"Xe",name:"Xenon",mass:131.293,cat:"noble",col:18,row:5,config:"[Kr] 4d¹⁰ 5s² 5p⁶",bp:-108.1,mp:-111.8,density:0.00589,discovery:1898,discoverer:"Ramsay & Travers",desc:"Heavy noble gas producing brilliant white arc light. First noble gas compound synthesized (XePtF₆, 1962).",uses:"Xenon arc lamps (cinema), ion thrusters, anesthesia, NMR spectroscopy",eng:"Xe ion thrusters for spacecraft, high-intensity arc lamps, excimer lasers"},
+  {n:55,sym:"Cs",name:"Cesium",mass:132.905,cat:"alkali",col:1,row:6,config:"[Xe] 6s¹",bp:671,mp:28.5,density:1.93,discovery:1860,discoverer:"Bunsen & Kirchhoff",desc:"Most electropositive stable element. Cs-133 defines the SI second via atomic clock.",uses:"Atomic clocks (GPS timing), photoelectric cells, drilling fluid additive",eng:"Primary frequency standard in atomic clocks, quantum device optical pumping"},
+  {n:56,sym:"Ba",name:"Barium",mass:137.327,cat:"alkaline",col:2,row:6,config:"[Xe] 6s²",bp:1870,mp:727,density:3.51,discovery:1808,discoverer:"Davy",desc:"Barium sulfate is X-ray opaque yet non-toxic — invaluable for GI tract imaging.",uses:"X-ray contrast agent for GI imaging, oil well drilling mud, green fireworks",eng:"High-density drilling fluids, YBCO superconductors, BaTiO₃ capacitor dielectric"},
+  {n:57,sym:"La",name:"Lanthanum",mass:138.905,cat:"lanthanide",col:3,row:8,config:"[Xe] 5d¹ 6s²",bp:3464,mp:920,density:6.16,discovery:1839,discoverer:"Mosander",desc:"Namesake of the lanthanide series. La-Ni₅ alloy absorbs hydrogen — key for NiMH batteries.",uses:"NiMH battery anodes, high-refractive-index optical glass, FCC catalyst",eng:"NiMH battery negative electrode, lanthana-doped alumina for catalytic converters"},
+  {n:58,sym:"Ce",name:"Cerium",mass:140.116,cat:"lanthanide",col:4,row:8,config:"[Xe] 4f¹ 5d¹ 6s²",bp:3433,mp:798,density:6.77,discovery:1803,discoverer:"Berzelius & Hisinger",desc:"Most abundant rare earth. The spark from a cigarette lighter is cerium-iron misch metal.",uses:"Cigarette lighter flints, automotive catalytic converters, glass polishing",eng:"CeO₂ oxygen storage in three-way catalysts, cerium oxide glass polishing"},
+  {n:59,sym:"Pr",name:"Praseodymium",mass:140.908,cat:"lanthanide",col:5,row:8,config:"[Xe] 4f³ 6s²",bp:3520,mp:931,density:6.77,discovery:1885,discoverer:"von Welsbach",desc:"Forms brilliant green salts. Critical component of the strongest permanent magnets.",uses:"NdFeB magnets, yellow ceramic pigment, mischmetal alloys",eng:"NdFeB permanent magnets for EV motors and wind turbines"},
+  {n:60,sym:"Nd",name:"Neodymium",mass:144.242,cat:"lanthanide",col:6,row:8,config:"[Xe] 4f⁴ 6s²",bp:3074,mp:1021,density:7.01,discovery:1885,discoverer:"von Welsbach",desc:"Most important rare earth for modern tech. Nd₂Fe₁₄B magnets enable EV motors and wind turbines.",uses:"NdFeB permanent magnets, Nd:YAG lasers, coloring glass purple/violet",eng:"EV traction motors, wind turbine generators, HDD actuators, Nd:YAG lasers"},
+  {n:61,sym:"Pm",name:"Promethium",mass:145,cat:"lanthanide",col:7,row:8,config:"[Xe] 4f⁵ 6s²",bp:3000,mp:1042,density:7.26,discovery:1945,discoverer:"Marinsky et al.",desc:"Only lanthanide with no stable isotopes. Named after Prometheus.",uses:"Nuclear battery (beta voltaic), thickness gauges, luminescent paint (historical)",eng:"Beta-voltaic generators, industrial thickness measurement gauges"},
+  {n:62,sym:"Sm",name:"Samarium",mass:150.36,cat:"lanthanide",col:8,row:8,config:"[Xe] 4f⁶ 6s²",bp:1794,mp:1072,density:7.52,discovery:1879,discoverer:"Lecoq de Boisbaudran",desc:"SmCo₅ magnets were the first rare earth permanent magnets — preferred over NdFeB at high temperatures.",uses:"SmCo permanent magnets, neutron absorber in reactors",eng:"SmCo magnets for high-temperature applications"},
+  {n:63,sym:"Eu",name:"Europium",mass:151.964,cat:"lanthanide",col:9,row:8,config:"[Xe] 4f⁷ 6s²",bp:1529,mp:822,density:5.24,discovery:1901,discoverer:"Demarçay",desc:"Most reactive lanthanide. Eu-activated phosphors produce vivid red in fluorescent lights. In euro banknotes as anti-counterfeiting fluorescence.",uses:"Red and blue phosphors for lamps and displays, euro banknote security inks",eng:"Europium phosphors for LED lighting, trichromatic fluorescent lamp phosphors"},
+  {n:64,sym:"Gd",name:"Gadolinium",mass:157.25,cat:"lanthanide",col:10,row:8,config:"[Xe] 4f⁷ 5d¹ 6s²",bp:3273,mp:1313,density:7.9,discovery:1880,discoverer:"Marignac",desc:"Highest paramagnetism of any element. Gd complexes are the most widely used MRI contrast agents.",uses:"MRI contrast agents, neutron capture cancer therapy, magnetocaloric refrigeration",eng:"Gd-based MRI contrast agents, magnetocaloric effect cooling"},
+  {n:65,sym:"Tb",name:"Terbium",mass:158.925,cat:"lanthanide",col:11,row:8,config:"[Xe] 4f⁹ 6s²",bp:3230,mp:1356,density:8.23,discovery:1843,discoverer:"Mosander",desc:"Highly magnetostrictive. Terfenol-D changes shape in magnetic fields — used in sonar transducers.",uses:"Terfenol-D actuators, green phosphors in displays and tricolor lamps",eng:"Terfenol-D sonar transducers, terbium-doped garnet optical isolators"},
+  {n:66,sym:"Dy",name:"Dysprosium",mass:162.5,cat:"lanthanide",col:12,row:8,config:"[Xe] 4f¹⁰ 6s²",bp:2567,mp:1412,density:8.55,discovery:1886,discoverer:"Lecoq de Boisbaudran",desc:"Essential additive to NdFeB magnets — prevents demagnetization at elevated temperatures in EV motors.",uses:"NdFeB magnet stabilizer (5-6%), data storage, magnetostrictive alloys",eng:"Dy addition to NdFeB for EV motor magnets at operating temperature"},
+  {n:67,sym:"Ho",name:"Holmium",mass:164.93,cat:"lanthanide",col:13,row:8,config:"[Xe] 4f¹¹ 6s²",bp:2720,mp:1474,density:8.8,discovery:1878,discoverer:"Cleve & Soret",desc:"Highest magnetic moment of any naturally occurring element.",uses:"Magnetic flux concentrators, Ho:YAG surgical lasers, nuclear reactor rods",eng:"Ho:YAG 2.1μm surgical laser for kidney stones, magnetic flux poles"},
+  {n:68,sym:"Er",name:"Erbium",mass:167.259,cat:"lanthanide",col:14,row:8,config:"[Xe] 4f¹² 6s²",bp:2868,mp:1529,density:9.07,discovery:1843,discoverer:"Mosander",desc:"The rare earth that enabled global internet. Erbium-doped fiber amplifiers boost optical signals at 1550 nm.",uses:"EDFA optical amplifiers for telecoms, Er:YAG dental and skin lasers",eng:"EDFA amplifiers for transoceanic fiber cables, Er:YAG medical laser"},
+  {n:69,sym:"Tm",name:"Thulium",mass:168.934,cat:"lanthanide",col:15,row:8,config:"[Xe] 4f¹³ 6s²",bp:1950,mp:1545,density:9.32,discovery:1879,discoverer:"Cleve",desc:"Rarest naturally occurring lanthanide. Eye-safe 2μm laser wavelength.",uses:"Portable X-ray source, Tm:YAG fiber lasers, blue phosphors",eng:"Tm-doped fiber lasers for LIDAR, Tm-170 industrial radiography"},
+  {n:70,sym:"Yb",name:"Ytterbium",mass:173.054,cat:"lanthanide",col:16,row:8,config:"[Xe] 4f¹⁴ 6s²",bp:1196,mp:819,density:6.9,discovery:1878,discoverer:"Marignac",desc:"Yb:YAG lasers increasingly replacing Nd:YAG in industrial cutting — more efficient, suited to fiber delivery.",uses:"Yb:YAG fiber lasers for cutting/welding, optical atomic clocks",eng:"Yb-fiber lasers for sheet metal cutting (kW-class), Yb optical lattice clocks"},
+  {n:71,sym:"Lu",name:"Lutetium",mass:174.967,cat:"lanthanide",col:17,row:8,config:"[Xe] 4f¹⁴ 5d¹ 6s²",bp:3402,mp:1663,density:9.84,discovery:1907,discoverer:"Urbain & von Welsbach",desc:"Densest and hardest lanthanide. LYSO crystals are premier PET scanner scintillators. Lu-177 is targeted cancer therapy.",uses:"PET scanner LYSO scintillator crystals, Lu-177 cancer therapy (Lutathera)",eng:"LYSO scintillator detectors for PET imaging, Lu-177 radioligand therapy"},
+  {n:72,sym:"Hf",name:"Hafnium",mass:178.49,cat:"transition",col:4,row:6,config:"[Xe] 4f¹⁴ 5d² 6s²",bp:4603,mp:2233,density:13.31,discovery:1923,discoverer:"Coster & von Hevesy",desc:"Always found with zirconium. Strong neutron absorber. HfO₂ replaced SiO₂ as gate dielectric in sub-45nm chips.",uses:"Nuclear reactor control rods, turbine blade superalloys, HfO₂ gate dielectric",eng:"Hafnium high-k dielectrics in CMOS, Hf-Ta control rods, hafnium in Ni superalloys"},
+  {n:73,sym:"Ta",name:"Tantalum",mass:180.948,cat:"transition",col:5,row:6,config:"[Xe] 4f¹⁴ 5d³ 6s²",bp:5458,mp:3017,density:16.69,discovery:1802,discoverer:"Ekeberg",desc:"Tantalum capacitors pack enormous capacitance in tiny volumes — found in virtually every smartphone.",uses:"Miniature capacitors in electronics, surgical implants, chemical processing",eng:"Tantalum electrolytic capacitors for mobile electronics, Ta-lined chemical reactors"},
+  {n:74,sym:"W",name:"Tungsten",mass:183.84,cat:"transition",col:6,row:6,config:"[Xe] 4f¹⁴ 5d⁴ 6s²",bp:5555,mp:3422,density:19.25,discovery:1783,discoverer:"del Elhujar brothers",desc:"Highest melting point of all elements (3422°C). Tungsten carbide cuts almost everything.",uses:"Tungsten carbide cutting tools, incandescent filaments, X-ray targets",eng:"WC-Co cemented carbides for machining, W-Re thermocouples, X-ray tube anodes"},
+  {n:75,sym:"Re",name:"Rhenium",mass:186.207,cat:"transition",col:7,row:6,config:"[Xe] 4f¹⁴ 5d⁵ 6s²",bp:5596,mp:3186,density:21.02,discovery:1925,discoverer:"Noddack et al.",desc:"Second highest melting point. Rhenium enables 5th-generation single-crystal jet engine blades at 1200°C.",uses:"Superalloy jet engine blades (3-6% Re), Pt-Re reforming catalyst",eng:"Single-crystal Ni superalloy turbine blades, Pt-Re naphtha reforming catalyst"},
+  {n:76,sym:"Os",name:"Osmium",mass:190.23,cat:"transition",col:8,row:6,config:"[Xe] 4f¹⁴ 5d⁶ 6s²",bp:5012,mp:3033,density:22.59,discovery:1803,discoverer:"Tennant",desc:"Densest naturally occurring element (22.59 g/cm³). OsO₄ used in electron microscopy tissue staining.",uses:"Fountain pen tips, electrical contacts, electron microscopy staining",eng:"Extremely wear-resistant Os-Ir alloy contacts"},
+  {n:77,sym:"Ir",name:"Iridium",mass:192.217,cat:"transition",col:9,row:6,config:"[Xe] 4f¹⁴ 5d⁷ 6s²",bp:4428,mp:2466,density:22.56,discovery:1803,discoverer:"Tennant",desc:"Most corrosion-resistant metal. K-Pg boundary layer rich in iridium confirmed the dinosaur-killing asteroid.",uses:"Spark plugs, fountain pens, crucibles for crystal growth, Ir-192 cancer therapy",eng:"Ir-tipped spark plugs, Ir crucibles for sapphire growth, Ir-192 cancer radiotherapy"},
+  {n:78,sym:"Pt",name:"Platinum",mass:195.084,cat:"transition",col:10,row:6,config:"[Xe] 4f¹⁴ 5d⁹ 6s¹",bp:3825,mp:1768,density:21.45,discovery:1735,discoverer:"Ulloa",desc:"Dense, malleable, chemically inert noble metal. Cisplatin revolutionized cancer chemotherapy.",uses:"Catalytic converters, jewelry, cisplatin cancer drug, fuel cell electrodes",eng:"Automotive three-way catalysts, PEM fuel cell electrodes, Pt-Rh ammonia oxidation"},
+  {n:79,sym:"Au",name:"Gold",mass:196.967,cat:"transition",col:11,row:6,config:"[Xe] 4f¹⁴ 5d¹⁰ 6s¹",bp:2856,mp:1064,density:19.3,discovery:"Ancient",discoverer:"Antiquity",desc:"The noble metal par excellence — immune to nearly all corrosion. Monetary standard of civilization.",uses:"Jewelry, monetary reserve, electronics contacts, dental work, spacecraft coatings",eng:"Corrosion-resistant electrical contacts, gold wire bonding in ICs"},
+  {n:80,sym:"Hg",name:"Mercury",mass:200.59,cat:"transition",col:12,row:6,config:"[Xe] 4f¹⁴ 5d¹⁰ 6s²",bp:357,mp:-38.8,density:13.53,discovery:"Ancient",discoverer:"Antiquity",desc:"Only metal liquid at room temperature. Highly toxic neurotoxin.",uses:"Fluorescent/CFL lamps, dental amalgam (declining), chlor-alkali electrolysis",eng:"Mercury vapor pressure thermometry standards"},
+  {n:81,sym:"Tl",name:"Thallium",mass:204.383,cat:"post-trans",col:13,row:6,config:"[Xe] 4f¹⁴ 5d¹⁰ 6p¹",bp:1473,mp:304,density:11.85,discovery:1861,discoverer:"Crookes",desc:"Soft, highly toxic metal. Tl-doped NaI scintillator is the classic gamma-ray detector crystal.",uses:"NaI(Tl) scintillator detectors, infrared optical materials, Tl-201 cardiac imaging",eng:"NaI(Tl) gamma detectors, infrared optics"},
+  {n:82,sym:"Pb",name:"Lead",mass:207.2,cat:"post-trans",col:14,row:6,config:"[Xe] 4f¹⁴ 5d¹⁰ 6p²",bp:1749,mp:327.5,density:11.3,discovery:"Ancient",discoverer:"Antiquity",desc:"Dense, malleable metal. Most important radiation shielding material. Lead-acid battery remains dominant by mass.",uses:"Lead-acid batteries, radiation shielding, lead crystal glass, ammunition",eng:"Radiation shielding design, lead-acid battery engineering"},
+  {n:83,sym:"Bi",name:"Bismuth",mass:208.98,cat:"post-trans",col:15,row:6,config:"[Xe] 4f¹⁴ 5d¹⁰ 6p³",bp:1564,mp:271.4,density:9.79,discovery:1753,discoverer:"Geoffroy",desc:"Heaviest stable element. Colorful iridescent oxide. Non-toxic replacement for lead.",uses:"Pepto-Bismol, lead-free solders, fusible alloys for fire sprinklers, cosmetics",eng:"Fusible alloys for sprinkler systems, bismuth telluride thermoelectrics"},
+  {n:84,sym:"Po",name:"Polonium",mass:209,cat:"post-trans",col:16,row:6,config:"[Xe] 4f¹⁴ 5d¹⁰ 6p⁴",bp:962,mp:254,density:9.32,discovery:1898,discoverer:"Marie & Pierre Curie",desc:"First element discovered by Marie Curie, named for her homeland Poland. Intensely radioactive alpha emitter.",uses:"Anti-static devices, nuclear weapon triggers, historical space probe thermoelectrics",eng:"Po-210 static eliminators in paper mills and textiles"},
+  {n:85,sym:"At",name:"Astatine",mass:210,cat:"halogen",col:17,row:6,config:"[Xe] 4f¹⁴ 5d¹⁰ 6p⁵",bp:337,mp:302,density:6.4,discovery:1940,discoverer:"Corson et al.",desc:"Rarest naturally occurring element — ~30 grams in Earth's crust at any time.",uses:"At-211 targeted alpha cancer therapy (experimental), radioiodine analog research",eng:"At-211 for targeted alpha-particle cancer immunotherapy research"},
+  {n:86,sym:"Rn",name:"Radon",mass:222,cat:"noble",col:18,row:6,config:"[Xe] 4f¹⁴ 5d¹⁰ 6p⁶",bp:-61.7,mp:-71,density:0.00973,discovery:1900,discoverer:"Dorn",desc:"Radioactive noble gas. Leading environmental cause of lung cancer after smoking.",uses:"Rn-222 brachytherapy (historical), earthquake precursor tracer",eng:"Building radon mitigation systems, radon monitoring in uranium mines"},
+  {n:87,sym:"Fr",name:"Francium",mass:223,cat:"alkali",col:1,row:7,config:"[Rn] 7s¹",bp:677,mp:27,density:1.87,discovery:1939,discoverer:"Perey",desc:"Most unstable naturally occurring element. Rarest after astatine. Discovered by Marguerite Perey.",uses:"Atomic structure research only",eng:"Fundamental atomic physics research"},
+  {n:88,sym:"Ra",name:"Radium",mass:226,cat:"alkaline",col:2,row:7,config:"[Rn] 7s²",bp:1737,mp:700,density:5.5,discovery:1898,discoverer:"Marie & Pierre Curie",desc:"Discovered by the Curies. Intensely radioactive — glows blue-green in the dark.",uses:"Ra-223 (Xofigo) bone cancer therapy, historical luminescent paint",eng:"Ra-223 dichloride for bone metastases therapy"},
+  {n:89,sym:"Ac",name:"Actinium",mass:227,cat:"actinide",col:3,row:9,config:"[Rn] 6d¹ 7s²",bp:3198,mp:1050,density:10.07,discovery:1899,discoverer:"Debierne",desc:"Namesake of actinide series. 150× more radioactive than radium. Ac-225 is promising targeted alpha cancer therapy.",uses:"Ac-225 for targeted alpha cancer therapy, neutron source with beryllium",eng:"Ac-225/Bi-213 generator for targeted alpha therapy"},
+  {n:90,sym:"Th",name:"Thorium",mass:232.038,cat:"actinide",col:4,row:9,config:"[Rn] 6d² 7s²",bp:4788,mp:1750,density:11.72,discovery:1829,discoverer:"Berzelius",desc:"Fertile nuclear material. Thorium fuel cycle could power civilization for millennia.",uses:"Experimental nuclear fuel, thoriated TIG welding electrodes, optical glass",eng:"Molten salt reactor fuel cycle, ThO₂-stabilized W welding electrodes"},
+  {n:91,sym:"Pa",name:"Protactinium",mass:231.036,cat:"actinide",col:5,row:9,config:"[Rn] 5f² 6d¹ 7s²",bp:4027,mp:1568,density:15.37,discovery:1913,discoverer:"Fajans & Göhring",desc:"Intermediate in the Th-233 to U-233 transmutation chain. Pa-231 used for oceanic circulation dating.",uses:"Pa-231/Th-230 ocean circulation dating, nuclear research",eng:"Oceanographic tracer for thermohaline circulation research"},
+  {n:92,sym:"U",name:"Uranium",mass:238.029,cat:"actinide",col:6,row:9,config:"[Rn] 5f³ 6d¹ 7s²",bp:4131,mp:1135,density:19.1,discovery:1789,discoverer:"Klaproth",desc:"Heaviest naturally occurring element. 1 kg of U-235 yields energy equivalent to 3,000 tonnes of coal.",uses:"Nuclear reactor fuel, nuclear weapons, geological age dating",eng:"Light water reactor fuel assemblies, U-235 enrichment, depleted uranium penetrators"},
+  {n:93,sym:"Np",name:"Neptunium",mass:237,cat:"actinide",col:7,row:9,config:"[Rn] 5f⁴ 6d¹ 7s²",bp:4000,mp:644,density:20.45,discovery:1940,discoverer:"McMillan & Abelson",desc:"First transuranic element. Np-237 accumulates in spent nuclear fuel.",uses:"Np-237 as Pu-238 precursor for RTG power sources, nuclear research",eng:"Pu-238 production for RTG spacecraft power"},
+  {n:94,sym:"Pu",name:"Plutonium",mass:244,cat:"actinide",col:8,row:9,config:"[Rn] 5f⁶ 7s²",bp:3228,mp:640,density:19.84,discovery:1940,discoverer:"Seaborg et al.",desc:"Six solid allotropic phases. Pu-238 has powered Voyager, Cassini, and New Horizons spacecraft.",uses:"Nuclear weapons (Pu-239), RTG spacecraft power (Pu-238), MOX reactor fuel",eng:"Fast neutron reactor MOX fuel, Pu-238 RTGs for outer solar system spacecraft"},
+  {n:95,sym:"Am",name:"Americium",mass:243,cat:"actinide",col:9,row:9,config:"[Rn] 5f⁷ 7s²",bp:2011,mp:1176,density:13.67,discovery:1944,discoverer:"Seaborg et al.",desc:"Found in every smoke detector on Earth. Am-241 ionizes air enabling current flow that smoke disrupts.",uses:"Ionization smoke detectors, gauging instruments",eng:"Smoke detector ionization chambers, americium neutron sources"},
+  {n:96,sym:"Cm",name:"Curium",mass:247,cat:"actinide",col:10,row:9,config:"[Rn] 5f⁷ 6d¹ 7s²",bp:3110,mp:1340,density:13.51,discovery:1944,discoverer:"Seaborg et al.",desc:"Named for Marie and Pierre Curie. Cm-244 powered the APXS instruments on Mars rovers.",uses:"APXS instruments on Mars rovers (Cm-244 alpha source)",eng:"Cm-244 alpha source for planetary APXS rock analysis"},
+  {n:97,sym:"Bk",name:"Berkelium",mass:247,cat:"actinide",col:11,row:9,config:"[Rn] 5f⁹ 7s²",bp:2627,mp:986,density:14.78,discovery:1949,discoverer:"Thompson et al.",desc:"Named after Berkeley, California. Bk-249 is used to synthesize superheavy elements like tennessine.",uses:"Production of Cf-252, synthesis of superheavy elements",eng:"Californium-252 production, superheavy element synthesis"},
+  {n:98,sym:"Cf",name:"Californium",mass:251,cat:"actinide",col:12,row:9,config:"[Rn] 5f¹⁰ 7s²",bp:1470,mp:900,density:15.1,discovery:1950,discoverer:"Thompson et al.",desc:"One microgram emits 170 million neutrons/minute. Cf-252 used in cancer treatment and reactor startup.",uses:"Cf-252 neutron sources for reactor startup, neutron radiography",eng:"Portable neutron source for PGNAA elemental analysis"},
+  {n:99,sym:"Es",name:"Einsteinium",mass:252,cat:"actinide",col:13,row:9,config:"[Rn] 5f¹¹ 7s²",bp:996,mp:860,density:8.84,discovery:1952,discoverer:"Ghiorso et al.",desc:"Discovered in fallout of the first thermonuclear bomb test (Ivy Mike, 1952). Named for Albert Einstein.",uses:"Synthesis of heavier actinides, nuclear physics research",eng:"Superheavy element production research"},
+  {n:100,sym:"Fm",name:"Fermium",mass:257,cat:"actinide",col:14,row:9,config:"[Rn] 5f¹² 7s²",bp:1800,mp:1527,density:null,discovery:1952,discoverer:"Ghiorso et al.",desc:"Named for Enrico Fermi. Heaviest element formable by neutron bombardment.",uses:"Pure nuclear physics research",eng:"Limiting element for neutron capture nucleosynthesis research"},
+  {n:101,sym:"Md",name:"Mendelevium",mass:258,cat:"actinide",col:15,row:9,config:"[Rn] 5f¹³ 7s²",bp:null,mp:827,density:null,discovery:1955,discoverer:"Ghiorso et al.",desc:"Named in honor of Mendeleev. First element produced one atom at a time.",uses:"Nuclear research only",eng:"Fundamental nuclear physics and chemistry research"},
+  {n:102,sym:"No",name:"Nobelium",mass:259,cat:"actinide",col:16,row:9,config:"[Rn] 5f¹⁴ 7s²",bp:null,mp:827,density:null,discovery:1958,discoverer:"Flerov et al.",desc:"Named for Alfred Nobel. No²⁺ surprisingly more stable than No³⁺ unlike other actinides.",uses:"Nuclear research, actinide chemistry studies",eng:"Studies of relativistic effects on heavy element chemistry"},
+  {n:103,sym:"Lr",name:"Lawrencium",mass:266,cat:"actinide",col:17,row:9,config:"[Rn] 5f¹⁴ 7s² 7p¹",bp:null,mp:1627,density:null,discovery:1961,discoverer:"Ghiorso et al.",desc:"Last of the actinide series. Named for Ernest Lawrence, inventor of the cyclotron.",uses:"Nuclear research and periodic table chemistry studies",eng:"Boundary of actinide chemistry research"},
+  {n:104,sym:"Rf",name:"Rutherfordium",mass:267,cat:"transition",col:4,row:7,config:"[Rn] 5f¹⁴ 6d² 7s²",bp:5800,mp:2100,density:23.2,discovery:1964,discoverer:"Flerov/Ghiorso",desc:"First transactinide element, named for Ernest Rutherford.",uses:"Fundamental transactinide chemistry research",eng:"Superheavy element chemistry, testing relativistic quantum mechanics"},
+  {n:105,sym:"Db",name:"Dubnium",mass:268,cat:"transition",col:5,row:7,config:"[Rn] 5f¹⁴ 6d³ 7s²",bp:null,mp:null,density:29.3,discovery:1968,discoverer:"Flerov/Ghiorso",desc:"Named after Dubna, Russia. Naming dispute between Berkeley and Dubna was a famous Cold War controversy.",uses:"Nuclear physics research",eng:"Superheavy element chemistry"},
+  {n:106,sym:"Sg",name:"Seaborgium",mass:269,cat:"transition",col:6,row:7,config:"[Rn] 5f¹⁴ 6d⁴ 7s²",bp:null,mp:null,density:35,discovery:1974,discoverer:"Ghiorso et al.",desc:"Named for Glenn T. Seaborg — the only element named after a living person at the time.",uses:"Nuclear and chemical research",eng:"Relativistic chemistry in superheavy elements"},
+  {n:107,sym:"Bh",name:"Bohrium",mass:270,cat:"transition",col:7,row:7,config:"[Rn] 5f¹⁴ 6d⁵ 7s²",bp:null,mp:null,density:37.1,discovery:1981,discoverer:"Münzenberg et al.",desc:"Named for Niels Bohr, architect of the quantum model of the atom.",uses:"Fundamental nuclear research",eng:"Superheavy element production and chemistry"},
+  {n:108,sym:"Hs",name:"Hassium",mass:270,cat:"transition",col:8,row:7,config:"[Rn] 5f¹⁴ 6d⁶ 7s²",bp:null,mp:null,density:40.7,discovery:1984,discoverer:"Münzenberg et al.",desc:"Named for Hesse, Germany. HsO₄ was synthesized confirming Group 8 chemistry analogous to osmium.",uses:"Nuclear research and verification of periodic table periodicity",eng:"Testing relativistic effects on d-block element chemistry"},
+  {n:109,sym:"Mt",name:"Meitnerium",mass:278,cat:"transition",col:9,row:7,config:"[Rn] 5f¹⁴ 6d⁷ 7s²",bp:null,mp:null,density:37.4,discovery:1982,discoverer:"Münzenberg et al.",desc:"Named for Lise Meitner, co-discoverer of nuclear fission.",uses:"Nuclear physics research",eng:"Fundamental nuclear and atomic research"},
+  {n:110,sym:"Ds",name:"Darmstadtium",mass:281,cat:"transition",col:10,row:7,config:"[Rn] 5f¹⁴ 6d⁸ 7s²",bp:null,mp:null,density:34.8,discovery:1994,discoverer:"Hofmann et al.",desc:"Named after Darmstadt, Germany. Predicted to have platinum-group-like chemistry.",uses:"Nuclear research",eng:"Superheavy element synthesis and spectroscopy"},
+  {n:111,sym:"Rg",name:"Roentgenium",mass:282,cat:"transition",col:11,row:7,config:"[Rn] 5f¹⁴ 6d⁹ 7s²",bp:null,mp:null,density:28.7,discovery:1994,discoverer:"Hofmann et al.",desc:"Named for Wilhelm Röntgen, discoverer of X-rays.",uses:"Nuclear and atomic physics research",eng:"Studies of relativistic effects in superheavy elements"},
+  {n:112,sym:"Cn",name:"Copernicium",mass:285,cat:"transition",col:12,row:7,config:"[Rn] 5f¹⁴ 6d¹⁰ 7s²",bp:357,mp:10,density:23.7,discovery:1996,discoverer:"Hofmann et al.",desc:"Named for Copernicus. Predicted to be gas-like or noble-metal-like liquid due to extreme relativistic effects.",uses:"Nuclear and atomic research, testing relativistic quantum chemistry",eng:"Benchmark for relativistic DFT calculations in superheavy chemistry"},
+  {n:113,sym:"Nh",name:"Nihonium",mass:286,cat:"post-trans",col:13,row:7,config:"[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p¹",bp:1130,mp:430,density:16,discovery:2004,discoverer:"RIKEN (Morita et al.)",desc:"First element discovered in Asia, synthesized at RIKEN, Japan. Named from 'Nihon' (日本), Japanese for Japan.",uses:"Nuclear research, extending the periodic table",eng:"Superheavy element synthesis — first Asian-discovered element"},
+  {n:114,sym:"Fl",name:"Flerovium",mass:289,cat:"post-trans",col:14,row:7,config:"[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p²",bp:210,mp:-73,density:14,discovery:1998,discoverer:"Oganessian et al.",desc:"Named for Flerov Laboratory at JINR Dubna. May behave more like a noble gas than a metal.",uses:"Fundamental research on periodicity and relativistic chemistry",eng:"Testing if relativistic effects make superheavy p-block elements noble-gas-like"},
+  {n:115,sym:"Mc",name:"Moscovium",mass:290,cat:"post-trans",col:15,row:7,config:"[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p³",bp:1400,mp:670,density:13.5,discovery:2003,discoverer:"Oganessian et al.",desc:"Named for Moscow Oblast. Its decay produces nihonium (element 113).",uses:"Nuclear research, superheavy element studies",eng:"Parent nucleus for nihonium production"},
+  {n:116,sym:"Lv",name:"Livermorium",mass:293,cat:"post-trans",col:16,row:7,config:"[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁴",bp:762,mp:364,density:12.9,discovery:2000,discoverer:"Oganessian/Moody et al.",desc:"Named for Lawrence Livermore National Laboratory. Predicted to behave like polonium.",uses:"Nuclear and atomic research",eng:"Collaborative US-Russia superheavy element research"},
+  {n:117,sym:"Ts",name:"Tennessine",mass:294,cat:"halogen",col:17,row:7,config:"[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁵",bp:883,mp:700,density:7.2,discovery:2010,discoverer:"Oganessian et al.",desc:"Named for Tennessee, honoring Oak Ridge National Laboratory.",uses:"Nuclear research, extending knowledge of halogen chemistry",eng:"Superheavy element research, theoretical halogen chemistry"},
+  {n:118,sym:"Og",name:"Oganesson",mass:294,cat:"noble",col:18,row:7,config:"[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁶",bp:80,mp:52,density:5,discovery:2002,discoverer:"Oganessian et al.",desc:"Heaviest element in the periodic table. Named for physicist Yuri Oganessian. Predicted to be a solid at room temperature.",uses:"Closing the seventh period — ultimate test of relativistic quantum chemistry",eng:"Predicted solid noble gas — extreme test of periodic table periodicity"},
+];
+
+// ─── INIT ────────────────────────────────────────────────────────────
+function gc(cat){return catColors[cat]||{bg:"#888",dark:"#555",label:cat}}
+
+function buildFilters(){
+  const el=document.getElementById('filters');
+  let h='<button class="filt active" id="f-all" onclick="setFilter(\'all\',this)">All</button>';
+  for(const [k,v] of Object.entries(catColors)){
+    h+=`<button class="filt" id="f-${k}" onclick="setFilter('${k}',this)" style="color:${v.bg}">${v.label}</button>`;
+  }
+  el.innerHTML=h;
+}
+
+function setFilter(f,btn){
+  currentFilter=f;
+  document.querySelectorAll('.filt').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  buildMainGrid();buildLantGrid();buildActiGrid();
+}
+
+function elBox(el,slim){
+  const c=gc(el.cat);
+  const dim=currentFilter!=='all'&&el.cat!==currentFilter;
+  const nm=el.name.length>7?el.name.slice(0,6)+'.':el.name;
+  return `<div class="cell${dim?' dimmed':''}" onclick="selectEl(${el.n})"
+    style="background:rgba(255,255,255,0.04);border:1px solid ${c.bg}45"
+    onmouseenter="this.style.background='rgba(255,255,255,0.1)'"
+    onmouseleave="this.style.background='rgba(255,255,255,0.04)'"
+    title="${el.n} - ${el.name}">
+    <div class="cn" style="color:${c.bg}88">${el.n}</div>
+    <div class="sy" style="color:${c.bg}">${el.sym}</div>
+    <div class="nm">${nm}</div>
+  </div>`;
+}
+
+function buildMainGrid(){
+  const g=document.getElementById('main-grid');
+  let h='';
+  for(let row=1;row<=7;row++){
+    for(let col=1;col<=18;col++){
+      const el=elements.find(e=>e.row===row&&e.col===col&&e.row<=7);
+      if(!el){
+        if((row===6||row===7)&&col===3){
+          const pc=gc(row===6?'lanthanide':'actinide');
+          h+=`<div class="ph" style="background:${pc.bg}10;border:1px dashed ${pc.bg}35">
+            <span style="color:${pc.bg};font-size:6px">${row===6?'57–71':'89–103'}</span></div>`;
+        } else {
+          h+='<div></div>';
+        }
+      } else {
+        h+=elBox(el);
+      }
+    }
+  }
+  g.innerHTML=h;
+}
+
+function buildLantGrid(){
+  const g=document.getElementById('lant-grid');
+  let cells=new Array(18).fill('<div></div>');
+  elements.filter(e=>e.row===8).forEach(el=>{cells[el.col-1]=elBox(el);});
+  g.innerHTML=cells.join('');
+}
+
+function buildActiGrid(){
+  const g=document.getElementById('acti-grid');
+  let cells=new Array(18).fill('<div></div>');
+  elements.filter(e=>e.row===9).forEach(el=>{cells[el.col-1]=elBox(el);});
+  g.innerHTML=cells.join('');
+}
+
+function selectEl(n){
+  const el=elements.find(e=>e.n===n);
+  if(selectedEl===n){selectedEl=null;document.getElementById('detail-panel').innerHTML='';return;}
+  selectedEl=n;
+  const c=gc(el.cat);
+  const fmt=v=>v!=null?v:'—';
+  document.getElementById('detail-panel').innerHTML=`
+  <div class="detail" style="border-color:${c.bg}40">
+    <div class="detail-top">
+      <div class="detail-badge" style="background:linear-gradient(135deg,${c.bg}25,${c.dark}15);border-color:${c.bg}">
+        <div class="d-n" style="color:${c.bg}">${el.n}</div>
+        <div class="d-sy" style="color:${c.bg}">${el.sym}</div>
+        <div class="d-m">${el.mass}</div>
+      </div>
+      <div class="detail-info" style="flex:1">
+        <h2>${el.name}</h2>
+        <div class="cat-pill" style="background:${c.bg}18;border-color:${c.bg}35;color:${c.bg}">${c.label}</div>
+        <p>${el.desc}</p>
+      </div>
+      <button class="close-btn" onclick="selectEl(${el.n})">×</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="sl">Config</div><div class="sv">${el.config}</div></div>
+      <div class="stat"><div class="sl">Melting Pt</div><div class="sv">${fmt(el.mp)}${el.mp!=null?'°C':''}</div></div>
+      <div class="stat"><div class="sl">Boiling Pt</div><div class="sv">${fmt(el.bp)}${el.bp!=null?'°C':''}</div></div>
+      <div class="stat"><div class="sl">Density</div><div class="sv">${el.density!=null?el.density+' g/cm³':'—'}</div></div>
+      <div class="stat"><div class="sl">Discovery</div><div class="sv">${el.discovery}</div></div>
+      <div class="stat"><div class="sl">Discoverer</div><div class="sv">${el.discoverer}</div></div>
+    </div>
+    <div class="detail-cols">
+      <div class="dc"><div class="dc-lbl" style="color:#4dabf7">⚗️ Uses</div><p>${el.uses}</p></div>
+      <div class="dc"><div class="dc-lbl" style="color:#a9e34b">🏗️ Engineering</div><p>${el.eng}</p></div>
+    </div>
+  </div>`;
+  document.getElementById('detail-panel').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function buildConcepts(){
+  const colors=["#4dabf7","#69db7c","#ffd43b","#ff8787","#da77f2","#74c0fc","#ffa94d","#a9e34b","#f783ac","#69db7c"];
+  const g=document.getElementById('concepts-list');
+  g.innerHTML=concepts.map((c,i)=>{
+    const col=colors[i%colors.length];
+    return `<div class="concept" id="con-${i}">
+      <div class="concept-hdr" onclick="toggleConcept(${i})" style="">
+        <h3 style="color:#bbc">${c.title}</h3>
+        <span class="concept-arrow" style="color:${col}">▾</span>
+      </div>
+      <div class="concept-body">
+        <div class="concept-bar" style="background:${col}"></div>
+        <p>${c.content}</p>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleConcept(i){
+  const el=document.getElementById('con-'+i);
+  el.classList.toggle('open');
+}
+
+function buildLegend(){
+  const g=document.getElementById('legend-grid');
+  g.innerHTML=Object.entries(catColors).map(([k,v])=>{
+    const count=elements.filter(e=>e.cat===k).length;
+    const sample=elements.find(e=>e.cat===k);
+    return `<div class="leg-card" style="background:${v.bg}0c;border-color:${v.bg}30"
+      onclick="setFilter('${k}',document.getElementById('f-${k}'));switchTab('table')"
+      onmouseenter="this.style.background='${v.bg}1e'"
+      onmouseleave="this.style.background='${v.bg}0c'">
+      <div class="leg-top">
+        <div class="leg-icon" style="background:${v.bg}22;border-color:${v.bg};color:${v.bg}">${sample?.sym||'?'}</div>
+        <div><div class="leg-name" style="color:${v.bg}">${v.label}s</div><div class="leg-count">${count} elements · Filter →</div></div>
+      </div>
+      <p>${catDescs[k]||''}</p>
+    </div>`;
+  }).join('');
+}
+
+function doSearch(q){
+  const r=document.getElementById('search-results');
+  if(!q.trim()){r.innerHTML=`<div class="search-empty"><div class="se-icon">🔍</div><p>Search all 118 elements by name, symbol, or atomic number</p></div>`;return;}
+  const q2=q.toLowerCase();
+  const res=elements.filter(e=>e.name.toLowerCase().includes(q2)||e.sym.toLowerCase().includes(q2)||String(e.n).includes(q));
+  if(!res.length){r.innerHTML='<p style="color:#4a5e99;text-align:center;padding:20px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:1px">NO RESULTS · CHECK SPELLING</p>';return;}
+  r.innerHTML=`<div style="font-size:9px;color:#4a5e99;margin-bottom:8px;letter-spacing:1px;font-family:'Courier New',monospace">${res.length} RESULT${res.length!==1?'S':''} FOUND</div>
+  <div class="search-results">${res.map(el=>{
+    const c=gc(el.cat);
+    return `<div class="sr-card" style="border-color:${c.bg}35" onclick="selectEl(${el.n});switchTab('table')">
+      <div class="sr-icon">
+        <div class="si-n" style="color:${c.bg}88">${el.n}</div>
+        <div class="si-sy" style="color:${c.bg}">${el.sym}</div>
+        <div class="si-m">${el.mass}</div>
+      </div>
+      <div class="sr-info">
+        <div class="si-name">${el.name}</div>
+        <div class="si-cat" style="color:${c.bg}99">${c.label}</div>
+        <div class="si-desc">${el.desc.slice(0,90)}…</div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function switchTab(id){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>{if(t.textContent.toLowerCase().includes(id.slice(0,3)))t.classList.add('active');});
+}
+
+// Init
+buildFilters();
+buildMainGrid();
+buildLantGrid();
+buildActiGrid();
+buildConcepts();
+buildLegend();
+doSearch('');
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+</script>
+<div style="text-align:center;padding:16px;font-size:9px;color:#1a1a2e;letter-spacing:2px">
+  ◈ SIEGEWORKS MARKETING LLC · CHEMICAL UNIVERSE · ALL DATA PUBLIC DOMAIN
+</div>
+</body>
+</html>

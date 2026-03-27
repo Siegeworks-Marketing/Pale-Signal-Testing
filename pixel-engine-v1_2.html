@@ -1,0 +1,2291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>◈ Pixel Engine — World Council Edition · Siegeworks</title>
+<style>
+/* ═══════════════════════════════════════════════════════
+   DESIGN LANGUAGE: Dark GBA CRT — Military precision
+   Monospace everywhere. Gold accent. No decorative waste.
+   Every pixel of UI earns its place.
+═══════════════════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05050e;--p1:#0c0c1a;--p2:#121224;--p3:#1a1a32;--p4:#22223c;
+  --br:#28284a;--br2:#383860;--br3:#484878;
+  --gold:#c8a030;--gold2:#e8c050;--gold3:#f8e070;
+  --teal:#28b898;--teal2:#38d8b8;
+  --pur:#7030d0;--pur2:#9050f0;
+  --grn:#28a050;--grn2:#38c060;
+  --red:#c83030;--red2:#e84040;
+  --blue:#2858c0;--blue2:#3878e0;
+  --amber:#d07820;--amber2:#f09840;
+  --txt:#d0c890;--txt2:#887890;--txt3:#484858;
+  --rad:3px;
+  --hue:200; /* current hue for dynamic UI tinting */
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);
+  font:11px/1.4 'Courier New',monospace;user-select:none}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);}
+#app{display:flex;flex-direction:column;height:100%}
+
+/* ── TOPBAR ─────────────────────────────────────────────── */
+#topbar{
+  display:flex;align-items:center;gap:4px;padding:3px 8px;
+  background:var(--p1);border-bottom:2px solid var(--gold);
+  height:32px;flex-shrink:0;overflow-x:auto
+}
+.logo{font-size:13px;font-weight:900;color:var(--gold);letter-spacing:3px;margin-right:4px;white-space:nowrap}
+.tsep{width:1px;height:16px;background:var(--br2);margin:0 2px;flex-shrink:0}
+.tbtn{
+  background:var(--p2);border:1px solid var(--br);color:var(--txt);
+  padding:2px 6px;cursor:pointer;border-radius:var(--rad);
+  font:inherit;font-size:10px;white-space:nowrap;flex-shrink:0;
+  transition:border-color .1s,color .1s
+}
+.tbtn:hover{border-color:var(--gold);color:var(--gold)}
+.tbtn.on{background:var(--gold);color:#000;border-color:var(--gold2);font-weight:bold}
+.tbtn.on-teal{background:var(--teal);color:#000;border-color:var(--teal2)}
+.tsel{
+  background:var(--p2);border:1px solid var(--br);color:var(--txt);
+  padding:2px 3px;font:inherit;font-size:10px;
+  border-radius:var(--rad);cursor:pointer;flex-shrink:0
+}
+#sizeLabel{color:var(--gold2);font-size:10px;white-space:nowrap}
+#zoomLabel{color:var(--teal);font-size:10px;min-width:28px;text-align:center}
+.tspc{flex:1;min-width:6px}
+
+/* ── WORKSPACE ──────────────────────────────────────────── */
+#workspace{display:flex;flex:1;min-height:0;position:relative}
+
+/* ── TOOL RAIL ──────────────────────────────────────────── */
+#toolrail{
+  width:44px;background:var(--p1);border-right:1px solid var(--br);
+  display:flex;flex-direction:column;align-items:center;
+  padding:4px 0;gap:1px;flex-shrink:0;
+  overflow:hidden;transition:width .18s ease
+}
+#toolrail.hidden{width:0;padding:0}
+#rail-toggle{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:16px;height:56px;background:var(--p2);
+  border:1px solid var(--br2);border-left:none;
+  border-radius:0 6px 6px 0;cursor:pointer;z-index:20;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:var(--txt2);left:44px;transition:left .18s ease
+}
+#rail-toggle:hover{color:var(--gold);border-color:var(--gold);background:var(--p3)}
+.ttool{
+  width:36px;height:32px;background:var(--p2);border:1px solid var(--br);
+  border-radius:var(--rad);cursor:pointer;display:flex;align-items:center;
+  justify-content:center;font-size:14px;position:relative;flex-shrink:0;
+  transition:border-color .1s,background .1s
+}
+.ttool:hover{border-color:var(--blue2);background:var(--p3)}
+.ttool.active{border-color:var(--gold);background:rgba(200,160,48,.22)}
+.tkey{position:absolute;bottom:1px;right:2px;font-size:7px;color:var(--txt3)}
+.tr-sep{width:30px;height:1px;background:var(--br);margin:1px 0;flex-shrink:0}
+.tr-x{
+  width:36px;height:18px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;border:1px solid var(--br);border-radius:var(--rad);
+  color:var(--txt3);font-size:8px;margin-bottom:1px;flex-shrink:0
+}
+.tr-x:hover{color:var(--gold);border-color:var(--gold)}
+
+/* ── CANVAS ZONE ────────────────────────────────────────── */
+#canvaszone{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  background:#030309;position:relative;overflow:hidden;min-width:0
+}
+#canvasholder{position:relative}
+#canvasholder canvas{
+  position:absolute;top:0;left:0;
+  image-rendering:pixelated;image-rendering:crisp-edges
+}
+#hintbox{
+  position:absolute;top:8px;left:50%;transform:translateX(-50%);
+  background:rgba(70,20,180,.94);border:1px solid var(--pur);
+  border-radius:var(--rad);padding:4px 14px;font-size:10px;
+  color:#e0d0ff;pointer-events:none;display:none;white-space:nowrap;z-index:30
+}
+#clabel{
+  position:absolute;background:rgba(0,0,0,.7);border:1px solid var(--br2);
+  border-radius:2px;padding:1px 5px;font-size:9px;color:var(--txt2);
+  pointer-events:none;z-index:30;display:none
+}
+
+/* ── RIGHT PANEL ────────────────────────────────────────── */
+#rpanel{
+  width:240px;background:var(--p1);border-left:1px solid var(--br);
+  display:flex;flex-direction:column;flex-shrink:0;
+  overflow:hidden;transition:width .18s ease
+}
+#rpanel.hidden{width:0}
+#rpanel-toggle{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:16px;height:56px;background:var(--p2);
+  border:1px solid var(--br2);border-right:none;
+  border-radius:6px 0 0 6px;cursor:pointer;z-index:20;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:var(--txt2);right:240px;transition:right .18s ease
+}
+#rpanel-toggle:hover{color:var(--gold);border-color:var(--gold);background:var(--p3)}
+.rp-head{
+  display:flex;align-items:center;padding:3px 6px;gap:4px;
+  border-bottom:1px solid var(--br);flex-shrink:0;background:var(--p2)
+}
+.rp-head-title{color:var(--gold);font-size:9px;font-weight:bold;letter-spacing:1px;flex:1}
+
+/* ── TABS ───────────────────────────────────────────────── */
+.tabs{display:flex;border-bottom:1px solid var(--br);flex-shrink:0}
+.tab{
+  flex:1;padding:4px 2px;text-align:center;cursor:pointer;font-size:8px;
+  color:var(--txt2);border-right:1px solid var(--br);background:var(--p1);
+  transition:color .1s,background .1s;white-space:nowrap
+}
+.tab:last-child{border-right:none}
+.tab:hover{color:var(--txt);background:var(--p2)}
+.tab.on{color:var(--gold2);border-bottom:2px solid var(--gold);background:var(--p2)}
+.tabpane{display:none;flex:1;flex-direction:column;overflow-y:auto;overflow-x:hidden;min-height:0}
+.tabpane.on{display:flex}
+
+/* ── PANEL BLOCKS ───────────────────────────────────────── */
+.pb{padding:6px;display:flex;flex-direction:column;gap:4px;flex-shrink:0}
+.pt{
+  font-size:8px;color:var(--txt2);text-transform:uppercase;letter-spacing:1px;
+  border-bottom:1px solid var(--br);padding-bottom:2px;margin-bottom:1px
+}
+.pr{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.pl{color:var(--txt2);font-size:9px;white-space:nowrap}
+.pi{
+  color:var(--txt2);font-size:9px;line-height:1.6;
+  background:var(--p2);padding:5px;border-radius:var(--rad)
+}
+.pin{
+  background:var(--p2);border:1px solid var(--br);color:var(--txt);
+  padding:2px 4px;font:inherit;font-size:10px;
+  border-radius:var(--rad);width:100%
+}
+.pin:focus{outline:none;border-color:var(--gold)}
+.pibtn{
+  background:var(--p2);border:1px solid var(--br);color:var(--txt);
+  padding:3px 6px;cursor:pointer;border-radius:var(--rad);
+  font:inherit;font-size:10px;text-align:left;width:100%
+}
+.pibtn:hover{border-color:var(--gold);color:var(--gold)}
+.pibtn.on{border-color:var(--grn);color:var(--grn2);background:rgba(40,160,80,.1)}
+.ck{
+  background:var(--p2);border:1px solid var(--br);color:var(--txt2);
+  padding:2px 6px;cursor:pointer;border-radius:var(--rad);
+  font:inherit;font-size:10px;white-space:nowrap
+}
+.ck.on{border-color:var(--teal);color:var(--teal2);background:rgba(40,184,152,.1)}
+.ck:hover{border-color:var(--txt);color:var(--txt)}
+
+/* ══════════════════════════════════════════════════════════
+   PALETTE PANEL — WORLD COUNCIL REDESIGN
+   Goal: Show COLOR RELATIONSHIPS not just swatches
+══════════════════════════════════════════════════════════ */
+
+/* Swatch grid */
+#pal-grid{
+  display:grid;grid-template-columns:repeat(8,1fr);gap:2px
+}
+.psw{
+  aspect-ratio:1;border:1px solid var(--br);cursor:pointer;
+  border-radius:2px;transition:border-color .1s;min-width:0;
+  position:relative
+}
+.psw:hover{border-color:var(--txt)}
+.psw.on{border:2px solid var(--gold)!important}
+.psw.xp{background:repeating-conic-gradient(#2a2a2a 0% 25%,#1a1a1a 0% 50%) 0 0/8px 8px}
+.psw .role-dot{
+  position:absolute;bottom:1px;right:1px;width:4px;height:4px;
+  border-radius:50%;background:currentColor;pointer-events:none
+}
+
+/* Value bar — shows palette sorted by brightness */
+#val-bar{display:flex;height:8px;border-radius:2px;overflow:hidden;gap:1px}
+.val-seg{flex:1;cursor:pointer;transition:opacity .1s}
+.val-seg:hover{opacity:.7}
+
+/* Color temperature indicator */
+#temp-bar{height:4px;border-radius:2px;margin-top:2px}
+
+/* HSL Picker */
+#hsl-pick{display:flex;flex-direction:column;gap:4px}
+.hsl-row{display:flex;align-items:center;gap:5px}
+.hsl-lbl{font-size:9px;width:12px;text-align:center;font-weight:bold}
+.hsl-r{-webkit-appearance:none;appearance:none;flex:1;height:10px;border-radius:5px;outline:none;cursor:pointer}
+.hsl-r::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid var(--br2);cursor:pointer}
+#hr{background:linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
+#hval{font-size:9px;width:28px;text-align:right;color:var(--txt)}
+#sval{font-size:9px;width:28px;text-align:right;color:var(--txt)}
+#lval{font-size:9px;width:28px;text-align:right;color:var(--txt)}
+#cpreview{width:28px;height:28px;border:1px solid var(--br);border-radius:var(--rad);flex-shrink:0}
+#hexin{background:var(--p2);border:1px solid var(--br);color:var(--txt);padding:2px 5px;font:inherit;font-size:10px;width:74px;border-radius:var(--rad)}
+#hexin:focus{outline:none;border-color:var(--gold)}
+#cidxl{color:var(--txt2);font-size:9px;margin-left:auto}
+
+/* ── COLOR WHEEL ─────────────────────────────────────────── */
+#wheel-wrap{display:flex;align-items:center;justify-content:center;
+  gap:8px;padding:4px 0}
+#cwheel{cursor:crosshair;border-radius:50%;display:block;flex-shrink:0}
+#wheel-vals{display:flex;flex-direction:column;gap:3px;min-width:72px}
+.wv-row{display:flex;align-items:center;gap:3px;font-size:9px}
+.wv-lbl{color:var(--txt2);width:10px;font-weight:bold}
+.wv-val{color:var(--txt);min-width:26px;text-align:right}
+#contrast-display{background:var(--p2);border:1px solid var(--br);
+  border-radius:var(--rad);padding:3px 5px;font-size:9px;margin-top:2px}
+.ctr-row{display:flex;justify-content:space-between;gap:4px}
+.ctr-badge{padding:1px 4px;border-radius:2px;font-size:8px;font-weight:bold}
+.ctr-aaa{background:rgba(40,160,80,.2);color:var(--grn2);border:1px solid var(--grn)}
+.ctr-aa{background:rgba(200,160,48,.15);color:var(--gold2);border:1px solid var(--gold)}
+.ctr-fail{background:rgba(200,48,48,.15);color:var(--red2);border:1px solid var(--red)}
+
+/* ── SAVE/LOAD PALETTES ────────────────────────────────────── */
+#saved-pal-list{display:flex;flex-direction:column;gap:2px}
+.sp-row{display:flex;gap:3px;align-items:center}
+.sp-name{background:var(--p2);border:1px solid var(--br);color:var(--txt);
+  padding:2px 5px;font:inherit;font-size:10px;flex:1;border-radius:var(--rad)}
+.sp-name:focus{outline:none;border-color:var(--gold)}
+
+/* ── PALETTE ANIM PREVIEW ─────────────────────────────────── */
+#pal-anim-wrap{display:flex;align-items:center;gap:6px}
+#pal-anim-canvas{border:1px solid var(--br);border-radius:var(--rad);
+  image-rendering:pixelated;image-rendering:crisp-edges}
+#pal-anim-ctrl{display:flex;flex-direction:column;gap:3px;font-size:9px}
+
+/* ── RAMP GENERATOR ─────────────────────────────────────── */
+.ramp-preview{display:flex;gap:2px;height:24px;border-radius:var(--rad);overflow:hidden}
+.ramp-seg{flex:1;cursor:pointer;border-radius:2px;font-size:7px;display:flex;align-items:flex-end;padding-bottom:1px;justify-content:center;color:rgba(0,0,0,.4)}
+.ramp-seg:hover{outline:1px solid var(--gold)}
+
+/* ── HARMONY WHEEL ──────────────────────────────────────── */
+#harm-canvas{border:1px solid var(--br);border-radius:50%;cursor:crosshair}
+
+/* ── ART KNOWLEDGE ──────────────────────────────────────── */
+.ak-cat{border-bottom:1px solid var(--br);padding-bottom:4px;margin-bottom:2px}
+.ak-h{color:var(--gold);font-size:10px;cursor:pointer;padding:4px 0;display:block}
+.ak-h:hover{color:var(--gold2)}
+.ak-b{display:none;padding-left:4px}
+.ak-b.open{display:block}
+.ak-t{
+  font-size:9px;color:var(--txt2);line-height:1.6;
+  border-left:2px solid var(--br2);padding-left:5px;margin:3px 0
+}
+.ak-t b{color:var(--gold3)}
+.ak-t i{color:var(--teal2)}
+.ak-t .ex{color:var(--amber2);font-style:normal}
+
+/* ── AI / OLLAMA PANEL ──────────────────────────────────── */
+#ai-status{font-size:9px;padding:3px 6px;border-radius:var(--rad);text-align:center}
+#ai-status.ok{background:rgba(40,160,80,.15);color:var(--grn2);border:1px solid var(--grn)}
+#ai-status.err{background:rgba(200,48,48,.12);color:var(--red2);border:1px solid var(--red)}
+#ai-status.wait{background:rgba(40,184,152,.12);color:var(--teal2);border:1px solid var(--teal)}
+#ai-prompt{
+  background:var(--p2);border:1px solid var(--br);color:var(--txt);
+  padding:5px;font:inherit;font-size:10px;border-radius:var(--rad);
+  width:100%;resize:vertical;min-height:60px
+}
+#ai-prompt:focus{outline:none;border-color:var(--pur2)}
+#ai-out{
+  background:var(--bg);border:1px solid var(--br);color:var(--teal2);
+  font:9px/1.5 'Courier New',monospace;padding:5px;border-radius:var(--rad);
+  overflow:auto;max-height:130px;white-space:pre-wrap;word-break:break-word
+}
+.aibtn{
+  background:linear-gradient(135deg,var(--pur),var(--blue));
+  border:1px solid var(--pur2);color:#fff;
+  padding:4px 8px;cursor:pointer;border-radius:var(--rad);
+  font:inherit;font-size:10px;width:100%;font-weight:bold
+}
+.aibtn:hover{opacity:.85}
+.aibtn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── OVERLAYS ───────────────────────────────────────────── */
+.ovbtn{
+  background:var(--p2);border:1px solid var(--br);color:var(--txt);
+  padding:4px 6px;cursor:pointer;border-radius:var(--rad);
+  font:inherit;font-size:10px;text-align:left;width:100%
+}
+.ovbtn.on{border-color:var(--pur);color:#c0a0ff;background:rgba(112,48,208,.1)}
+.ovbtn:hover{border-color:var(--txt)}
+.ovdesc{color:var(--txt2);font-size:9px;padding-left:4px;line-height:1.5;margin-bottom:3px}
+
+/* ── EXPORT ─────────────────────────────────────────────── */
+.exbtn{
+  background:var(--p2);border:1px solid var(--br);color:var(--txt);
+  padding:4px 6px;cursor:pointer;border-radius:var(--rad);
+  font:inherit;font-size:10px;text-align:left;width:100%
+}
+.exbtn:hover{border-color:var(--gold);color:var(--gold)}
+#excode{
+  background:var(--bg);border:1px solid var(--br);color:var(--grn2);
+  font:9px/1.4 'Courier New',monospace;padding:5px;border-radius:var(--rad);
+  overflow:auto;max-height:100px;white-space:pre
+}
+.szin{
+  background:var(--p2);border:1px solid var(--br);color:var(--txt);
+  padding:2px 4px;font:inherit;font-size:10px;
+  width:46px;border-radius:var(--rad)
+}
+.szin:focus{outline:none;border-color:var(--gold)}
+
+/* ── TIMELINE ───────────────────────────────────────────── */
+#timeline{
+  height:52px;background:var(--p1);border-top:1px solid var(--br);
+  display:flex;align-items:center;padding:4px 8px;gap:4px;flex-shrink:0
+}
+#frames-list{display:flex;gap:3px;align-items:center;flex:1;overflow-x:auto;min-width:0}
+.fthumb{
+  width:40px;height:40px;border:1px solid var(--br);border-radius:var(--rad);
+  cursor:pointer;image-rendering:pixelated;flex-shrink:0;background:var(--bg)
+}
+.fthumb.on{border:2px solid var(--gold)}
+.fadd{
+  width:40px;height:40px;border:1px dashed var(--br2);border-radius:var(--rad);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:20px;color:var(--txt2);flex-shrink:0
+}
+.fadd:hover{border-color:var(--gold);color:var(--gold)}
+#animctrl{display:flex;gap:3px;align-items:center;flex-shrink:0}
+.abtn{
+  width:24px;height:24px;background:var(--p2);border:1px solid var(--br);
+  color:var(--txt);cursor:pointer;border-radius:var(--rad);font-size:10px;
+  display:flex;align-items:center;justify-content:center
+}
+.abtn:hover{border-color:var(--gold);color:var(--gold)}
+.abtn.playing{border-color:var(--grn);color:var(--grn2)}
+#fpsl{color:var(--txt2);font-size:9px;min-width:30px;text-align:center}
+
+/* ── STATUS ─────────────────────────────────────────────── */
+#statusrow{
+  height:20px;display:flex;align-items:center;gap:8px;padding:0 10px;
+  background:var(--p1);border-top:1px solid var(--br);flex-shrink:0;font-size:9px;overflow:hidden
+}
+.si{color:var(--txt2)}.si b{color:var(--gold2)}.si.tn b{color:var(--teal2)}
+#shint{color:var(--pur2);margin-left:auto}
+
+/* ── HELP MODAL ─────────────────────────────────────────── */
+#helpmodal{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);
+  z-index:100;align-items:center;justify-content:center
+}
+#helpmodal.show{display:flex}
+#helpinner{
+  background:var(--p2);border:1px solid var(--br2);border-radius:5px;
+  padding:18px 20px;max-width:520px;width:94%;max-height:80vh;overflow-y:auto
+}
+.hgrid{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;font-size:10px}
+
+/* Scrollbars */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--br2);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--br3)}
+
+/* Range inputs */
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:8px;border-radius:4px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--gold);cursor:pointer;border:1px solid var(--gold2)}
+#hs{background:linear-gradient(90deg,hsl(0,0%,50%),hsl(0,100%,50%))}
+#ls{background:linear-gradient(90deg,#000,hsl(0,80%,50%),#fff)}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <a href="./index.html" style="font-family:'Courier New',monospace;font-size:10px;color:#c8a030;text-decoration:none;padding:3px 8px;border:1px solid rgba(200,160,48,.4);border-radius:3px;margin-right:4px;white-space:nowrap;flex-shrink:0">◈ HUB</a>
+  <a href="./index.html" style="color:var(--blue2);font-family:'Courier New',monospace;font-size:10px;text-decoration:none;letter-spacing:1px;padding:0 6px;flex-shrink:0">◈ HOME</a>
+  <div class="tsep"></div>
+  <span class="logo">◈ PIXEL v1.2</span>
+  <div class="tsep"></div>
+  <button class="tbtn" onclick="E.newCanvas()">NEW</button>
+  <button class="tbtn" onclick="E.loadDemo()">DEMO</button>
+  <div class="tsep"></div>
+  <select class="tsel" id="presetSize" onchange="E.presetSize(this.value)" title="Canvas size">
+    <option value="">Size</option>
+    <option value="8,8">8×8</option>
+    <option value="16,16">16×16</option>
+    <option value="32,32">32×32</option>
+    <option value="64,64">64×64</option>
+    <option value="128,128">128×128</option>
+    <option value="240,160">240×160 RETRO</option>
+  </select>
+  <span id="sizeLabel">64×64</span>
+  <div class="tsep"></div>
+  <button class="tbtn" onclick="E.zoomOut()">−</button>
+  <span id="zoomLabel">8×</span>
+  <button class="tbtn" onclick="E.zoomIn()">+</button>
+  <div class="tsep"></div>
+  <button class="tbtn" id="tbsx" onclick="E.toggleSym('x')">SYM X</button>
+  <button class="tbtn" id="tbsy" onclick="E.toggleSym('y')">SYM Y</button>
+  <div class="tsep"></div>
+  <button class="tbtn" onclick="E.undo()" title="Ctrl+Z">↩</button>
+  <button class="tbtn" onclick="E.redo()" title="Ctrl+Y">↪</button>
+  <div class="tsep"></div>
+  <button class="tbtn" id="tbgba" onclick="E.toggleGBA()" title="Snap colors to 15-bit BGR5 retro color space">GBA 15BIT</button>
+  <div class="tspc"></div>
+  <button class="tbtn" onclick="document.getElementById('helpmodal').classList.add('show')">? HELP</button>
+</div>
+
+<!-- WORKSPACE -->
+<div id="workspace">
+
+  <!-- TOOL RAIL -->
+  <div id="toolrail">
+    <div class="tr-x" onclick="E.toggleRail()" title="Close">✕</div>
+    <div class="ttool active" id="t-pencil"      onclick="E.tool('pencil')"      title="Pencil (B)">✏<span class="tkey">B</span></div>
+    <div class="ttool"        id="t-eraser"      onclick="E.tool('eraser')"      title="Eraser (E)">◻<span class="tkey">E</span></div>
+    <div class="ttool"        id="t-fill"        onclick="E.tool('fill')"        title="Flood Fill (G)">▣<span class="tkey">G</span></div>
+    <div class="ttool"        id="t-ditchfill"   onclick="E.tool('ditchfill')"   title="Dither Fill — fills with 2-color Bayer pattern (D)">▩<span class="tkey">D</span></div>
+    <div class="ttool"        id="t-shadow"      onclick="E.tool('shadow')"      title="Shadow Ellipse — click object center, drag radius (W)">◉<span class="tkey">W</span></div>
+    <div class="tr-sep"></div>
+    <div class="ttool"        id="t-line"        onclick="E.tool('line')"        title="Line (L)">╱<span class="tkey">L</span></div>
+    <div class="ttool"        id="t-rect"        onclick="E.tool('rect')"        title="Rectangle (R)">▭<span class="tkey">R</span></div>
+    <div class="ttool"        id="t-rectfill"    onclick="E.tool('rectfill')"    title="Filled Rect (F)">▬<span class="tkey">F</span></div>
+    <div class="ttool"        id="t-ellipse"     onclick="E.tool('ellipse')"     title="Ellipse (O)">⬭<span class="tkey">O</span></div>
+    <div class="ttool"        id="t-ellipsefill" onclick="E.tool('ellipsefill')" title="Filled Ellipse">●</div>
+    <div class="ttool"        id="t-circle"      onclick="E.tool('circle')"      title="Bresenham Circle (C) — pixel-perfect">○<span class="tkey">C</span></div>
+    <div class="ttool"        id="t-arc"         onclick="E.tool('arc')"         title="Arc — 3 clicks: center, radius, sweep (A)">◜<span class="tkey">A</span></div>
+    <div class="ttool"        id="t-foliage"     onclick="E.tool('foliage')"     title="Foliage Brush — overlapping sub-circles with depth (T)">🌿<span class="tkey">T</span></div>
+    <div class="tr-sep"></div>
+    <div class="ttool"        id="t-bezier"      onclick="E.tool('bezier')"      title="Bezier Curve — 3 clicks (V)">∿<span class="tkey">V</span></div>
+    <div class="tr-sep"></div>
+    <div class="ttool"        id="t-eyedrop"     onclick="E.tool('eyedrop')"     title="Eyedropper (I)">⊕<span class="tkey">I</span></div>
+  </div>
+
+  <!-- RAIL TOGGLE -->
+  <div id="rail-toggle" onclick="E.toggleRail()" title="Toggle tools">◁</div>
+
+  <!-- CANVAS -->
+  <div id="canvaszone">
+    <div id="hintbox"></div>
+    <div id="clabel"></div>
+    <div id="canvasholder"></div>
+  </div>
+
+  <!-- RPANEL TOGGLE -->
+  <div id="rpanel-toggle" onclick="E.toggleRPanel()" title="Toggle panel">▷</div>
+
+  <!-- RIGHT PANEL -->
+  <div id="rpanel">
+    <div class="rp-head">
+      <span class="rp-head-title">⚙ PANELS</span>
+      <button onclick="E.toggleRPanel()" class="tbtn" style="font-size:9px;padding:1px 5px">✕ close</button>
+    </div>
+    <div class="tabs">
+      <div class="tab on"  id="tab-pal"   onclick="E.showTab('pal')"   title="Palette">🎨</div>
+      <div class="tab"     id="tab-mix"   onclick="E.showTab('mix')"   title="Mix & Ramp">🌈</div>
+      <div class="tab"     id="tab-brush" onclick="E.showTab('brush')" title="Brush">✏</div>
+      <div class="tab"     id="tab-ov"    onclick="E.showTab('ov')"    title="Overlays">φ</div>
+      <div class="tab"     id="tab-art"   onclick="E.showTab('art')"   title="Art Knowledge">📖</div>
+      <div class="tab"     id="tab-ai"    onclick="E.showTab('ai')"    title="Ollama AI">🤖</div>
+      <div class="tab"     id="tab-ex"    onclick="E.showTab('ex')"    title="Export">💾</div>
+    </div>
+
+    <!-- ── PALETTE TAB ──────────────────────────────── -->
+    <div class="tabpane on" id="pane-pal">
+      <div class="pb">
+        <div class="pt">Palette — 16 colors (GBA: color 0 = transparent)</div>
+        <div id="pal-grid"></div>
+
+        <!-- Value bar -->
+        <div class="pt" style="margin-top:2px">Value Ladder (dark→light, click to select)</div>
+        <div id="val-bar" title="Palette sorted by brightness. Click to select."></div>
+        <div id="temp-bar" title="Warm / Cool temperature distribution"></div>
+
+        <!-- COLOR WHEEL + contrast -->
+        <div class="pt" style="margin-top:3px">Color Editor</div>
+        <div id="wheel-wrap">
+          <canvas id="cwheel" width="130" height="130"></canvas>
+          <div id="wheel-vals">
+            <div class="wv-row"><span class="wv-lbl" style="color:#f99">H</span><input id="hr" type="range" class="hsl-r" min="0" max="359" value="0" oninput="E.sliderHSL()"><span id="hval" class="wv-val">0°</span></div>
+            <div class="wv-row"><span class="wv-lbl" style="color:#9f9">S</span><input id="hs" type="range" class="hsl-r" min="0" max="100" value="0" oninput="E.sliderHSL()"><span id="sval" class="wv-val">0%</span></div>
+            <div class="wv-row"><span class="wv-lbl" style="color:#99f">L</span><input id="ls" type="range" class="hsl-r" min="0" max="100" value="0" oninput="E.sliderHSL()"><span id="lval" class="wv-val">0%</span></div>
+            <div style="display:flex;align-items:center;gap:4px;margin-top:2px">
+              <div id="cpreview"></div>
+              <input id="hexin" type="text" maxlength="7" value="#000000" spellcheck="false">
+              <span id="cidxl">idx 1</span>
+            </div>
+            <div id="contrast-display">
+              <div style="font-size:8px;color:var(--txt2);margin-bottom:2px">Contrast vs:</div>
+              <div class="ctr-row">
+                <span style="font-size:8px;color:var(--txt2)">◼ Black</span>
+                <span class="ctr-badge" id="ctr-black">—</span>
+              </div>
+              <div class="ctr-row">
+                <span style="font-size:8px;color:var(--txt2)">◻ White</span>
+                <span class="ctr-badge" id="ctr-white">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Save / Load Palettes -->
+        <div class="pt" style="margin-top:3px">Save / Load Custom Palette</div>
+        <div class="sp-row">
+          <input type="text" class="sp-name" id="pal-save-name" placeholder="name this palette…" maxlength="32">
+          <button class="tbtn" onclick="E.savePalette()" title="Save current palette to browser storage" style="border-color:var(--teal);color:var(--teal2)">SAVE</button>
+        </div>
+        <div id="saved-pal-list"></div>
+
+        <!-- Palette Libraries -->
+        <div class="pt" style="margin-top:3px">Palette Libraries</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+          <button class="pibtn" onclick="E.loadPal('gs_isaac')">⚔ GS Isaac</button>
+          <button class="pibtn" onclick="E.loadPal('gs_djinn')">✨ GS Djinn</button>
+          <button class="pibtn" onclick="E.loadPal('gs_cave')">🌑 Sol Sanctum</button>
+          <button class="pibtn" onclick="E.loadPal('gs_sky')">☁ Angara Sky</button>
+          <button class="pibtn" onclick="E.loadPal('gs_mercury')">💧 Mercury Lighthouse</button>
+          <button class="pibtn" onclick="E.loadPal('gs_mars')">🔥 Mars Lighthouse</button>
+          <button class="pibtn" onclick="E.loadPal('gs_venus')">🌿 Venus Lighthouse</button>
+          <button class="pibtn" onclick="E.loadPal('gs_jupiter')">⚡ Jupiter Lighthouse</button>
+          <button class="pibtn" onclick="E.loadPal('gs_lalivero')">🏜 Lalivero / Kibombo</button>
+          <button class="pibtn" onclick="E.loadPal('pkmn_fire')">🔴 Pokémon Fire</button>
+          <button class="pibtn" onclick="E.loadPal('pkmn_water')">🔵 Pokémon Water</button>
+          <button class="pibtn" onclick="E.loadPal('pkmn_grass')">🟢 Pokémon Grass</button>
+          <button class="pibtn" onclick="E.loadPal('pkmn_electric')">⚡ Pokémon Electric</button>
+          <button class="pibtn" onclick="E.loadPal('pkmn_psychic')">🟣 Pokémon Psychic</button>
+          <button class="pibtn" onclick="E.loadPal('pkmn_dragon')">🐉 Pokémon Dragon</button>
+          <button class="pibtn" onclick="E.loadPal('pkmn_charizard')">🦎 Charizard (FRLG)</button>
+          <button class="pibtn" onclick="E.loadPal('pkmn_pikachu')">⚡ Pikachu (FRLG)</button>
+          <button class="pibtn" onclick="E.loadPal('pkmn_mewtwo')">👁 Mewtwo (FRLG)</button>
+          <button class="pibtn" onclick="E.loadPal('advance_os')">🪖 Advance Wars OS</button>
+          <button class="pibtn" onclick="E.loadPal('advance_bm')">❄ Advance Wars BM</button>
+          <button class="pibtn" onclick="E.loadPal('metroid')">👾 Metroid Fusion</button>
+          <button class="pibtn" onclick="E.loadPal('castlevania')">🏰 Castlevania AoS</button>
+          <button class="pibtn" onclick="E.loadPal('pico8')">🕹 PICO-8</button>
+          <button class="pibtn" onclick="E.loadPal('db16')">🌅 DawnBringer 16</button>
+          <button class="pibtn" onclick="E.loadPal('apollo')">🚀 Apollo</button>
+          <button class="pibtn" onclick="E.loadPal('journey')">🌄 Journey</button>
+          <button class="pibtn" onclick="E.loadPal('rembrandt')">🕯 Rembrandt</button>
+          <button class="pibtn" onclick="E.loadPal('hokusai')">🌊 Hokusai</button>
+          <button class="pibtn" onclick="E.loadPal('greyscale')">◑ Value Study</button>
+          <button class="pibtn" onclick="E.loadPal('neon')">⚡ Neon</button>
+          <div style="grid-column:1/-1;border-top:1px solid var(--br);margin:4px 0;opacity:.4"></div>
+          <button class="pibtn" style="border-color:rgba(143,168,255,.5);color:#8fa8ff" onclick="E.loadPal('ps_physical')">◈ PS Physical World</button>
+          <button class="pibtn" style="border-color:rgba(0,240,200,.5);color:#00f0c8" onclick="E.loadPal('ps_signal')">◈ PS Signal World</button>
+          <button class="pibtn" style="grid-column:1/-1;border-color:rgba(200,160,48,.5);color:var(--gold)" onclick="E.swapSignalWorld()">⇄ Swap Physical ↔ Signal</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MIX / RAMP TAB ──────────────────────────── -->
+    <div class="tabpane" id="pane-mix">
+      <div class="pb">
+
+        <!-- RAMP GENERATOR — The Star Feature -->
+        <div class="pt">🎨 Ramp Generator (Hue-Shift Method)</div>
+        <div class="pi" style="border-left:2px solid var(--gold)">
+          <b style="color:var(--gold)">The Secret of GBA Shading:</b> Don't just darken/lighten.
+          Shift hue toward <b style="color:#88aaff">blue-purple in shadows</b> and toward
+          <b style="color:#ffcc66">warm amber in highlights</b>. This is how Golden Sun and
+          Pokémon sprites feel vibrant, not muddy.
+        </div>
+        <div class="pr">
+          <span class="pl">Steps:</span>
+          <select class="tsel" id="ramp-steps"><option>3</option><option selected>5</option><option>7</option></select>
+          <span class="pl">Style:</span>
+          <select class="tsel" id="ramp-style">
+            <option value="gs">Golden Sun</option>
+            <option value="pkmn">Pokémon</option>
+            <option value="warm">Warm</option>
+            <option value="cool">Cool</option>
+            <option value="neutral">Neutral</option>
+          </select>
+        </div>
+        <div class="pr">
+          <span class="pl">Hue shift shadows:</span>
+          <input type="range" id="ramp-hsh" min="-60" max="60" value="-22" style="flex:1">
+          <span id="ramp-hsh-val" style="font-size:9px;color:var(--txt);min-width:28px">−22°</span>
+        </div>
+        <div class="pr">
+          <span class="pl">Hue shift highlights:</span>
+          <input type="range" id="ramp-hhl" min="-60" max="60" value="18" style="flex:1">
+          <span id="ramp-hhl-val" style="font-size:9px;color:var(--txt);min-width:28px">+18°</span>
+        </div>
+        <div id="ramp-preview" class="ramp-preview"></div>
+        <div class="pr">
+          <button class="tbtn" onclick="E.previewRamp()" style="flex:1">PREVIEW RAMP</button>
+          <button class="tbtn" onclick="E.applyRamp()" style="flex:1;border-color:var(--gold);color:var(--gold)">APPLY TO PALETTE ▸</button>
+        </div>
+        <div class="pi" style="font-size:9px">
+          Ramp slots: <span id="ramp-slot-info" style="color:var(--gold2)">will fill idx 1–5</span><br>
+          Left-click ramp preview to pick a step as active color.
+        </div>
+
+        <!-- COLOR HARMONY -->
+        <div class="pt" style="margin-top:4px">Harmony Generator</div>
+        <div class="pi">
+          Generate harmonious palette colors from current selection.
+          Based on Itten's color theory and GBA game design patterns.
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+          <button class="pibtn" onclick="E.harmony('comp')">⟺ Complementary</button>
+          <button class="pibtn" onclick="E.harmony('analog')">≈ Analogous (3)</button>
+          <button class="pibtn" onclick="E.harmony('triad')">△ Triadic</button>
+          <button class="pibtn" onclick="E.harmony('split')">⊢ Split-Comp</button>
+          <button class="pibtn" onclick="E.harmony('tetrad')">□ Tetradic</button>
+          <button class="pibtn" onclick="E.harmony('mono')">║ Monochromatic</button>
+        </div>
+        <div id="harm-preview" style="display:flex;gap:3px;height:20px;margin-top:2px"></div>
+        <button class="tbtn" id="harm-apply-btn" onclick="E.applyHarmony()" style="display:none;width:100%;border-color:var(--teal);color:var(--teal2)">APPLY HARMONY COLORS →</button>
+
+        <!-- COLOR REPLACE -->
+        <div class="pt" style="margin-top:4px">Color Replace</div>
+        <div class="pi">Swap every occurrence of one palette index with another across entire canvas.</div>
+        <div class="pr">
+          <span class="pl">From idx:</span>
+          <input type="number" id="rep-from" class="szin" style="width:38px" min="0" max="15" value="1">
+          <span class="pl">→ To idx:</span>
+          <input type="number" id="rep-to" class="szin" style="width:38px" min="0" max="15" value="2">
+          <button class="tbtn" onclick="E.colorReplace()" style="flex:1">REPLACE</button>
+        </div>
+
+        <!-- PALETTE ANIMATION PREVIEW -->
+        <div class="pt" style="margin-top:4px">🎬 Palette Animation Preview</div>
+        <div class="pi" style="border-left:2px solid var(--teal)">
+          <b style="color:var(--teal2)">Camelot's trick:</b> GS Djinn summons and spell effects work by
+          cycling palette index values — the same pixel data, different colors each frame.
+          Zero VRAM cost. Design with this in mind.
+        </div>
+        <div id="pal-anim-wrap">
+          <canvas id="pal-anim-canvas" width="64" height="64"></canvas>
+          <div id="pal-anim-ctrl">
+            <div style="color:var(--txt2);font-size:9px">Cycle indices:</div>
+            <div class="pr" style="gap:3px">
+              <span class="pl">from</span>
+              <input type="number" id="pa-from" class="szin" style="width:32px" min="1" max="15" value="9">
+              <span class="pl">to</span>
+              <input type="number" id="pa-to" class="szin" style="width:32px" min="1" max="15" value="14">
+            </div>
+            <button class="tbtn" id="pa-play-btn" onclick="E.togglePalAnim()" style="border-color:var(--teal);color:var(--teal2)">▶ PLAY</button>
+            <div style="color:var(--txt3);font-size:8px;margin-top:2px">Right-click canvas<br>to copy current frame</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── BRUSH TAB ────────────────────────────────── -->
+    <div class="tabpane" id="pane-brush">
+      <div class="pb">
+        <div class="pt">Brush Size  ( [ ] keys )</div>
+        <div class="pr">
+          <button class="ck" onclick="E.brushDelta(-1)">−</button>
+          <span id="brushdisp" style="color:var(--gold);font-size:11px;min-width:22px;text-align:center">1px</span>
+          <button class="ck" onclick="E.brushDelta(1)">+</button>
+          <button class="ck" id="brushshape" onclick="E.toggleBrushShape()">Round</button>
+        </div>
+        <div class="pt">Dithering</div>
+        <div class="pr">
+          <button class="ck" id="ditherbtn" onclick="E.toggleDither()">Dither OFF</button>
+          <select class="tsel" id="dithermode"><option value="bayer2">2×2</option><option value="bayer4" selected>4×4</option><option value="bayer8">8×8</option></select>
+        </div>
+        <div class="pi">Bayer ordered dithering — used in GS sky, water, cave shadows. Pattern tiles every 2/4/8 pixels.</div>
+        <div class="pt">Symmetry</div>
+        <div class="pr">
+          <button class="ck" id="symxbtn" onclick="E.toggleSym('x')">Mirror X</button>
+          <button class="ck" id="symybtn" onclick="E.toggleSym('y')">Mirror Y</button>
+        </div>
+        <div class="pt">Onion Skin</div>
+        <div class="pr"><button class="ck" id="onionbtn" onclick="E.toggleOnion()">Onion OFF</button></div>
+
+        <div class="pt" style="margin-top:2px">GBA Hardware Reference</div>
+        <div class="pi">
+          <b style="color:var(--gold)">Screen:</b> 240×160px • ~60.75fps • 3.5" LCD<br>
+          <b style="color:var(--gold)">Color:</b> 15-bit BGR5 = 32,768 colors. No true black — min visible ≈ #080808<br>
+          <b style="color:var(--gold)">Palettes:</b> 16×16 colors (256 total). Index 0 per palette = transparent<br>
+          <b style="color:var(--gold)">Sprites:</b> 128 OAM. Sizes: 8×8 to 64×64. 4bpp = 16 colors per sprite<br>
+          <b style="color:var(--gold)">Backgrounds:</b> 4 BG layers (BG0–BG3). Mode 1 = 2 tile BGs + 1 affine<br>
+          <b style="color:var(--teal)">Golden Sun:</b> Mode 0 for towns/dungeons. Mode 1 affine BG3 for world map rotation<br>
+          <b style="color:var(--amber2)">Pokémon RSE/FRLG:</b> Mode 0. Pokémon sprites: 64×64, 16 colors. Trainer: 80×80
+        </div>
+
+        <div class="pt" style="margin-top:2px">Pixel Art Checklist</div>
+        <div class="pi">
+          ☐ <b style="color:var(--gold)">Squint test:</b> readable when blurred?<br>
+          ☐ <b style="color:var(--gold)">Silhouette test:</b> readable as flat shape?<br>
+          ☐ <b style="color:var(--gold)">3-tone rule:</b> outline / mid / highlight only<br>
+          ☐ <b style="color:var(--gold)">No pillow shading:</b> shade toward light source<br>
+          ☐ <b style="color:var(--gold)">No banding:</b> shading wraps the form<br>
+          ☐ <b style="color:var(--gold)">Clusters ≥ 2×2px:</b> no single-pixel noise<br>
+          ☐ <b style="color:var(--gold)">Hue-shifted:</b> shadows cool, highlights warm
+        </div>
+      </div>
+    </div>
+
+    <!-- ── OVERLAYS TAB ─────────────────────────────── -->
+    <div class="tabpane" id="pane-ov">
+      <div class="pb">
+        <div class="pt">Composition Guides</div>
+        <button class="ovbtn" id="ov-thirds" onclick="E.toggleOv('thirds')">⊞ Rule of Thirds</button>
+        <div class="ovdesc">9 equal zones. Focal points at intersections. Caravaggio, Adams, Kubrick.</div>
+        <button class="ovbtn" id="ov-golden" onclick="E.toggleOv('golden')">φ Golden Ratio Grid</button>
+        <div class="ovdesc">φ=1.618… recursive division. Parthenon, Mona Lisa, Le Corbusier.</div>
+        <button class="ovbtn" id="ov-fib" onclick="E.toggleOv('fib')">🌀 Fibonacci Spiral</button>
+        <div class="ovdesc">Logarithmic spiral → φ. Nautilus, galaxies, sunflower arrays (55/89).</div>
+        <button class="ovbtn" id="ov-diag" onclick="E.toggleOv('diag')">╲ Baroque Diagonal</button>
+        <div class="ovdesc">Dynamic tension. Rubens, Delacroix. Sinister diagonal = drama.</div>
+        <button class="ovbtn" id="ov-gba" onclick="E.toggleOv('gba')">🕹 GBA Safe Margin</button>
+        <div class="ovdesc">Avoid critical elements within outer 8px border. LCD edge bleed.</div>
+        <button class="ovbtn" id="ov-vp" onclick="E.toggleOv('vp')">⊿ Vanishing Point Ruler</button>
+        <div class="ovdesc">GBA depth system. Drag VP dot to reposition. Lines radiate out — draw tiles along them for correct perspective.</div>
+        <div class="pr" id="vp-controls" style="display:none">
+          <span class="pl">VP X:</span><input type="range" id="vp-x" min="0" max="100" value="50" style="flex:1" oninput="E.setVP()">
+          <span class="pl">VP Y:</span><input type="range" id="vp-y" min="0" max="100" value="60" style="flex:1" oninput="E.setVP()">
+        </div>
+
+        <div class="pt" style="margin-top:3px">🌿 Foliage Brush Size</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px">
+          <button class="ovbtn foliage-sz on" data-sz="S" onclick="E.setFoliageSize('S')">S · r5</button>
+          <button class="ovbtn foliage-sz" data-sz="M" onclick="E.setFoliageSize('M')">M · r8</button>
+          <button class="ovbtn foliage-sz" data-sz="L" onclick="E.setFoliageSize('L')">L · r12</button>
+        </div>
+        <div class="ovdesc">3–5 overlapping Bresenham circles. Depth-shaded. Specular highlight at crown. Use palette slots 1–4 for dark→light.</div>
+
+        <div class="pt" style="margin-top:3px">Spiral Origin</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+          <button class="ovbtn" onclick="E.setFibOrigin('tl')">↖ TL</button>
+          <button class="ovbtn" onclick="E.setFibOrigin('tr')">↗ TR</button>
+          <button class="ovbtn" onclick="E.setFibOrigin('bl')">↙ BL</button>
+          <button class="ovbtn" onclick="E.setFibOrigin('br')">↘ BR</button>
+        </div>
+        <div class="pt" style="margin-top:3px">Fibonacci</div>
+        <div class="pi">
+          <b style="color:var(--gold)">0,1,1,2,3,5,8,13,21,34,55,89…</b><br>
+          Adjacent ratio → φ = 1.6180339887…<br><br>
+          <b style="color:var(--teal2)">Pixel Art spacing:</b> 2, 3, 5, 8, 13px<br>
+          Cluster sizes of 1,2,3,5,8 read naturally<br>
+          5:3:2 ratio for highlight:mid:shadow areas<br><br>
+          GBA screen: 240÷160 = 1.5 ≈ φ−0.118<br>
+          GS dialogue portrait ≈ φ rectangle
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ART KNOWLEDGE TAB ────────────────────────── -->
+    <div class="tabpane" id="pane-art">
+      <div class="pb">
+        <div class="pt">Baked Art Knowledge — World Council</div>
+
+        <div class="ak-cat">
+          <span class="ak-h" onclick="this.nextElementSibling.classList.toggle('open')">▸ Hue-Shift Shading — The Core Secret</span>
+          <div class="ak-b">
+            <div class="ak-t"><b>Why not just darken?</b> Pure dark = muddy. Hue-shifting creates the <i>illusion of light</i> because real light scatters wavelengths differently.</div>
+            <div class="ak-t"><b>Shadow rule (GS/Pokémon):</b> Shift hue <b>−15° to −30°</b> toward blue-purple (220–260°). Reduce saturation 20–30%. Drop lightness 30–45%.</div>
+            <div class="ak-t"><b>Highlight rule:</b> Shift hue <b>+10° to +20°</b> toward amber-yellow (40–60°). Slight saturation boost. Raise lightness 25–40%.</div>
+            <div class="ak-t"><ex>GOLDEN SUN example:</ex> Isaac's green tunic — shadow is a desaturated blue-green, highlight is a warm yellow-green. The midtone is the only "true" green.</div>
+            <div class="ak-t"><ex>POKÉMON example:</ex> Charizard's orange body — shadow shifts toward dark red-brown, highlight toward pale yellow. Outline is darkened orange, not black.</div>
+          </div>
+        </div>
+
+        <div class="ak-cat">
+          <span class="ak-h" onclick="this.nextElementSibling.classList.toggle('open')">▸ Golden Sun — Camelot's Full Technique</span>
+          <div class="ak-b">
+            <div class="ak-t"><b>1px black outline</b> on all characters. Reads at 8×8, 16×16, 32×32. Never anti-aliased. The outline IS the silhouette.</div>
+            <div class="ak-t"><b>3-tone sprites:</b> shadow / midtone / highlight + black outline = 4 total per material. Never more. The constraint produces clarity.</div>
+            <div class="ak-t"><b>Inner outline trick:</b> Add 1px of a mid-dark tone inside the black outline to separate body from limbs without adding a new color.</div>
+            <div class="ak-t"><b>Palette animation:</b> Djinn summons cycle palette entries per frame. Same pixel data, rotating colors = spell effects at zero VRAM cost.</div>
+            <div class="ak-t"><b>Dithered BG gradients:</b> GS uses Bayer 4×4 for sky and water tiles. Every pixel is one of two colors — dither creates gradient illusion.</div>
+            <div class="ak-t"><b>Area color identity:</b> Vale=warm green+brown, Imil=white+icy blue, Xian=warm red-orange, Mercury Lighthouse=cold blue-white, Sol Sanctum=deep purple+gold.</div>
+            <div class="ak-t"><b>Portrait area:</b> GS dialogue portraits are ~56×64px, using 15 full colors. They break the 3-tone sprite rule — much more painterly.</div>
+          </div>
+        </div>
+
+        <div class="ak-cat">
+          <span class="ak-h" onclick="this.nextElementSibling.classList.toggle('open')">▸ Retro RPG Style — Sugimori Color Language (GBA Era)</span>
+          <div class="ak-b">
+            <div class="ak-t"><b>Type = hue family:</b> Fire=reds/oranges, Water=blues/cyans, Grass=greens, Electric=yellows, Psychic=pinks/purples, Dragon=blue-purples, Dark=dark browns.</div>
+            <div class="ak-t"><b>Dark outline, not black:</b> FRLG/RSE outlines are the darkest shade of the body color, not pure black. Pure black outlines look harsh at 64×64.</div>
+            <div class="ak-t"><b>High saturation primary:</b> The "body color" (midtone) is aggressively saturated — S=80-95%. GBA LCD can barely show it, which reads as vibrant.</div>
+            <div class="ak-t"><b>Limited shadow tones:</b> Pokémon sprites typically use 3–5 colors including outline. Shadow is often the body color shifted −30–40° cooler.</div>
+            <div class="ak-t"><b>Highlight is near-white:</b> Pokémon highlights are often 90–95% lightness with very low saturation — simulates glossy/shiny surface (many Pokémon are depicted as healthy/moist).</div>
+            <div class="ak-t"><b>Two-color eyes:</b> All Pokémon eyes use exactly 2 colors: dark pupil + white highlight pixel. 1 pixel = full emotional read.</div>
+            <div class="ak-t"><b>Shiny variant:</b> Shiny Pokémon reuse same sprite, different palette only. Always design sprites with palette-swap potential.</div>
+          </div>
+        </div>
+
+        <div class="ak-cat">
+          <span class="ak-h" onclick="this.nextElementSibling.classList.toggle('open')">▸ Color Theory — Itten, Albers, Gurney</span>
+          <div class="ak-b">
+            <div class="ak-t"><b>Value first (Itten):</b> Print grayscale. If unreadable, contrast is broken. Value carries form. Hue carries emotion. Saturation carries energy.</div>
+            <div class="ak-t"><b>Simultaneous contrast (Albers):</b> A gray swatch looks warmer on blue, cooler on orange. Two identical colors look different depending on surroundings. Use this — don't fight it.</div>
+            <div class="ak-t"><b>Temperature (Gurney):</b> Warm light = cool shadows. Cool light (overcast) = warm shadows. Never both warm. GS outdoor scenes: warm gold light + cool blue-purple shadows.</div>
+            <div class="ak-t"><b>Saturation falloff (Leonardo):</b> Distant objects desaturate toward atmosphere color. GS distant mountains = desaturated blue-grey. Only foreground is fully saturated.</div>
+            <div class="ak-t"><b>Complementary vibration:</b> Complementary colors at full saturation vibrate at borders (simultaneous contrast × 2). Isaac's blue/orange is exactly this. Use sparingly — it's loud.</div>
+          </div>
+        </div>
+
+        <div class="ak-cat">
+          <span class="ak-h" onclick="this.nextElementSibling.classList.toggle('open')">▸ Master Artists → Direct Pixel Applications</span>
+          <div class="ak-b">
+            <div class="ak-t"><b>Rembrandt (1606–1669):</b> Single light source. Everything else is cast into shadow. One bright pixel surrounded by shadow = Rembrandt spot. Use on shield emblems, gems, eyes.</div>
+            <div class="ak-t"><b>Hokusai (1760–1849):</b> <i>Great Wave</i> uses 3 values. Zero unnecessary information. Ukiyo-e woodblock = flat color areas with bold outline. This IS sprite design.</div>
+            <div class="ak-t"><b>Monet (1840–1926):</b> Pure adjacent hues, never blended. Pixel art IS Monet's technique — adjacent pure pixels create optical blending. His serial studies: light = color temperature shift.</div>
+            <div class="ak-t"><b>Cézanne (1839–1906):</b> All form = sphere, cone, cylinder. GBA sprites must commit to this — a character's head IS a sphere. Shade it as one.</div>
+            <div class="ak-t"><b>Turner (1775–1851):</b> Warm glowing center, cool fading edges. GS battle scenes put the warm action center against cool dark edges. Atmospheric.</div>
+          </div>
+        </div>
+
+        <div class="ak-cat">
+          <span class="ak-h" onclick="this.nextElementSibling.classList.toggle('open')">▸ Advanced Pixel Art Principles</span>
+          <div class="ak-b">
+            <div class="ak-t"><b>Pillow shading (AVOID):</b> Shading that follows the outline — looks inflated, flat. Always shade toward a consistent light source, not the edge.</div>
+            <div class="ak-t"><b>Banding (AVOID):</b> Parallel shading bands that don't describe form. Each shade change should show a plane change or surface normal change.</div>
+            <div class="ak-t"><b>Selective AA:</b> Place 1 intermediate-value pixel on major diagonal steps of curves. GS does this on character hair and armor edges. Never on straight lines.</div>
+            <div class="ak-t"><b>Sub-pixel rendering:</b> A 1px element with AA pixels on sides reads as physically larger than it is. GS uses this on thin sword blades.</div>
+            <div class="ak-t"><b>Economy principle:</b> Remove pixels until it breaks. Add exactly one back. Every pixel must earn its place. GS sprites feel rich because no pixel is wasted.</div>
+            <div class="ak-t"><b>Color count discipline:</b> Any single material (skin, cloth, metal) should use max 4 colors. Silhouette can share colors with interior. Never introduce a new color when a shifted hue works.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── AI / OLLAMA TAB ──────────────────────────── -->
+    <div class="tabpane" id="pane-ai">
+      <div class="pb">
+        <div class="pt">🤖 AI Art Director <span style="color:var(--txt2);font-weight:normal">— Optional Extension</span></div>
+        <div class="pi">
+          Connects to <b style="color:var(--teal2)">http://localhost:11434</b> if Ollama is running locally.<br>
+          <b>Optional</b> — all tools work fully offline without it.<br>
+          Install Ollama separately to enable AI palette generation.<br>
+          Then: <i>ollama pull llama3.2</i>
+        </div>
+        <div class="pr">
+          <span class="pl">Model:</span>
+          <input id="ai-model" class="pin" style="width:100px" value="llama3.2" placeholder="llama3.2">
+          <button class="tbtn" onclick="E.aiPing()">PING</button>
+        </div>
+        <div id="ai-status" class="err">● Not connected — install Ollama to enable</div>
+
+        <div class="pt" style="margin-top:4px">Quick Prompts</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+          <button class="pibtn" onclick="E.aiQuick('palette_gen')">🎨 Generate Palette</button>
+          <button class="pibtn" onclick="E.aiQuick('palette_critique')">🔍 Critique Palette</button>
+          <button class="pibtn" onclick="E.aiQuick('ramp_suggest')">🌈 Suggest Ramp</button>
+          <button class="pibtn" onclick="E.aiQuick('gs_convert')">⚔ GS Style Advice</button>
+          <button class="pibtn" onclick="E.aiQuick('pkmn_convert')">🔴 Pokémon Style</button>
+          <button class="pibtn" onclick="E.aiQuick('art_direct')">🎭 Art Direction</button>
+        </div>
+
+        <div class="pt" style="margin-top:4px">Custom Prompt</div>
+        <textarea id="ai-prompt" placeholder="Describe what you want... e.g. 'Generate a 16-color palette for an ice dungeon in the style of Golden Sun Mercury Lighthouse. Return only valid JSON with a palette array of 16 hex values.'"></textarea>
+        <button class="aibtn" id="ai-send" onclick="E.aiSend()" disabled>
+          ▶ SEND TO OLLAMA (offline)
+        </button>
+        <div class="pt" style="margin-top:2px">Response</div>
+        <div id="ai-out">// AI response will appear here.\n// Connect Ollama to activate.</div>
+        <button class="tbtn" id="ai-apply-pal" onclick="E.aiApplyPalette()" style="display:none;width:100%;border-color:var(--teal);color:var(--teal2)">APPLY PALETTE FROM AI RESPONSE →</button>
+
+        <div class="pt" style="margin-top:4px">Machine-Readable Export (for LLMs)</div>
+        <div class="pi">Export your current canvas + palette as structured JSON that any LLM can read and modify — including local models via Ollama.</div>
+        <button class="exbtn" onclick="E.exportLLMContext()">📤 Export LLM Context JSON</button>
+        <button class="exbtn" onclick="E.copyLLMContext()">📋 Copy LLM Context to Clipboard</button>
+      </div>
+    </div>
+
+    <!-- ── EXPORT TAB ───────────────────────────────── -->
+    <div class="tabpane" id="pane-ex">
+      <div class="pb">
+        <div class="pt">Canvas Size</div>
+        <div class="pr">
+          <input id="exw" type="number" class="szin" value="64" min="1" max="512">
+          <span class="pl">×</span>
+          <input id="exh" type="number" class="szin" value="64" min="1" max="512">
+          <button class="tbtn" onclick="E.resizeCanvas()" style="margin-left:4px">RESIZE</button>
+        </div>
+        <div style="color:var(--txt2);font-size:9px">GBA: 240×160 | Sprites: 8 to 64px | Tiles: 8×8</div>
+        <div class="pt">Export</div>
+        <button class="exbtn" onclick="E.exportPNG()">📷 PNG — transparent background</button>
+        <button class="exbtn" onclick="E.exportAllPNG()">🎞 All Frames — Sprite Sheet PNG</button>
+        <button class="exbtn" onclick="E.exportJSON()">{ } JSON — game engine ready + meta</button>
+        <button class="exbtn" onclick="E.exportC()">C  C Header — GBA dev (BGR15 u16)</button>
+        <button class="exbtn" onclick="E.exportTileset()">⊞ 8×8 Tileset JSON</button>
+        <div class="pt">Import</div>
+        <input type="file" id="impfile" accept=".json,.png" style="display:none" onchange="E.importFile(this)">
+        <button class="exbtn" onclick="document.getElementById('impfile').click()">📂 Import PNG / JSON</button>
+        <div class="pt">Code Preview</div>
+        <div id="excode">// Press an export button above</div>
+      </div>
+    </div>
+
+  </div><!-- /#rpanel -->
+</div><!-- /#workspace -->
+
+<!-- TIMELINE -->
+<div id="timeline">
+  <div id="frames-list"></div>
+  <div id="animctrl">
+    <span id="fpsl">12fps</span>
+    <button class="abtn" onclick="E.fpsDown()">−</button>
+    <button class="abtn" id="playbtn" onclick="E.togglePlay()">▶</button>
+    <button class="abtn" onclick="E.fpsUp()">+</button>
+    <button class="abtn" onclick="E.dupFrame()" title="Duplicate frame">⧉</button>
+    <button class="abtn" onclick="E.delFrame()" title="Delete frame">✕</button>
+  </div>
+</div>
+
+<!-- STATUS -->
+<div id="statusrow">
+  <span class="si">x:<b id="sx">0</b></span>
+  <span class="si">y:<b id="sy">0</b></span>
+  <span class="si">px:<b id="spx">—</b></span>
+  <span class="si tn">tool:<b id="stool">pencil</b></span>
+  <span class="si">col:<b id="scol">#000</b></span>
+  <span class="si">frame:<b id="sfr">1/1</b></span>
+  <span id="shint"></span>
+</div>
+
+</div><!-- /#app -->
+
+<!-- HELP MODAL -->
+<div id="helpmodal">
+<div id="helpinner">
+  <div style="color:var(--gold);font-size:13px;font-weight:bold;margin-bottom:10px">◈ PIXEL ENGINE v1.2 · PALE SIGNAL · WORLD COUNCIL EDITION</div>
+  <div class="hgrid">
+    <span><b style="color:var(--gold2)">B</b> Pencil</span><span><b style="color:var(--gold2)">E</b> Eraser</span>
+    <span><b style="color:var(--gold2)">G</b> Flood Fill</span><span><b style="color:var(--gold2)">L</b> Line</span>
+    <span><b style="color:var(--gold2)">R</b> Rectangle</span><span><b style="color:var(--gold2)">F</b> Filled Rect</span>
+    <span><b style="color:var(--gold2)">O</b> Ellipse</span><span><b style="color:var(--gold2)">V</b> Bezier Curve</span>
+    <span><b style="color:var(--gold2)">I</b> Eyedropper</span><span><b style="color:var(--gold2)">[ ]</b> Brush size</span>
+    <span><b style="color:var(--gold2)">+ −</b> Zoom</span><span><b style="color:var(--gold2)">Scroll</b> Zoom</span>
+    <span><b style="color:var(--gold2)">Ctrl+Z</b> Undo</span><span><b style="color:var(--gold2)">Ctrl+Y</b> Redo</span>
+    <span><b style="color:var(--gold2)">1–9</b> Pick color</span><span><b style="color:var(--gold2)">Esc</b> Cancel</span>
+    <span><b style="color:var(--gold2)">Right-click</b> Erase</span><span><b style="color:var(--gold2)">?</b> This help</span>
+  </div>
+  <div style="color:var(--teal2);font-size:10px;margin-top:10px;line-height:1.8">
+    <b>◁▷ tabs</b> on canvas edges collapse/expand the panels.<br>
+    <b>Bezier:</b> Click — Start → Control Point (curve bends toward it) → End. Esc to cancel.<br>
+    <b>🌈 Mix tab:</b> Ramp Generator uses hue-shifting — the secret of GBA shading.<br>
+    <b>🤖 AI tab:</b> Connects to local Ollama for offline AI art direction.<br>
+    <b>Double-click</b> palette swatch to jump to color editor.
+  </div>
+  <button class="tbtn" onclick="document.getElementById('helpmodal').classList.remove('show')"
+    style="margin-top:12px;width:100%;padding:6px">CLOSE (press ? to toggle)</button>
+</div>
+</div>
+
+<script>
+'use strict';
+// ══════════════════════════════════════════════════════════════════
+//  PIXEL ENGINE — World Council Edition · Siegeworks Marketing LLC
+//  Zero deps · Full offline · LLM-ready · Hue-shift ramp · Ollama
+// ══════════════════════════════════════════════════════════════════
+
+const PHI = 1.6180339887498948482;
+const FIB = [1,1,2,3,5,8,13,21,34,55,89,144,233,377,610];
+
+// ── BAYER MATRICES ─────────────────────────────────────────────
+const BAYER = {
+  bayer2:[[0,2],[3,1]],
+  bayer4:[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]],
+  bayer8:[
+    [0,32,8,40,2,34,10,42],[48,16,56,24,50,18,58,26],
+    [12,44,4,36,14,46,6,38],[60,28,52,20,62,30,54,22],
+    [3,35,11,43,1,33,9,41],[51,19,59,27,49,17,57,25],
+    [15,47,7,39,13,45,5,37],[63,31,55,23,61,29,53,21]
+  ]
+};
+
+// ══════════════════════════════════════════════════════════════════
+//  PALETTES — World-council curated
+//  Sources: GBA ROM analysis, Lospec community, game design lore
+// ══════════════════════════════════════════════════════════════════
+const PALS = {
+  // ── GOLDEN SUN ────────────────────────────────────────────────
+  gs_isaac:[null,'#000000','#180a00','#4a2010','#8a5028','#c07840',
+    '#e8a060','#ffc888','#101840','#2040a0','#4878d0','#c8a030',
+    '#e8d080','#ffffff','#383060','#8090c0'],
+  gs_djinn:[null,'#000000','#101828','#182860','#2858b0','#4088e0',
+    '#80c8f8','#c8f0ff','#30a850','#58d070','#90f0a0','#c8ffd8',
+    '#c8b020','#f0d040','#fff080','#ffffff'],
+  gs_cave:[null,'#000000','#180820','#301040','#501870','#7040a0',
+    '#9860c8','#c090e8','#200808','#501010','#801818','#b03020',
+    '#c8a030','#e8c850','#fffff0','#282840'],
+  gs_sky:[null,'#000000','#0a1838','#182868','#2848b0','#4888e8',
+    '#80b8f8','#b8d8ff','#f8e8a8','#e8c870','#c89838','#906820',
+    '#f0f4ff','#c8d0e8','#98a8c8','#586880'],
+  gs_mercury:[null,'#000000','#080828','#101850','#182898','#2040d8',
+    '#4068f8','#80a8ff','#b8d0ff','#e8f0ff','#c0c8f0','#8090d0',
+    '#4058a8','#203080','#101848','#f0f8ff'],
+  gs_mars:[null,'#000000','#200808','#400808','#701010','#a02020',
+    '#d04040','#f06050','#f88060','#ffa870','#ffd090','#fff0b8',
+    '#c82828','#f04040','#f8d020','#f0f0e0'],
+
+  // ── POKÉMON GBA — Type-accurate palettes ──────────────────────
+  // Based on actual GBA ROM sprite palettes (FRLG/RSE analysis)
+  pkmn_fire:[null,'#000000','#380808','#680c0c','#b01818','#e83020',
+    '#f86040','#f89860','#f8c888','#f0e0b0','#ffffff','#c82010',
+    '#f84020','#f8a000','#f8d000','#f8f0c8'],
+  pkmn_water:[null,'#000000','#081828','#103060','#1858b0','#2888e0',
+    '#50b0f0','#80d0f8','#b0e8ff','#d8f0ff','#ffffff','#1040a0',
+    '#2060d0','#40a0f0','#80c8f8','#f0f8ff'],
+  pkmn_grass:[null,'#000000','#081808','#104018','#208030','#38b048',
+    '#60d060','#90e880','#b8f8a0','#d8ffc8','#ffffff','#186028',
+    '#30a040','#58c858','#88e870','#c0f8a0'],
+  pkmn_electric:[null,'#000000','#281808','#584010','#988020','#c8a828',
+    '#f0d030','#f8e860','#f8f090','#f8f8c0','#ffffff','#a08010',
+    '#d0b020','#f0d020','#f8e860','#f8f8e8'],
+  pkmn_psychic:[null,'#000000','#280830','#502060','#804898','#b070c8',
+    '#d8a0e8','#f0c8f8','#fce8ff','#ffffff','#e080c0','#c05090',
+    '#e070b0','#f0a0d0','#f8c8e8','#fff0f8'],
+  pkmn_dragon:[null,'#000000','#081040','#102080','#1840c0','#2868e0',
+    '#4090f0','#80b8f8','#b8d8ff','#e0ecff','#ffffff','#201860',
+    '#3030a0','#5058d0','#8890f0','#c0c8ff'],
+
+  // ── GOLDEN SUN (complete) ─────────────────────────────────
+  // gs_venus — Venus Lighthouse: Earth element, sandy yellows + deep browns
+  // Warm ochre, terracotta, deep brown like ancient stone + yellow crystals
+  gs_venus:[null,'#000000','#180c00','#382008','#683018','#a05838',
+    '#d08840','#f0b860','#f8d898','#fff0c8','#d04818','#f07030',
+    '#ffe000','#98c820','#58901c','#204808'],
+  // gs_jupiter — Jupiter Lighthouse: Wind element, electric purple + gold lightning
+  gs_jupiter:[null,'#000000','#100820','#201848','#382898','#5040d8',
+    '#7870f0','#b0a8ff','#e0d8ff','#f8f0ff','#c89000','#f0c000',
+    '#f8e040','#ffffa0','#3020a0','#6850f0'],
+  // gs_lalivero — Desert oasis, sandy warmth + terracotta
+  gs_lalivero:[null,'#000000','#201000','#483010','#806030','#b89050',
+    '#d0b068','#e8d098','#f8ecc8','#ffffff','#e87030','#c05018',
+    '#3878a8','#60a8d0','#a0d8f0','#d0e8f0'],
+
+  // ── POKÉMON GBA — Sprite-accurate (FRLG/RSE ROM analysis) ──────
+  // Charizard FRLG: orange body, cream belly, dark teal wings, flame tail
+  pkmn_charizard:[null,'#000000','#200808','#582010','#a03828','#e05828',
+    '#f88048','#f8a870','#f8d0b0','#ffffff','#083830','#185840',
+    '#308060','#58a880','#f8e020','#f8c010'],
+  // Pikachu FRLG: yellow, orange cheeks, dark brown, cream
+  pkmn_pikachu:[null,'#000000','#281000','#583010','#985820','#f0b008',
+    '#f8d820','#f8f070','#f8f8c8','#ffffff','#c83018','#f04028',
+    '#e88038','#f8b060','#a07840','#c8b870'],
+  // Mewtwo FRLG: lavender grey, dark purple, white, pink detail
+  pkmn_mewtwo:[null,'#000000','#180828','#382050','#604888','#9878c0',
+    '#c0a0e0','#e0c8f8','#f8f0ff','#ffffff','#c04888','#e070b0',
+    '#f8a0d0','#6850a8','#281838','#b8b0d0'],
+
+  // ── ADVANCE WARS GBA ───────────────────────────────────────
+  // Orange Star (CO Andy/Sami) — warm orange military
+  advance_os:[null,'#000000','#180800','#381800','#603010','#a05820',
+    '#d08030','#e8b060','#f8d898','#ffffff','#e03010','#f85030',
+    '#f89040','#c0c0c0','#808080','#484848'],
+  // Blue Moon (CO Olaf/Grit) — cool military blues
+  advance_bm:[null,'#000000','#000818','#001038','#082068','#1040a8',
+    '#2068d0','#5090e8','#98c0f8','#c8e0ff','#ffffff','#c0c8d8',
+    '#8090a8','#505878','#303050','#181828'],
+
+  // ── OTHER GBA CLASSICS ─────────────────────────────────────
+  // Metroid Fusion — Samus suit: deep space atmosphere
+  metroid:[null,'#000000','#080820','#101840','#182870','#203898',
+    '#3860c8','#6898e8','#90c0f8','#e8a018','#f8c038','#f8e070',
+    '#c05018','#e88030','#381808','#f0f0e8'],
+  // Castlevania: Aria of Sorrow — Dark gothic atmosphere
+  castlevania:[null,'#000000','#180810','#300820','#501040','#701858',
+    '#982070','#c03890','#e060b0','#f890d0','#f0c8e0','#a00020',
+    '#d02030','#f04050','#f8c070','#f8f8e8'],
+
+  // ── LOSPEC / INDIE COMMUNITY ────────────────────────────────
+  // Neon/synthwave game
+  neon:[null,'#000000','#0a0020','#200040','#400080','#6000c0',
+    '#9000ff','#c060ff','#00ffff','#00c0ff','#0060ff','#ff0080',
+    '#ff4040','#ff8000','#ffff00','#ffffff'],
+  // Value study (greyscale ramp)
+  greyscale:[null,'#000000','#111111','#222222','#333333','#484848',
+    '#606060','#787878','#909090','#a8a8a8','#c0c0c0','#d0d0d0',
+    '#e0e0e0','#ececec','#f4f4f4','#ffffff'],
+  pico8:[null,'#1d2b53','#7e2553','#008751','#ab5236','#5f574f',
+    '#c2c3c7','#fff1e8','#ff004d','#ffa300','#ffec27',
+    '#00e436','#29adff','#83769c','#ff77a8','#ffccaa'],
+  // DawnBringer16 — Arne Niklas Jansson
+  db16:[null,'#140c1c','#442434','#30346d','#4e4a4e','#854c30',
+    '#346524','#d04648','#757161','#597dce','#d27d2c',
+    '#8595a1','#6daa2c','#d2aa99','#6dc2ca','#dad45e'],
+  // Apollo palette — Adam Saltsman
+  apollo:[null,'#172038','#253a5e','#3c5e8b','#4f8fba','#73bed3',
+    '#a4dddb','#19332d','#25562e','#468232','#75a743',
+    '#a8ca58','#d0da91','#4d2b32','#7a4841','#ad7757'],
+  // Journey cinematic — deep atmospheric
+  journey:[null,'#1a0a00','#3d1a05','#7a3d10','#c06820','#e89040',
+    '#f8b860','#f8d890','#f8f0c8','#ffffff','#0a1828',
+    '#1a3050','#304888','#5070b0','#90a8d8','#c8d8f0'],
+
+  // ── ART HISTORY ───────────────────────────────────────────────
+  rembrandt:[null,'#060402','#140c06','#281808','#402010','#603018',
+    '#844020','#a85828','#c87838','#e09848','#f0c070',
+    '#fce8b0','#ffffff','#280808','#180606','#100408'],
+  hokusai:[null,'#000000','#08183a','#10285a','#1848a0','#2878e0',
+    '#50a8f8','#90ccff','#c8e8ff','#ffffff','#e8e0b0',
+    '#c8b060','#a07820','#604808','#301808','#180c04'],
+};
+
+// ══════════════════════════════════════════════════════════════════
+//  COLOR MATH — HSL ↔ RGB ↔ HEX
+// ══════════════════════════════════════════════════════════════════
+function h2r(hex){
+  if(!hex||hex==='transparent'||hex.length<4)return[0,0,0];
+  const h=hex.replace('#','').padEnd(6,'0');
+  return[parseInt(h.slice(0,2),16)||0,parseInt(h.slice(2,4),16)||0,parseInt(h.slice(4,6),16)||0];
+}
+function r2h(r,g,b){
+  return'#'+[r,g,b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('');
+}
+function rgb2hsl(r,g,b){
+  r/=255;g/=255;b/=255;
+  const max=Math.max(r,g,b),min=Math.min(r,g,b),l=(max+min)/2;
+  if(max===min)return[0,0,l];
+  const d=max-min,s=l>0.5?d/(2-max-min):d/(max+min);
+  let h;
+  if(max===r)h=((g-b)/d+(g<b?6:0))/6;
+  else if(max===g)h=((b-r)/d+2)/6;
+  else h=((r-g)/d+4)/6;
+  return[h*360,s,l];
+}
+function hsl2rgb(h,s,l){
+  h=((h%360)+360)%360;s=Math.max(0,Math.min(1,s));l=Math.max(0,Math.min(1,l));
+  const c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2;
+  let r,g,b;
+  if(h<60){r=c;g=x;b=0}else if(h<120){r=x;g=c;b=0}
+  else if(h<180){r=0;g=c;b=x}else if(h<240){r=0;g=x;b=c}
+  else if(h<300){r=x;g=0;b=c}else{r=c;g=0;b=x}
+  return[Math.round((r+m)*255),Math.round((g+m)*255),Math.round((b+m)*255)];
+}
+function hex2hsl(hex){const[r,g,b]=h2r(hex);return rgb2hsl(r,g,b)}
+function hsl2hex(h,s,l){const[r,g,b]=hsl2rgb(h,s,l);return r2h(r,g,b)}
+function luma(hex){const[r,g,b]=h2r(hex);return 0.299*r+0.587*g+0.114*b}
+function isWarm(h){return(h>=0&&h<80)||(h>=300&&h<=360)}
+function gbaSnap(hex){const[r,g,b]=h2r(hex);return r2h((r>>3)*8,(g>>3)*8,(b>>3)*8)}
+function cDist(a,b){if(!a||!b)return 999999;const[r1,g1,b1]=h2r(a),[r2,g2,b2]=h2r(b);return(r1-r2)**2+(g1-g2)**2+(b1-b2)**2}
+
+// ══════════════════════════════════════════════════════════════════
+//  RAMP GENERATOR — The Star Feature
+//  Hue-shift method inspired by Golden Sun and Pokémon GBA art
+// ══════════════════════════════════════════════════════════════════
+const RAMP_STYLES = {
+  gs:     {shadowHShift:-22, highlightHShift:18, shadowSMult:0.72, highlightSMult:0.80, minL:0.06, maxL:0.90},
+  pkmn:   {shadowHShift:-30, highlightHShift:10, shadowSMult:0.80, highlightSMult:0.50, minL:0.08, maxL:0.95},
+  warm:   {shadowHShift:-10, highlightHShift:30, shadowSMult:0.75, highlightSMult:0.90, minL:0.06, maxL:0.92},
+  cool:   {shadowHShift:-35, highlightHShift: 5, shadowSMult:0.65, highlightSMult:0.70, minL:0.06, maxL:0.90},
+  neutral:{shadowHShift:-15, highlightHShift:12, shadowSMult:0.80, highlightSMult:0.80, minL:0.05, maxL:0.92},
+};
+const RAMP_STEP_NAMES=['Outline','Shadow','Midtone','Highlight','Bright'];
+const RAMP_STEP_NAMES7=['Outline','Deep Shadow','Shadow','Midtone','Highlight','Bright','Specular'];
+
+function generateRamp(baseHex, steps, style, hsh, hhl) {
+  const [h,s,l] = hex2hsl(baseHex);
+  const st = RAMP_STYLES[style] || RAMP_STYLES.gs;
+  const shadowH  = hsh !== undefined ? hsh : st.shadowHShift;
+  const highlH   = hhl !== undefined ? hhl : st.highlightHShift;
+  const result = [];
+  for(let i=0;i<steps;i++){
+    const t = i/(steps-1); // 0=darkest, 1=lightest
+    const newL = st.minL + t*(st.maxL-st.minL);
+    let hShift, sMult;
+    if(t<0.5){
+      const st2=(1-t*2);
+      hShift=shadowH*st2;
+      sMult=1-(1-st.shadowSMult)*st2;
+    }else{
+      const ht=(t-0.5)*2;
+      hShift=highlH*ht;
+      sMult=1-(1-st.highlightSMult)*ht;
+    }
+    const newH=((h+hShift)%360+360)%360;
+    const newS=Math.max(0,Math.min(1,s*sMult));
+    result.push(hsl2hex(newH,newS,newL));
+  }
+  return result;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  HARMONY GENERATOR — Itten Color Wheel
+// ══════════════════════════════════════════════════════════════════
+function generateHarmony(baseHex, type) {
+  const[h,s,l]=hex2hsl(baseHex);
+  const c=(h2,s2,l2)=>hsl2hex(((h2%360)+360)%360,s2||s,l2||l);
+  switch(type){
+    case 'comp':   return[c(h+180)];
+    case 'analog': return[c(h-30),c(h+30)];
+    case 'triad':  return[c(h+120),c(h+240)];
+    case 'split':  return[c(h+150),c(h+210)];
+    case 'tetrad': return[c(h+90),c(h+180),c(h+270)];
+    case 'mono':   return[
+      hsl2hex(h,s*0.5,Math.max(0.1,l-0.25)),
+      hsl2hex(h,s*0.8,Math.max(0.15,l-0.12)),
+      hsl2hex(h,s,Math.min(0.9,l+0.12)),
+      hsl2hex(h,s*0.7,Math.min(0.92,l+0.26)),
+    ];
+    default: return[];
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════════════
+const S={
+  W:64,H:64,zoom:8,
+  px:null,pal:null,ci:1,
+  tool:'pencil',brushSize:1,brushRound:true,
+  dither:false,ditherMode:'bayer4',
+  sym:{x:false,y:false},
+  gba:false,onion:false,
+  overlays:{thirds:false,golden:false,fib:false,diag:false,gba:false,vp:false},
+  fibOrigin:'tl',
+  vpX:50,vpY:60,foliageSize:'M',
+  frames:[],fi:0,fps:12,playing:false,animTimer:null,
+  hist:[],fut:[],
+  drawing:false,dragStart:null,lastP:null,bezPts:[],arcPts:[],
+  railOpen:true,rpOpen:true,
+  lastRamp:[],lastHarmony:[],
+  aiConnected:false,
+};
+
+let cMain,cGrid,cOver,cPrev,xMain,xGrid,xOver,xPrev,prevPx=null;
+
+// ══════════════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════════════
+function init(){
+  S.pal=[...PALS.gs_isaac];
+  S.px=new Uint8Array(S.W*S.H);
+  S.frames=[S.px.slice()];
+  mkCanvases();buildPalGrid();buildFrames();bindEvents();updateSizeLabel();
+  updateRampSliderBgs();
+  E.loadDemo();
+  setTimeout(()=>E.aiPing(),1200); // check Ollama on startup
+}
+
+function mkCanvases(){
+  const h=document.getElementById('canvasholder');
+  h.innerHTML='';
+  const pw=S.W*S.zoom,ph=S.H*S.zoom;
+  h.style.width=pw+'px';h.style.height=ph+'px';
+  const mk=(id,z)=>{const c=document.createElement('canvas');c.id=id;c.width=pw;c.height=ph;c.style.cssText=`position:absolute;top:0;left:0;z-index:${z};image-rendering:pixelated;image-rendering:crisp-edges`;h.appendChild(c);return c};
+  cMain=mk('cm',1);xMain=cMain.getContext('2d');xMain.imageSmoothingEnabled=false;
+  cGrid=mk('cg',2);xGrid=cGrid.getContext('2d');
+  cOver=mk('co',3);xOver=cOver.getContext('2d');
+  cPrev=mk('cp',4);xPrev=cPrev.getContext('2d');cPrev.style.opacity='0.72';
+  cPrev.addEventListener('mousedown',onDown);
+  cPrev.addEventListener('mousemove',onMove);
+  cPrev.addEventListener('mouseup',onUp);
+  cPrev.addEventListener('mouseleave',onLeave);
+  cPrev.addEventListener('wheel',onWheel,{passive:false});
+  cPrev.addEventListener('contextmenu',e=>e.preventDefault());
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════════════════════════
+function renderPx(){
+  const pw=S.W*S.zoom,ph=S.H*S.zoom;
+  syncSz(pw,ph);
+  const id=xMain.createImageData(pw,ph);const d=id.data;
+  for(let cy=0;cy<S.H;cy++){
+    for(let cx=0;cx<S.W;cx++){
+      const ci=S.px[cy*S.W+cx];
+      let r,g,b;
+      if(!ci||!S.pal[ci]){const ev=((cx>>3)+(cy>>3))&1;r=g=b=ev?58:42;}
+      else[r,g,b]=h2r(S.pal[ci]);
+      const x0=cx*S.zoom,y0=cy*S.zoom;
+      for(let dy=0;dy<S.zoom;dy++){
+        let base=((y0+dy)*pw+x0)*4;
+        for(let dx=0;dx<S.zoom;dx++){d[base]=r;d[base+1]=g;d[base+2]=b;d[base+3]=255;base+=4}
+      }
+    }
+  }
+  // Onion skin
+  if(S.onion&&S.frames.length>1){
+    const prev=S.frames[(S.fi-1+S.frames.length)%S.frames.length];
+    for(let cy=0;cy<S.H;cy++) for(let cx=0;cx<S.W;cx++){
+      const ci=prev[cy*S.W+cx];if(!ci||!S.pal[ci])continue;
+      const[pr,pg,pb]=h2r(S.pal[ci]);const x0=cx*S.zoom,y0=cy*S.zoom;
+      for(let dy=0;dy<S.zoom;dy++){let base=((y0+dy)*pw+x0)*4;for(let dx=0;dx<S.zoom;dx++){d[base]=(d[base]*.65+pr*.35)|0;d[base+1]=(d[base+1]*.65+pg*.1)|0;d[base+2]=(d[base+2]*.65+pb*.1)|0;base+=4}}
+    }
+  }
+  xMain.putImageData(id,0,0);
+}
+
+function renderGrid(){
+  const pw=S.W*S.zoom,ph=S.H*S.zoom;
+  xGrid.clearRect(0,0,pw,ph);
+  if(S.zoom<3)return;
+  const L=(x0,y0,x1,y1)=>{xGrid.beginPath();xGrid.moveTo(x0,y0);xGrid.lineTo(x1,y1);xGrid.stroke()};
+  xGrid.strokeStyle='rgba(255,255,255,.05)';xGrid.lineWidth=.5;
+  for(let x=0;x<=S.W;x++)L(x*S.zoom,0,x*S.zoom,ph);
+  for(let y=0;y<=S.H;y++)L(0,y*S.zoom,pw,y*S.zoom);
+  xGrid.strokeStyle='rgba(60,90,200,.18)';xGrid.lineWidth=.7;
+  for(let x=0;x<=S.W;x+=8)L(x*S.zoom,0,x*S.zoom,ph);
+  for(let y=0;y<=S.H;y+=8)L(0,y*S.zoom,pw,y*S.zoom);
+}
+
+function renderOv(){
+  const pw=S.W*S.zoom,ph=S.H*S.zoom;
+  xOver.clearRect(0,0,pw,ph);
+  const SL=(x0,y0,x1,y1,col,lw)=>{xOver.strokeStyle=col;xOver.lineWidth=lw||1;xOver.beginPath();xOver.moveTo(x0,y0);xOver.lineTo(x1,y1);xOver.stroke()};
+  if(S.overlays.thirds){
+    ['rgba(255,220,60,.45)'].forEach(c=>{
+      for(const t of[1/3,2/3]){SL(t*pw,0,t*pw,ph,c);SL(0,t*ph,pw,t*ph,c)}
+    });
+  }
+  if(S.overlays.golden){
+    const gx1=pw/PHI,gx2=pw-pw/PHI,gy1=ph/PHI,gy2=ph-ph/PHI;
+    [gx1,gx2].forEach(x=>SL(x,0,x,ph,'rgba(200,170,50,.55)'));
+    [gy1,gy2].forEach(y=>SL(0,y,pw,y,'rgba(200,170,50,.55)'));
+    xOver.fillStyle='rgba(255,220,60,.85)';
+    [[gx1,gy1],[gx1,gy2],[gx2,gy1],[gx2,gy2]].forEach(([x,y])=>{xOver.beginPath();xOver.arc(x,y,4,0,Math.PI*2);xOver.fill()});
+    xOver.fillStyle='rgba(200,170,50,.7)';xOver.font='9px Courier New';xOver.fillText('φ',gx1+3,gy1-4);
+  }
+  if(S.overlays.fib){
+    const dim=Math.min(pw,ph);
+    xOver.strokeStyle='rgba(180,130,255,.18)';xOver.lineWidth=1;
+    let rw=pw,rh=ph;for(let i=0;i<7;i++){xOver.strokeRect((pw-rw)/2,(ph-rh)/2,rw,rh);rw/=PHI;rh/=PHI}
+    xOver.strokeStyle='rgba(180,130,255,.75)';xOver.lineWidth=1.5;
+    xOver.beginPath();const steps=400,maxA=7*Math.PI,b=Math.log(PHI)/(Math.PI/2);
+    for(let i=0;i<=steps;i++){const t=i/steps,a=t*maxA,r=dim*.47*Math.exp(b*(a-maxA));const sx=pw/2+r*Math.cos(a),sy=ph/2+r*Math.sin(a);i?xOver.lineTo(sx,sy):xOver.moveTo(sx,sy)}
+    xOver.stroke();
+    xOver.fillStyle='rgba(180,130,255,.8)';xOver.font='bold 10px Courier New';xOver.fillText('φ=1.618',4,13);
+  }
+  if(S.overlays.diag){
+    SL(0,0,pw,ph,'rgba(200,100,220,.38)');SL(pw,0,0,ph,'rgba(200,100,220,.38)');
+    SL(0,ph*.3,pw,ph*.7,'rgba(100,200,200,.28)');
+  }
+  if(S.overlays.gba){
+    const bx=8*(pw/S.W),by=8*(ph/S.H);
+    xOver.strokeStyle='rgba(255,80,60,.7)';xOver.lineWidth=2;xOver.strokeRect(bx,by,pw-2*bx,ph-2*by);
+    xOver.fillStyle='rgba(255,60,40,.08)';
+    xOver.fillRect(0,0,pw,by);xOver.fillRect(0,ph-by,pw,by);xOver.fillRect(0,by,bx,ph-2*by);xOver.fillRect(pw-bx,by,bx,ph-2*by);
+    xOver.fillStyle='rgba(255,100,80,.65)';xOver.font='9px Courier New';xOver.fillText('GBA safe margin (8px)',bx+4,by-2);
+  }
+  // ── P2: VANISHING POINT RULER ─────────────────────────────────
+  // GBA depth system from the deep dive. Lines radiate from VP position
+  // to all canvas edges. Draw tile horizontal/vertical edges along these.
+  if(S.overlays.vp){
+    const vpx=(S.vpX/100)*pw, vpy=(S.vpY/100)*ph;
+    xOver.strokeStyle='rgba(0,230,180,.28)';xOver.lineWidth=.8;xOver.setLineDash([3,5]);
+    // Lines to canvas edges — enough to cover the scene
+    const angles=[0,15,30,45,60,75,90,105,120,135,150,165,180,195,210,225,240,255,270,285,300,315,330,345];
+    angles.forEach(deg=>{
+      const rad=deg*Math.PI/180,len=Math.max(pw,ph)*2;
+      xOver.beginPath();xOver.moveTo(vpx,vpy);xOver.lineTo(vpx+Math.cos(rad)*len,vpy+Math.sin(rad)*len);xOver.stroke();
+    });
+    xOver.setLineDash([]);
+    // VP dot
+    xOver.fillStyle='rgba(0,240,200,.9)';
+    xOver.beginPath();xOver.arc(vpx,vpy,5,0,Math.PI*2);xOver.fill();
+    xOver.strokeStyle='rgba(0,0,0,.6)';xOver.lineWidth=1;
+    xOver.beginPath();xOver.arc(vpx,vpy,5,0,Math.PI*2);xOver.stroke();
+    xOver.fillStyle='rgba(0,240,200,.8)';xOver.font='bold 9px Courier New';
+    xOver.fillText(`VP ${Math.round(S.vpX)}%,${Math.round(S.vpY)}%`,vpx+8,vpy-6);
+  }
+  if(S.tool==='bezier'&&S.bezPts.length){
+    xOver.fillStyle='rgba(160,100,255,.9)';xOver.strokeStyle='rgba(160,100,255,.45)';xOver.lineWidth=1;xOver.setLineDash([3,3]);
+    for(const[bx,by] of S.bezPts){xOver.beginPath();xOver.arc(bx*S.zoom+S.zoom/2,by*S.zoom+S.zoom/2,5,0,Math.PI*2);xOver.fill()}
+    if(S.bezPts.length>=2){xOver.beginPath();S.bezPts.forEach(([bx,by],i)=>{const px=bx*S.zoom+S.zoom/2,py=by*S.zoom+S.zoom/2;i?xOver.lineTo(px,py):xOver.moveTo(px,py)});xOver.stroke()}
+    xOver.setLineDash([]);
+  }
+}
+
+function renderPrev(){
+  const pw=S.W*S.zoom,ph=S.H*S.zoom;
+  xPrev.clearRect(0,0,pw,ph);
+  if(!prevPx||!prevPx.length)return;
+  xPrev.fillStyle=(S.tool==='eraser'||S.ci===0)?'rgba(255,255,255,.28)':(S.pal[S.ci]||'rgba(200,200,200,.5)');
+  for(const[x,y] of prevPx)xPrev.fillRect(x*S.zoom,y*S.zoom,S.zoom,S.zoom);
+}
+
+function renderAll(){renderPx();renderGrid();renderOv();renderPrev()}
+function syncSz(pw,ph){[cMain,cGrid,cOver,cPrev].forEach(c=>{if(c.width!==pw||c.height!==ph){c.width=pw;c.height=ph}})}
+
+// ══════════════════════════════════════════════════════════════════
+//  PIXEL PRIMITIVES
+// ══════════════════════════════════════════════════════════════════
+function setPx(x,y,ci,arr){
+  arr=arr||S.px;if(x<0||y<0||x>=S.W||y>=S.H)return;
+  if(S.dither&&ci!==0){const mat=BAYER[S.ditherMode],ms=mat.length;if(mat[((y%ms)+ms)%ms][((x%ms)+ms)%ms]/(ms*ms)>0.62)return}
+  arr[y*S.W+x]=ci;
+  if(S.sym.x)arr[y*S.W+(S.W-1-x)]=ci;
+  if(S.sym.y)arr[(S.H-1-y)*S.W+x]=ci;
+  if(S.sym.x&&S.sym.y)arr[(S.H-1-y)*S.W+(S.W-1-x)]=ci;
+}
+function doBrush(x,y,ci,arr){
+  const bs=S.brushSize,half=Math.floor(bs/2);
+  for(let dy=-half;dy<=half;dy++)for(let dx=-half;dx<=half;dx++){
+    if(S.brushRound&&bs>2&&dx*dx+dy*dy>half*half+0.6)continue;
+    setPx(x+dx,y+dy,ci,arr);
+  }
+}
+function doLine(x0,y0,x1,y1,ci,arr){
+  let dx=Math.abs(x1-x0),dy=Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1,err=dx-dy;
+  for(;;){doBrush(x0,y0,ci,arr);if(x0===x1&&y0===y1)break;const e2=2*err;if(e2>-dy){err-=dy;x0+=sx}if(e2<dx){err+=dx;y0+=sy}}
+}
+function doEllipse(cx,cy,rx,ry,ci,fill,arr){
+  if(!rx||!ry)return;
+  const plot=(x,y)=>{if(fill){for(let fx=cx-x;fx<=cx+x;fx++){setPx(fx,cy+y,ci,arr);if(y)setPx(fx,cy-y,ci,arr)}}else{setPx(cx+x,cy+y,ci,arr);setPx(cx-x,cy+y,ci,arr);if(y){setPx(cx+x,cy-y,ci,arr);setPx(cx-x,cy-y,ci,arr)}}};
+  let x=0,y=ry,dx2=0,dy2=2*rx*rx*y,p=Math.round(ry*ry-rx*rx*ry+.25*rx*rx);
+  while(dx2<dy2){plot(x,y);if(p<0){x++;dx2+=2*ry*ry;p+=dx2+ry*ry}else{x++;y--;dx2+=2*ry*ry;dy2-=2*rx*rx;p+=dx2-dy2+ry*ry}}
+  p=Math.round(ry*ry*(x+.5)*(x+.5)+rx*rx*(y-1)*(y-1)-rx*rx*ry*ry);
+  while(y>=0){plot(x,y);if(p>0){y--;dy2-=2*rx*rx;p+=rx*rx-dy2}else{y--;x++;dx2+=2*ry*ry;dy2-=2*rx*rx;p+=dx2-dy2+rx*rx}}
+}
+function doBezierQ(x0,y0,x1,y1,x2,y2,ci,arr){
+  const steps=Math.ceil(Math.hypot(x2-x0,y2-y0)*2.5)+50;let px=x0,py=y0;
+  for(let i=0;i<=steps;i++){const t=i/steps,m=1-t;const nx=Math.round(m*m*x0+2*m*t*x1+t*t*x2),ny=Math.round(m*m*y0+2*m*t*y1+t*t*y2);if(nx!==px||ny!==py){doLine(px,py,nx,ny,ci,arr);px=nx;py=ny}}
+  doBrush(x2,y2,ci,arr);
+}
+
+// ── BRESENHAM CIRCLE — pixel-perfect, P1 ──────────────────────────────
+// Ellipse uses parametric math and gets fuzzy on small radii.
+// Bresenham plots only integer coordinates — guaranteed 1px clean.
+// Critical for GBA work: shields, coins, eyes, tree crowns, halos.
+function doBresenhamCircle(cx,cy,r,ci,arr){
+  if(r<=0){setPx(cx,cy,ci,arr);return}
+  let x=0,y=r,d=3-2*r;
+  const p8=(ox,oy)=>{
+    setPx(cx+ox,cy+oy,ci,arr);setPx(cx-ox,cy+oy,ci,arr);
+    setPx(cx+ox,cy-oy,ci,arr);setPx(cx-ox,cy-oy,ci,arr);
+    setPx(cx+oy,cy+ox,ci,arr);setPx(cx-oy,cy+ox,ci,arr);
+    setPx(cx+oy,cy-ox,ci,arr);setPx(cx-oy,cy-ox,ci,arr);
+  };
+  p8(x,y);
+  while(y>=x){
+    x++;
+    if(d>0){y--;d=d+4*(x-y)+10}else{d=d+4*x+6}
+    p8(x,y);
+  }
+}
+
+// ── BRESENHAM ARC ─────────────────────────────────────────────────────
+// Arc segment of a Bresenham circle. startDeg/endDeg in degrees (0=right,
+// clockwise). 3-click: click 1=center, click 2=radius pt, click 3=end angle.
+function doArc(cx,cy,r,startDeg,endDeg,ci,arr){
+  if(r<=0)return;
+  let s=((startDeg%360)+360)%360;
+  let en=((endDeg%360)+360)%360;
+  if(en<=s)en+=360;
+  const inSweep=(px,py)=>{
+    const a=(((Math.atan2(py-cy,px-cx)*180/Math.PI)%360)+360)%360;
+    const a2=a<s?a+360:a;
+    return a2>=s&&a2<=en;
+  };
+  let x=0,y=r,d=3-2*r;
+  const tryP=(px,py)=>{if(inSweep(px,py))setPx(px,py,ci,arr)};
+  const pa=(ox,oy)=>{
+    tryP(cx+ox,cy+oy);tryP(cx-ox,cy+oy);
+    tryP(cx+ox,cy-oy);tryP(cx-ox,cy-oy);
+    tryP(cx+oy,cy+ox);tryP(cx-oy,cy+ox);
+    tryP(cx+oy,cy-ox);tryP(cx-oy,cy-ox);
+  };
+  pa(x,y);
+  while(y>=x){
+    x++;
+    if(d>0){y--;d=d+4*(x-y)+10}else{d=d+4*x+6}
+    pa(x,y);
+  }
+}
+function doFill(x,y,ci){
+  const target=S.px[y*S.W+x];if(target===ci)return;
+  const stack=[[x,y]];const seen=new Uint8Array(S.W*S.H);
+  while(stack.length){const[cx,cy]=stack.pop();if(cx<0||cy<0||cx>=S.W||cy>=S.H)continue;const i=cy*S.W+cx;if(seen[i]||S.px[i]!==target)continue;seen[i]=1;S.px[i]=ci;stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1])}
+}
+
+// ── P3: DITHER FILL ───────────────────────────────────────────────
+// Fills a region with a 2-color Bayer dither between ci and ci2.
+// ci2 defaults to the second-most-recent color used (palette idx ci-1).
+// GS uses this for sky gradients and water. Every pixel is one of two
+// palette entries — the dither creates a gradient illusion for free.
+function doDitherFill(x,y,ci){
+  const ci2=Math.max(1,ci-1); // secondary color = one slot darker
+  const target=S.px[y*S.W+x];if(target===ci)return;
+  const mat=BAYER[S.ditherMode],ms=mat.length;
+  const stack=[[x,y]];const seen=new Uint8Array(S.W*S.H);
+  while(stack.length){
+    const[cx,cy]=stack.pop();
+    if(cx<0||cy<0||cx>=S.W||cy>=S.H)continue;
+    const i=cy*S.W+cx;
+    if(seen[i]||S.px[i]!==target)continue;
+    seen[i]=1;
+    const bv=mat[((cy%ms)+ms)%ms][((cx%ms)+ms)%ms]/(ms*ms);
+    S.px[i]=bv<0.5?ci:ci2;
+    stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);
+  }
+}
+
+// ── P4: SHADOW ELLIPSE ────────────────────────────────────────────
+// Plots a semi-transparent dark ellipse at the base of an object.
+// GBA convention: ~40% alpha, cool near-black, wider than tall (2:1 ratio).
+// Click = center of shadow, drag = sets radius.
+// Uses palette index 1 (darkest color) blended 50% with transparent.
+// Since we're indexed-color, we write to a special "shadow" canvas layer
+// then composite — actually we just use the darkest palette color at dither
+// density to simulate transparency. Artist can adjust after.
+function doShadowEllipse(cx,cy,rx,arr){
+  const ry=Math.max(1,Math.round(rx*0.45)); // GBA shadow ratio ~45% height
+  const ci=1; // darkest palette color
+  const mat=BAYER.bayer4,ms=4;
+  // Draw filled ellipse with 50% Bayer dither to simulate transparency
+  let x=0,y=ry,dx2=0,dy2=2*rx*rx*y;
+  let p=Math.round(ry*ry-rx*rx*ry+.25*rx*rx);
+  const plotRow=(px,py)=>{
+    for(let fx=cx-px;fx<=cx+px;fx++){
+      const bv=mat[((py%ms)+ms)%ms][((fx%ms)+ms)%ms]/(ms*ms);
+      if(bv<0.5)setPx(fx,py,ci,arr);
+    }
+  };
+  while(dx2<dy2){
+    plotRow(x,cy+y);if(y)plotRow(x,cy-y);
+    if(p<0){x++;dx2+=2*ry*ry;p+=dx2+ry*ry}else{x++;y--;dx2+=2*ry*ry;dy2-=2*rx*rx;p+=dx2-dy2+ry*ry}
+  }
+  p=Math.round(ry*ry*(x+.5)*(x+.5)+rx*rx*(y-1)*(y-1)-rx*rx*ry*ry);
+  while(y>=0){
+    plotRow(x,cy+y);if(y)plotRow(x,cy-y);
+    if(p>0){y--;dy2-=2*rx*rx;p+=rx*rx-dy2}else{y--;x++;dx2+=2*ry*ry;dy2-=2*rx*rx;p+=dx2-dy2+rx*rx}
+  }
+}
+
+// ── P5: FOLIAGE BRUSH ─────────────────────────────────────────────
+// Paints a depth-aware tree/bush cluster at click point.
+// 3–4 overlapping Bresenham circles, each shaded shadow/mid/highlight.
+// Size S=r8, M=r12, L=r18. A few specular pixels at topmost center.
+// GBA foliage grammar: bottom circles are darker (shadow), top is lightest.
+function doFoliageBrush(cx,cy,size,arr){
+  const configs={
+    S:[{dx:0, dy:0, r:5},{dx:-3,dy:3,r:4},{dx:3, dy:3,r:4}],
+    M:[{dx:0, dy:0, r:8},{dx:-5,dy:4,r:6},{dx:5, dy:4,r:6},{dx:0, dy:6,r:5}],
+    L:[{dx:0, dy:0, r:12},{dx:-7,dy:6,r:9},{dx:7, dy:6,r:9},{dx:0, dy:9,r:7},{dx:-4,dy:11,r:5}],
+  };
+  const circles=configs[size]||configs.M;
+  // Use palette slots: 1=darkest(outline), 2=shadow, 3=mid, 4=highlight
+  // Artist maps these in their palette — the brush respects whatever is loaded
+  const layers=circles.length;
+  circles.forEach(({dx,dy,r},i)=>{
+    const depth=i/Math.max(layers-1,1); // 0=top, 1=bottom
+    const ci=Math.min(15,Math.max(1,Math.round(1+depth*3))); // 1-4 dark→light bottom→top inverted
+    const shadeCi=Math.max(1,ci); // shadow circles slightly darker
+    doBresenhamCircle(cx+dx,cy+dy,r,shadeCi,arr);
+    // Fill interior with mid-tone at 50% Bayer
+    const mat=BAYER.bayer4,ms=4;
+    for(let fy=cy+dy-r+1;fy<cy+dy+r;fy++){
+      for(let fx=cx+dx-r+1;fx<cx+dx+r;fx++){
+        const ddx=fx-(cx+dx),ddy=fy-(cy+dy);
+        if(ddx*ddx+ddy*ddy>=r*r)continue;
+        const bv=mat[((fy%ms)+ms)%ms][((fx%ms)+ms)%ms]/(ms*ms);
+        if(bv<0.55)setPx(fx,fy,ci,arr);
+      }
+    }
+  });
+  // 2-3 specular pixels at topmost center
+  const top=circles[0];
+  setPx(cx+top.dx,cy+top.dy-top.r+1,Math.min(15,4+1),arr);
+  setPx(cx+top.dx+1,cy+top.dy-top.r+2,Math.min(15,4+1),arr);
+}
+
+// ── P6: SIGNAL WORLD PALETTE SWAP ────────────────────────────────
+// MMBN dual-world grammar: Physical = warm, organic, dark-brown outlines.
+// Signal = cool cyan, hard geometry, pure-black outlines.
+// swapSignalWorld() flips between ps_physical and ps_signal palettes.
+// Does NOT modify pixel data — only the palette mapping swaps.
+// Instant and total, as the GBA-ART-DEEP-DIVE specifies.
+// Pale Signal Physical/Signal world state transition mechanic.
+PALS.ps_physical=[
+  null,
+  '#0a0806',  // 1: organic dark-brown outline
+  '#1a0e04',  // 2: deep shadow, warm
+  '#3a1e0a',  // 3: shadow, earthy
+  '#6a3a18',  // 4: mid-shadow, terracotta
+  '#9a5828',  // 5: mid, warm clay
+  '#c87840',  // 6: mid-highlight, amber
+  '#e8a060',  // 7: highlight, golden
+  '#f8c880',  // 8: bright highlight
+  '#ffffff',  // 9: pure highlight
+  '#204820',  // 10: foliage shadow
+  '#388040',  // 11: foliage mid
+  '#60b850',  // 12: foliage highlight
+  '#b8d088',  // 13: foliage bright
+  '#8a6040',  // 14: stone/earth
+  '#c8a870',  // 15: stone highlight
+];
+PALS.ps_signal=[
+  null,
+  '#000000',  // 1: pure black outline (hard geometry)
+  '#001418',  // 2: deep shadow, cool
+  '#003040',  // 3: shadow, cyan-teal
+  '#005870',  // 4: mid-shadow, deep cyan
+  '#0090b0',  // 5: mid, signal cyan
+  '#00c8d8',  // 6: mid-highlight, electric teal
+  '#40e8f0',  // 7: highlight, bright cyan
+  '#90f8ff',  // 8: near-white cyan
+  '#ffffff',  // 9: pure highlight / wireframe white
+  '#002840',  // 10: grid line dark
+  '#004868',  // 11: grid mid
+  '#0070a0',  // 12: grid bright
+  '#00b8d8',  // 13: signal accent
+  '#8040c8',  // 14: pale purple — threshold color
+  '#d0a8ff',  // 15: pale bright — signal bloom
+];
+
+// ══════════════════════════════════════════════════════════════════
+//  INPUT
+// ══════════════════════════════════════════════════════════════════
+function cxy(e){const r=cPrev.getBoundingClientRect();return[Math.max(0,Math.min(S.W-1,Math.floor((e.clientX-r.left)/S.zoom))),Math.max(0,Math.min(S.H-1,Math.floor((e.clientY-r.top)/S.zoom)))]}
+
+function onDown(e){
+  e.preventDefault();const[x,y]=cxy(e);const ci=e.button===2?0:S.ci;setStatus(x,y);
+  if(S.tool==='eyedrop'){const v=S.px[y*S.W+x];if(v>0){S.ci=v;syncColorUI();refreshSwatches();}return}
+  if(S.tool==='fill'){pushH();doFill(x,y,ci);renderPx();commitFr();return}
+  if(S.tool==='ditchfill'){pushH();doDitherFill(x,y,ci);renderPx();commitFr();return}
+  if(S.tool==='bezier'){handleBez(x,y,ci);return}
+  if(S.tool==='arc'){handleArc(x,y,ci);return}
+  if(S.tool==='foliage'){pushH();doFoliageBrush(x,y,S.foliageSize);renderPx();commitFr();return}
+  S.drawing=true;S.dragStart=[x,y];S.lastP=[x,y];
+  if(S.tool==='pencil'||S.tool==='eraser'){pushH();doBrush(x,y,S.tool==='eraser'?0:ci);renderPx()}
+}
+function onMove(e){
+  const[x,y]=cxy(e);setStatus(x,y);
+  const cl=document.getElementById('clabel');const r=cPrev.getBoundingClientRect();
+  cl.style.display='block';cl.style.left=(e.clientX-r.left+14)+'px';cl.style.top=(e.clientY-r.top+2)+'px';cl.textContent=`${x},${y}`;
+  if(!S.drawing){prevPx=null;renderPrev();return}
+  const ci=e.buttons===2?0:S.ci;
+  if(S.tool==='pencil'||S.tool==='eraser'){const c=S.tool==='eraser'?0:ci;const[lx,ly]=S.lastP;if(x!==lx||y!==ly){doLine(lx,ly,x,y,c);S.lastP=[x,y];renderPx()}return}
+  const[sx,sy]=S.dragStart;const tmp=new Uint8Array(S.W*S.H);
+  if(S.tool==='line')doLine(sx,sy,x,y,1,tmp);
+  else if(S.tool==='rect'){const x0=Math.min(sx,x),y0=Math.min(sy,y),x1=Math.max(sx,x),y1=Math.max(sy,y);for(let px=x0;px<=x1;px++){tmp[y0*S.W+px]=1;tmp[y1*S.W+px]=1}for(let py=y0;py<=y1;py++){tmp[py*S.W+x0]=1;tmp[py*S.W+x1]=1}}
+  else if(S.tool==='rectfill'){const x0=Math.min(sx,x),y0=Math.min(sy,y),x1=Math.max(sx,x),y1=Math.max(sy,y);for(let py=y0;py<=y1;py++)for(let px=x0;px<=x1;px++)tmp[py*S.W+px]=1}
+  else if(S.tool==='ellipse'||S.tool==='ellipsefill')doEllipse(sx,sy,Math.abs(x-sx),Math.abs(y-sy),1,S.tool==='ellipsefill',tmp);
+  else if(S.tool==='circle'){const r=Math.round(Math.hypot(x-sx,y-sy));doBresenhamCircle(sx,sy,r,1,tmp);}
+  else if(S.tool==='shadow'){const r=Math.round(Math.hypot(x-sx,y-sy));doShadowEllipse(sx,sy,r,tmp);}
+  else if(S.tool==='arc'&&S.arcPts&&S.arcPts.length===2){
+    const[ax,ay]=S.arcPts[0],[rx2,ry2]=S.arcPts[1];
+    const r=Math.round(Math.hypot(rx2-ax,ry2-ay));
+    const s0=Math.atan2(ry2-ay,rx2-ax)*180/Math.PI;
+    const s1=Math.atan2(y-ay,x-ax)*180/Math.PI;
+    doArc(ax,ay,r,s0,s1,1,tmp);
+  }
+  prevPx=[];for(let i=0;i<tmp.length;i++)if(tmp[i])prevPx.push([i%S.W,Math.floor(i/S.W)]);
+  renderPrev();
+}
+function onUp(e){
+  const[x,y]=cxy(e);const ci=e.button===2?0:S.ci;
+  if(!S.drawing)return;S.drawing=false;prevPx=null;
+  if(S.tool==='pencil'||S.tool==='eraser'){commitFr();renderPrev();return}
+  const[sx,sy]=S.dragStart||[x,y];pushH();
+  if(S.tool==='line')doLine(sx,sy,x,y,ci);
+  else if(S.tool==='rect'){const x0=Math.min(sx,x),y0=Math.min(sy,y),x1=Math.max(sx,x),y1=Math.max(sy,y);for(let px=x0;px<=x1;px++){setPx(px,y0,ci);setPx(px,y1,ci)}for(let py=y0;py<=y1;py++){setPx(x0,py,ci);setPx(x1,py,ci)}}
+  else if(S.tool==='rectfill'){const x0=Math.min(sx,x),y0=Math.min(sy,y),x1=Math.max(sx,x),y1=Math.max(sy,y);for(let py=y0;py<=y1;py++)for(let px=x0;px<=x1;px++)setPx(px,py,ci)}
+  else if(S.tool==='ellipse')doEllipse(sx,sy,Math.abs(x-sx),Math.abs(y-sy),ci,false);
+  else if(S.tool==='ellipsefill')doEllipse(sx,sy,Math.abs(x-sx),Math.abs(y-sy),ci,true);
+  else if(S.tool==='circle'){const r=Math.round(Math.hypot(x-sx,y-sy));doBresenhamCircle(sx,sy,r,ci);}
+  else if(S.tool==='shadow'){const r=Math.round(Math.hypot(x-sx,y-sy));doShadowEllipse(sx,sy,r);}
+  else if(S.tool==='arc'){handleArc(x,y,ci);renderPx();renderPrev();commitFr();return}
+  renderPx();renderPrev();commitFr();
+}
+function onLeave(){S.drawing=false;prevPx=null;document.getElementById('clabel').style.display='none';renderPrev()}
+function onWheel(e){e.preventDefault();e.deltaY<0?E.zoomIn():E.zoomOut()}
+function handleBez(x,y,ci){
+  S.bezPts.push([x,y]);
+  const hb=document.getElementById('hintbox'),sh=document.getElementById('shint');
+  if(S.bezPts.length===1){hb.style.display='block';hb.textContent='Bezier ①→ click CONTROL POINT (curve bends toward it)';sh.textContent='⬟ step 2/3'}
+  else if(S.bezPts.length===2){hb.textContent='Bezier ②→ click END POINT';sh.textContent='⬟ step 3/3'}
+  else{pushH();const[[x0,y0],[x1,y1],[x2,y2]]=S.bezPts;doBezierQ(x0,y0,x1,y1,x2,y2,ci);S.bezPts=[];hb.style.display='none';sh.textContent='';renderPx();commitFr()}
+  renderOv();
+}
+
+function handleArc(x,y,ci){
+  if(!S.arcPts)S.arcPts=[];
+  S.arcPts.push([x,y]);
+  const hb=document.getElementById('hintbox'),sh=document.getElementById('shint');
+  if(S.arcPts.length===1){
+    hb.style.display='block';hb.textContent='Arc ①→ click RADIUS POINT (sets size + start angle)';sh.textContent='◜ step 2/3';
+  } else if(S.arcPts.length===2){
+    const r=Math.round(Math.hypot(x-S.arcPts[0][0],y-S.arcPts[0][1]));
+    hb.textContent=`Arc ②→ click END ANGLE (r=${r}px)`;sh.textContent='◜ step 3/3';
+  } else if(S.arcPts.length===3){
+    const[ax,ay]=S.arcPts[0],[rx2,ry2]=S.arcPts[1],[ex,ey]=S.arcPts[2];
+    const r=Math.round(Math.hypot(rx2-ax,ry2-ay));
+    const s0=Math.atan2(ry2-ay,rx2-ax)*180/Math.PI;
+    const s1=Math.atan2(ey-ay,ex-ax)*180/Math.PI;
+    pushH();doArc(ax,ay,r,s0,s1,ci);
+    S.arcPts=[];hb.style.display='none';sh.textContent='';
+  }
+  S.drawing=false; // arc is click-based, not drag
+  renderOv();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  HISTORY
+// ══════════════════════════════════════════════════════════════════
+function pushH(){S.hist.push(S.px.slice());if(S.hist.length>60)S.hist.shift();S.fut=[]}
+function commitFr(){S.frames[S.fi]=S.px.slice();updateThumb(S.fi)}
+
+// ══════════════════════════════════════════════════════════════════
+//  PALETTE UI — World Council Redesign
+// ══════════════════════════════════════════════════════════════════
+function buildPalGrid(){
+  const g=document.getElementById('pal-grid');g.innerHTML='';
+  S.pal.forEach((c,i)=>{
+    const sw=document.createElement('div');
+    sw.className='psw'+(i===0?' xp':'')+(i===S.ci?' on':'');
+    sw.title=`${i}: ${c||'transparent'}`;
+    if(i>0&&c)sw.style.background=c;
+    sw.addEventListener('click',()=>{S.ci=i;syncColorUI();refreshSwatches()});
+    sw.addEventListener('dblclick',()=>{if(i>0){S.ci=i;syncColorUI();refreshSwatches();E.showTab('pal')}});
+    g.appendChild(sw);
+  });
+  buildValueBar();
+}
+
+function buildValueBar(){
+  const bar=document.getElementById('val-bar');bar.innerHTML='';
+  const tmp=document.getElementById('temp-bar');
+  // Sort palette by luma (skip transparent at 0)
+  const indexed=S.pal.map((c,i)=>({c,i,l:c?luma(c):0})).filter((_,i)=>i>0&&S.pal[i]);
+  indexed.sort((a,b)=>a.l-b.l);
+  indexed.forEach(({c,i})=>{
+    const seg=document.createElement('div');seg.className='val-seg';
+    seg.style.background=c;seg.title=`idx ${i}: ${c}`;
+    seg.addEventListener('click',()=>{S.ci=i;syncColorUI();refreshSwatches()});
+    bar.appendChild(seg);
+  });
+  // Temperature bar — ratio warm/cool
+  const warm=indexed.filter(({c})=>{const[h]=hex2hsl(c);return isWarm(h)}).length;
+  const cool=indexed.length-warm;
+  const wp=(warm/Math.max(indexed.length,1)*100).toFixed(0);
+  tmp.style.background=`linear-gradient(90deg,#e8a040 ${wp}%,#4080d0 ${wp}%)`;
+}
+
+function refreshSwatches(){
+  document.querySelectorAll('.psw').forEach((sw,i)=>{sw.classList.toggle('on',i===S.ci);if(i>0&&S.pal[i])sw.style.background=S.pal[i]});
+  buildValueBar();
+  updateColorMeta();
+}
+
+function syncColorUI(){
+  const c=S.pal[S.ci];
+  if(!S.ci||!c){
+    document.getElementById('hexin').value='transparent';
+    document.getElementById('cpreview').style.background='transparent';
+    document.getElementById('cidxl').textContent='idx 0';
+    document.getElementById('scol').textContent='—';
+    return;
+  }
+  const[r,g,b]=h2r(c);const[h,s,l]=rgb2hsl(r,g,b);
+  document.getElementById('hr').value=Math.round(h);
+  document.getElementById('hs').value=Math.round(s*100);
+  document.getElementById('ls').value=Math.round(l*100);
+  document.getElementById('hval').textContent=Math.round(h)+'°';
+  document.getElementById('sval').textContent=Math.round(s*100)+'%';
+  document.getElementById('lval').textContent=Math.round(l*100)+'%';
+  document.getElementById('hexin').value=c;
+  document.getElementById('cpreview').style.background=c;
+  document.getElementById('cidxl').textContent='idx '+S.ci;
+  document.getElementById('scol').textContent=c;
+  updateColorMeta();
+  updateHueSliderBg(h,l);
+}
+
+function updateColorMeta(){
+  const c=S.pal[S.ci];if(!c||!S.ci)return;
+  const[r,g,b]=h2r(c);const[h,s,l]=rgb2hsl(r,g,b);
+  const lu=luma(c)/255;
+  const warm=isWarm(h);
+  document.getElementById('cm-temp').textContent=(warm?'⬛ WARM':'⬜ COOL');
+  document.getElementById('cm-temp').style.borderColor=warm?'#e8a040':'#4080d0';
+  document.getElementById('cm-temp').style.color=warm?'#f0b860':'#5090e0';
+  document.getElementById('cm-val').textContent=`L: ${Math.round(lu*100)}%`;
+  document.getElementById('cm-sat').textContent=`S: ${Math.round(s*100)}%`;
+}
+
+function updateHueSliderBg(h,l){
+  document.getElementById('hs').style.background=
+    `linear-gradient(90deg,hsl(${h},0%,${l*100}%),hsl(${h},100%,${l*100}%))`;
+  document.getElementById('ls').style.background=
+    `linear-gradient(90deg,#000,hsl(${h},80%,50%),#fff)`;
+}
+
+function applyHSLSliders(){
+  if(!S.ci||!S.pal[S.ci])return;
+  const h=+document.getElementById('hr').value;
+  const s=+document.getElementById('hs').value/100;
+  const l=+document.getElementById('ls').value/100;
+  document.getElementById('hval').textContent=h+'°';
+  document.getElementById('sval').textContent=Math.round(s*100)+'%';
+  document.getElementById('lval').textContent=Math.round(l*100)+'%';
+  let hex=hsl2hex(h,s,l);
+  if(S.gba)hex=gbaSnap(hex);
+  S.pal[S.ci]=hex;
+  document.getElementById('hexin').value=hex;
+  document.getElementById('cpreview').style.background=hex;
+  document.getElementById('scol').textContent=hex;
+  updateHueSliderBg(h,l);
+  refreshSwatches();renderPx();
+}
+
+function updateRampSliderBgs(){
+  document.getElementById('ramp-hsh').addEventListener('input',e=>{
+    document.getElementById('ramp-hsh-val').textContent=(e.target.value>0?'+':'')+e.target.value+'°';
+  });
+  document.getElementById('ramp-hhl').addEventListener('input',e=>{
+    document.getElementById('ramp-hhl-val').textContent=(e.target.value>0?'+':'')+e.target.value+'°';
+  });
+}
+
+function updateSatSliderBg(){
+  const h=+document.getElementById('hr').value;
+  const l=+document.getElementById('ls').value/100;
+  updateHueSliderBg(h,l);
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  FRAMES
+// ══════════════════════════════════════════════════════════════════
+function buildFrames(){
+  const list=document.getElementById('frames-list');list.innerHTML='';
+  S.frames.forEach((fr,i)=>{
+    const c=document.createElement('canvas');c.className='fthumb'+(i===S.fi?' on':'');c.width=S.W;c.height=S.H;c.title=`Frame ${i+1}`;
+    drawThumb(c,fr);c.addEventListener('click',()=>switchFr(i));list.appendChild(c);
+  });
+  const btn=document.createElement('div');btn.className='fadd';btn.textContent='+';btn.title='Add frame';btn.addEventListener('click',()=>E.addFrame());list.appendChild(btn);
+  document.getElementById('sfr').textContent=`${S.fi+1}/${S.frames.length}`;
+}
+function drawThumb(canvas,fr){
+  canvas.width=S.W;canvas.height=S.H;const ctx=canvas.getContext('2d');
+  const id=ctx.createImageData(S.W,S.H);
+  fr.forEach((ci,i)=>{if(!ci||!S.pal[ci]){id.data[i*4+3]=0;return}const[r,g,b]=h2r(S.pal[ci]);id.data[i*4]=r;id.data[i*4+1]=g;id.data[i*4+2]=b;id.data[i*4+3]=255});
+  ctx.putImageData(id,0,0);
+}
+function updateThumb(i){const t=document.querySelectorAll('.fthumb');if(t[i])drawThumb(t[i],S.frames[i])}
+function switchFr(i){S.frames[S.fi]=S.px.slice();S.fi=i;S.px=S.frames[S.fi].slice();buildFrames();renderPx()}
+
+// ══════════════════════════════════════════════════════════════════
+//  STATUS
+// ══════════════════════════════════════════════════════════════════
+function setStatus(x,y){
+  document.getElementById('sx').textContent=x;document.getElementById('sy').textContent=y;
+  document.getElementById('spx').textContent='idx'+S.px[y*S.W+x];
+  document.getElementById('stool').textContent=S.tool;
+}
+function updateSizeLabel(){
+  document.getElementById('sizeLabel').textContent=`${S.W}×${S.H}`;
+  document.getElementById('zoomLabel').textContent=`${S.zoom}×`;
+  document.getElementById('exw').value=S.W;document.getElementById('exh').value=S.H;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  OLLAMA AI INTEGRATION
+// ══════════════════════════════════════════════════════════════════
+const AI_PROMPTS={
+  palette_gen:`You are a GBA pixel art director. Generate a 16-color palette for a compelling game scene. Return ONLY valid JSON: {"palette":["#hex",...16 colors...],"theme":"description","ramp_groups":[{"name":"shadow/mid/highlight","colors":["#hex",...]}]}`,
+  palette_critique:`You are a GBA pixel art expert. Analyze this palette and give specific improvement advice. Return ONLY valid JSON: {"score":0-10,"issues":["..."],"suggestions":["..."],"hue_shift_advice":"..."}`,
+  ramp_suggest:`You are a GBA pixel art expert. Suggest a 5-step hue-shifting ramp for the given base color following Golden Sun style. Return ONLY valid JSON: {"ramp":["#dark","#shadow","#mid","#highlight","#bright"],"shadow_hue_shift":-22,"highlight_hue_shift":18,"reasoning":"..."}`,
+  gs_convert:`You are a Golden Sun art director at Camelot. Analyze the current palette and suggest specific adjustments to match GS aesthetic (warm highlights, cool purple shadows, clean black outlines). Return ONLY valid JSON: {"adjustments":[{"index":0,"current":"#hex","suggested":"#hex","reason":"..."}],...}`,
+  pkmn_convert:`You are a Pokémon GBA sprite artist. Analyze this palette and suggest changes to match FRLG/RSE style (high saturation, dark-not-black outlines, near-white highlights). Return ONLY valid JSON: {"type":"fire/water/grass/etc","adjustments":[...],"reasoning":"..."}`,
+  art_direct:`You are a master pixel art director. Review this 16-color palette and give specific artistic guidance covering: value contrast, temperature balance, hue variety, and GBA display characteristics. Return ONLY valid JSON: {"overall_grade":"A-F","value_analysis":"...","temperature":"...","recommendations":["..."],"palette_harmony":"..."}`
+};
+
+async function ollamaQuery(prompt,model){
+  const res=await fetch('http://localhost:11434/api/generate',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:model||'llama3.2',prompt,stream:false,options:{temperature:0.3,num_predict:800}})
+  });
+  if(!res.ok)throw new Error(`HTTP ${res.status}`);
+  const data=await res.json();return data.response;
+}
+
+function buildPaletteContext(){
+  const palData=S.pal.map((c,i)=>{
+    if(!c||i===0)return{index:i,hex:null,role:'transparent'};
+    const[r,g,b]=h2r(c);const[h,s,l]=rgb2hsl(r,g,b);
+    return{index:i,hex:c,hsl:[Math.round(h),Math.round(s*100),Math.round(l*100)],luma:Math.round(luma(c)/2.55)+'%',temperature:isWarm(h)?'warm':'cool'};
+  });
+  return{palette:palData,canvas:{width:S.W,height:S.H,frames:S.frames.length},meta:{phi:PHI,fibonacci:[1,1,2,3,5,8,13,21,34,55]}};
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  DEMO SCENE — Golden Sun landscape with all techniques
+// ══════════════════════════════════════════════════════════════════
+function loadDemoScene(){
+  E.loadPal('gs_isaac');S.px=new Uint8Array(S.W*S.H);S.frames=[S.px];S.fi=0;
+  const W=S.W,H=S.H;
+  // Dithered sky
+  for(let y=0;y<22;y++)for(let x=0;x<W;x++){const b=BAYER.bayer4[y%4][x%4]/16;S.px[y*W+x]=y/22+b*.4<.45?10:9}
+  // Sun
+  for(let y=2;y<11;y++)for(let x=W-18;x<W-6;x++){const dx=x-(W-12),dy=y-6;if(dx*dx+dy*dy<20)S.px[y*W+x]=11;else if(dx*dx+dy*dy<36)S.px[y*W+x]=12}
+  // Mountains
+  for(let x=0;x<W;x++){const h=18+Math.round(3.5*Math.sin(x*.21)+2.5*Math.sin(x*.08+.8)+1.5*Math.sin(x*.15+2));for(let y=h;y<26;y++)S.px[y*W+x]=y===h?10:9}
+  // Hills
+  for(let x=0;x<W;x++){const h=28+Math.round(3*Math.sin(x*.3+1)+2*Math.sin(x*.11));for(let y=h;y<34;y++){const b=BAYER.bayer4[y%4][x%4]/16;S.px[y*W+x]=(y-h)/6+b*.4<.45?5:4}}
+  // Ground
+  for(let y=34;y<H;y++)for(let x=0;x<W;x++){const b=BAYER.bayer4[y%4][x%4]/16;S.px[y*W+x]=(y-34)/(H-34)+b*.3<.42?4:3}
+  // Path
+  const pb=new Uint8Array(W*H);doBezierQ(W/2-2,H-1,W/2+9,H*.62,W/2-2,34,1,pb);
+  for(let i=0;i<pb.length;i++){if(!pb[i])continue;const px=i%W,py=Math.floor(i/W);for(let dx=-1;dx<=1;dx++){const px2=px+dx;if(px2>=0&&px2<W)S.px[py*W+px2]=14}}
+  // Fibonacci-spaced grass
+  for(const fx of[5,8,13,21,34,55]){if(fx>=W-2)continue;const gy=35+Math.round(Math.sin(fx*.5));for(let dy=0;dy<3;dy++)for(let dx=0;dx<2;dx++)if(gy+dy<H)S.px[(gy+dy)*W+fx+dx]=6}
+  // Isaac sprite (16x16 GS-accurate)
+  const ISAAC=[[0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],[0,0,0,0,1,9,9,9,9,9,9,1,0,0,0,0],[0,0,0,1,9,11,11,11,11,9,9,1,0,0,0,0],[0,0,0,1,6,6,6,11,6,6,6,1,0,0,0,0],[0,0,1,3,3,6,6,6,6,6,3,3,1,0,0,0],[0,0,1,3,4,4,4,4,4,4,4,3,1,0,0,0],[0,0,1,9,9,9,9,9,9,9,9,9,1,0,0,0],[0,0,1,9,10,9,9,10,9,9,9,9,1,0,0,0],[0,0,1,9,1,9,9,1,9,9,9,9,1,0,0,0],[0,0,1,9,9,9,9,9,9,9,9,9,1,0,0,0],[0,0,1,9,9,9,9,9,9,9,9,9,1,0,0,0],[0,0,1,9,9,1,9,9,9,1,9,9,1,0,0,0],[0,1,9,9,1,9,9,9,9,1,9,9,9,1,0,0],[0,1,8,8,8,8,8,8,8,8,8,8,8,1,0,0],[0,0,1,9,9,8,8,8,8,8,9,9,1,0,0,0],[0,0,0,1,9,0,8,8,0,9,1,0,0,0,0,0]];
+  const ix=Math.floor(W/2)-8,iy=Math.floor(H/2)-14;
+  ISAAC.forEach((row,y)=>row.forEach((ci,x)=>{if(ci>0&&ix+x>=0&&iy+y>=0&&ix+x<W&&iy+y<H)S.px[(iy+y)*W+(ix+x)]=ci}));
+  // Djinn (8x8)
+  const DJINN=[[0,0,1,1,1,1,0,0],[0,1,6,6,5,12,1,0],[0,1,5,6,13,12,1,0],[1,5,6,6,5,12,12,1],[1,5,6,6,5,12,12,1],[0,1,6,5,5,12,1,0],[0,0,1,6,12,1,0,0],[0,0,0,1,1,0,0,0]];
+  const dix=ix-12,diy=iy+5;DJINN.forEach((row,y)=>row.forEach((ci,x)=>{if(ci>0&&dix+x>=0&&diy+y>=0&&dix+x<W&&diy+y<H)S.px[(diy+y)*W+(dix+x)]=ci}));
+  S.frames=[S.px.slice()];S.fi=0;buildPalGrid();syncColorUI();buildFrames();renderAll();
+  S.overlays.fib=true;document.getElementById('ov-fib').classList.add('on');renderOv();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PUBLIC API — E.*
+// ══════════════════════════════════════════════════════════════════
+const E={
+
+  tool(name){
+    S.tool=name;S.bezPts=[];
+    document.getElementById('hintbox').style.display='none';
+    document.getElementById('shint').textContent='';
+    document.querySelectorAll('.ttool').forEach(b=>b.classList.remove('active'));
+    const btn=document.getElementById('t-'+name);if(btn)btn.classList.add('active');
+    document.getElementById('stool').textContent=name;
+    prevPx=null;renderPrev();renderOv();
+    const cursors={pencil:'crosshair',eraser:'cell',fill:'crosshair',eyedrop:'zoom-in'};
+    cPrev.style.cursor=cursors[name]||'crosshair';
+  },
+
+  loadPal(name){const p=PALS[name];if(!p)return;S.pal=[...p];while(S.pal.length<16)S.pal.push('#888');buildPalGrid();syncColorUI();renderPx()},
+
+  showTab(name){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+    document.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('on'));
+    document.getElementById('tab-'+name).classList.add('on');
+    document.getElementById('pane-'+name).classList.add('on');
+  },
+
+  sliderHSL(){applyHSLSliders()},
+
+  toggleOv(name){S.overlays[name]=!S.overlays[name];document.getElementById('ov-'+name).classList.toggle('on',S.overlays[name]);
+    if(name==='vp'){const vc=document.getElementById('vp-controls');if(vc)vc.style.display=S.overlays.vp?'flex':'none';}
+    renderOv();},
+  setFibOrigin(o){S.fibOrigin=o;renderOv()},
+
+  // ── P2: VP position from sliders ─────────────────────────────
+  setVP(){
+    S.vpX=parseFloat(document.getElementById('vp-x').value)||50;
+    S.vpY=parseFloat(document.getElementById('vp-y').value)||60;
+    renderOv();
+  },
+
+  // ── P5: foliage size picker ───────────────────────────────────
+  setFoliageSize(sz){
+    S.foliageSize=sz;
+    document.querySelectorAll('.foliage-sz').forEach(b=>b.classList.toggle('on',b.dataset.sz===sz));
+  },
+
+  // ── P6: Signal world palette swap ────────────────────────────
+  swapSignalWorld(){
+    const curName=S._worldMode||'physical';
+    const next=curName==='physical'?'signal':'physical';
+    S._worldMode=next;
+    const pal=PALS['ps_'+next];
+    if(!pal)return;
+    S.pal=[...pal];while(S.pal.length<16)S.pal.push('#888');
+    buildPalGrid();syncColorUI();renderPx();
+    const btn=document.querySelector('[onclick="E.swapSignalWorld()"]');
+    if(btn)btn.textContent=next==='signal'?'⇄ Signal → Physical':'⇄ Physical → Signal';
+  },
+
+  zoomIn(){S.zoom=Math.min(S.zoom<4?S.zoom+1:S.zoom<16?S.zoom+2:S.zoom+4,32);onZoomChange()},
+  zoomOut(){S.zoom=Math.max(S.zoom<=4?S.zoom-1:S.zoom<=16?S.zoom-2:S.zoom-4,1);onZoomChange()},
+
+  undo(){if(!S.hist.length)return;S.fut.push(S.px.slice());S.px=S.hist.pop();S.frames[S.fi]=S.px.slice();renderPx();updateThumb(S.fi)},
+  redo(){if(!S.fut.length)return;S.hist.push(S.px.slice());S.px=S.fut.pop();S.frames[S.fi]=S.px.slice();renderPx();updateThumb(S.fi)},
+
+  brushDelta(d){S.brushSize=Math.max(1,Math.min(S.brushSize+d,30));document.getElementById('brushdisp').textContent=S.brushSize+'px'},
+  toggleBrushShape(){S.brushRound=!S.brushRound;const b=document.getElementById('brushshape');b.textContent=S.brushRound?'Round':'Square';b.classList.toggle('on',!S.brushRound)},
+  toggleDither(){S.dither=!S.dither;const b=document.getElementById('ditherbtn');b.textContent=S.dither?'Dither ON':'Dither OFF';b.classList.toggle('on',S.dither)},
+  toggleSym(axis){
+    S.sym[axis]=!S.sym[axis];
+    document.getElementById(axis==='x'?'tbsx':'tbsy').classList.toggle('on-teal',S.sym[axis]);
+    document.getElementById(axis==='x'?'symxbtn':'symybtn').classList.toggle('on',S.sym[axis]);
+  },
+  toggleOnion(){S.onion=!S.onion;const b=document.getElementById('onionbtn');b.textContent=S.onion?'Onion ON':'Onion OFF';b.classList.toggle('on',S.onion);renderPx()},
+  toggleGBA(){
+    S.gba=!S.gba;const b=document.getElementById('tbgba');b.classList.toggle('on',S.gba);
+    b.textContent=S.gba?'GBA 15BIT ✓':'GBA 15BIT';
+    if(S.gba){S.pal=S.pal.map((c,i)=>!i||!c?c:gbaSnap(c));buildPalGrid();syncColorUI();renderPx()}
+  },
+
+  toggleRail(){
+    S.railOpen=!S.railOpen;document.getElementById('toolrail').classList.toggle('hidden',!S.railOpen);
+    const t=document.getElementById('rail-toggle');t.textContent=S.railOpen?'◁':'▷';t.title=S.railOpen?'Hide tools':'Show tools';t.style.left=S.railOpen?'44px':'0px';
+  },
+  toggleRPanel(){
+    S.rpOpen=!S.rpOpen;document.getElementById('rpanel').classList.toggle('hidden',!S.rpOpen);
+    const t=document.getElementById('rpanel-toggle');t.textContent=S.rpOpen?'▷':'◁';t.title=S.rpOpen?'Hide panel':'Show panel';t.style.right=S.rpOpen?'240px':'0px';
+  },
+
+  newCanvas(){if(!confirm('Clear canvas?'))return;S.px=new Uint8Array(S.W*S.H);S.frames=[S.px.slice()];S.fi=0;S.hist=[];S.fut=[];buildFrames();renderPx()},
+  loadDemo:loadDemoScene,
+
+  presetSize(v){
+    if(!v)return;const[w,h]=v.split(',').map(Number);
+    S.W=w;S.H=h;S.px=new Uint8Array(S.W*S.H);S.frames=[S.px.slice()];S.fi=0;
+    S.zoom=Math.max(1,Math.floor(Math.min(520/S.W,340/S.H)));
+    mkCanvases();updateSizeLabel();buildFrames();renderAll();
+    document.getElementById('presetSize').value='';
+  },
+
+  resizeCanvas(){
+    const nw=parseInt(document.getElementById('exw').value)||S.W;
+    const nh=parseInt(document.getElementById('exh').value)||S.H;
+    if(nw<1||nh<1||nw>512||nh>512)return;
+    const np=new Uint8Array(nw*nh),cw=Math.min(S.W,nw),ch=Math.min(S.H,nh);
+    for(let y=0;y<ch;y++)for(let x=0;x<cw;x++)np[y*nw+x]=S.px[y*S.W+x]||0;
+    S.W=nw;S.H=nh;S.px=np;S.frames=[S.px.slice()];S.fi=0;
+    S.zoom=Math.max(1,Math.floor(Math.min(520/S.W,340/S.H)));
+    mkCanvases();updateSizeLabel();buildFrames();renderAll();
+  },
+
+  // ── RAMP GENERATOR ────────────────────────────────────────────
+  previewRamp(){
+    const base=S.pal[S.ci];if(!base||!S.ci)return;
+    const steps=+document.getElementById('ramp-steps').value;
+    const style=document.getElementById('ramp-style').value;
+    const hsh=+document.getElementById('ramp-hsh').value;
+    const hhl=+document.getElementById('ramp-hhl').value;
+    S.lastRamp=generateRamp(base,steps,style,hsh,hhl);
+    const names=steps===7?RAMP_STEP_NAMES7:RAMP_STEP_NAMES;
+    const prev=document.getElementById('ramp-preview');prev.innerHTML='';
+    S.lastRamp.forEach((hex,i)=>{
+      const seg=document.createElement('div');seg.className='ramp-seg';seg.style.background=hex;
+      seg.title=`${names[i]||'Step '+(i+1)}: ${hex}`;
+      seg.textContent=i;
+      seg.addEventListener('click',()=>{S.ci=Math.min(i+1,15);S.pal[S.ci]=hex;syncColorUI();refreshSwatches();renderPx()});
+      prev.appendChild(seg);
+    });
+    const info=document.getElementById('ramp-slot-info');
+    info.textContent=`will fill idx 1–${Math.min(steps,15)}`;
+  },
+  applyRamp(){
+    if(!S.lastRamp.length){E.previewRamp();return}
+    S.lastRamp.forEach((hex,i)=>{const idx=i+1;if(idx<16)S.pal[idx]=hex});
+    buildPalGrid();syncColorUI();renderPx();
+    if(S.gba)E.toggleGBA();
+  },
+
+  // ── HARMONY GENERATOR ─────────────────────────────────────────
+  harmony(type){
+    const base=S.pal[S.ci];if(!base||!S.ci)return;
+    S.lastHarmony=generateHarmony(base,type);
+    const prev=document.getElementById('harm-preview');prev.innerHTML='';
+    S.lastHarmony.forEach(hex=>{const d=document.createElement('div');d.style.cssText=`flex:1;background:${hex};border-radius:2px;border:1px solid var(--br)`;d.title=hex;prev.appendChild(d)});
+    document.getElementById('harm-apply-btn').style.display=S.lastHarmony.length?'block':'none';
+  },
+  applyHarmony(){
+    let start=S.ci+1;
+    S.lastHarmony.forEach(hex=>{if(start<16){S.pal[start]=hex;start++}});
+    buildPalGrid();syncColorUI();renderPx();
+  },
+
+  // ── COLOR REPLACE ──────────────────────────────────────────────
+  colorReplace(){
+    const from=+document.getElementById('rep-from').value;
+    const to=+document.getElementById('rep-to').value;
+    if(from===to||from<0||to<0||from>15||to>15)return;
+    pushH();S.px.forEach((_,i)=>{if(S.px[i]===from)S.px[i]=to});
+    renderPx();commitFr();
+  },
+
+  // ── FRAMES ────────────────────────────────────────────────────
+  addFrame(){S.frames[S.fi]=S.px.slice();S.frames.splice(S.fi+1,0,new Uint8Array(S.W*S.H));S.fi++;S.px=S.frames[S.fi].slice();buildFrames();renderPx()},
+  dupFrame(){S.frames[S.fi]=S.px.slice();S.frames.splice(S.fi+1,0,S.frames[S.fi].slice());S.fi++;S.px=S.frames[S.fi].slice();buildFrames();renderPx()},
+  delFrame(){if(S.frames.length===1){S.px=new Uint8Array(S.W*S.H);S.frames[0]=S.px.slice();buildFrames();renderPx();return}S.frames.splice(S.fi,1);S.fi=Math.min(S.fi,S.frames.length-1);S.px=S.frames[S.fi].slice();buildFrames();renderPx()},
+  togglePlay(){
+    S.playing=!S.playing;const b=document.getElementById('playbtn');b.textContent=S.playing?'⏹':'▶';b.classList.toggle('playing',S.playing);
+    if(S.playing)S.animTimer=setInterval(()=>{S.frames[S.fi]=S.px.slice();S.fi=(S.fi+1)%S.frames.length;S.px=S.frames[S.fi].slice();buildFrames();renderPx()},1000/S.fps);
+    else clearInterval(S.animTimer);
+  },
+  fpsUp(){S.fps=Math.min(S.fps+1,60);document.getElementById('fpsl').textContent=S.fps+'fps'},
+  fpsDown(){S.fps=Math.max(S.fps-1,1);document.getElementById('fpsl').textContent=S.fps+'fps'},
+
+  // ── OLLAMA ────────────────────────────────────────────────────
+  async aiPing(){
+    const st=document.getElementById('ai-status');
+    const send=document.getElementById('ai-send');
+    st.textContent='● Pinging Ollama...';st.className='wait';
+    try{
+      const r=await fetch('http://localhost:11434/api/tags',{signal:AbortSignal.timeout(3000)});
+      if(r.ok){
+        const d=await r.json();
+        const models=(d.models||[]).map(m=>m.name).join(', ')||'(none pulled)';
+        st.textContent=`● Connected — models: ${models.slice(0,60)}`;st.className='ok';
+        S.aiConnected=true;send.disabled=false;
+      }else throw new Error('HTTP '+r.status);
+    }catch(ex){st.textContent=`● Not connected — ${ex.message}`;st.className='err';S.aiConnected=false;send.disabled=true}
+  },
+  aiQuick(type){
+    const ctx=buildPaletteContext();
+    const base=AI_PROMPTS[type]||'';
+    const prompt=base+'\n\nCurrent palette context:\n'+JSON.stringify(ctx,null,2);
+    document.getElementById('ai-prompt').value=prompt;
+    E.showTab('ai');
+  },
+  async aiSend(){
+    if(!S.aiConnected)return;
+    const prompt=document.getElementById('ai-prompt').value.trim();if(!prompt)return;
+    const model=document.getElementById('ai-model').value||'llama3.2';
+    const out=document.getElementById('ai-out');
+    const send=document.getElementById('ai-send');
+    out.textContent='// Querying Ollama...\n// Please wait...';send.disabled=true;
+    try{
+      const response=await ollamaQuery(prompt,model);
+      out.textContent=response;
+      // Check if response contains a palette array
+      const palMatch=response.match(/"palette"\s*:\s*\[([^\]]+)\]/);
+      if(palMatch){document.getElementById('ai-apply-pal').style.display='block'}
+      else{document.getElementById('ai-apply-pal').style.display='none'}
+    }catch(ex){out.textContent=`Error: ${ex.message}\n\nMake sure Ollama is running:\n  ollama serve\n  ollama pull llama3.2`}
+    finally{send.disabled=false}
+  },
+  aiApplyPalette(){
+    const out=document.getElementById('ai-out').textContent;
+    try{
+      const json=JSON.parse(out.match(/\{[\s\S]*\}/)?.[0]||'{}');
+      const pal=json.palette||json.colors||[];
+      if(!pal.length)throw new Error('No palette found');
+      S.pal=[null,...pal.slice(0,15)];while(S.pal.length<16)S.pal.push('#808080');
+      buildPalGrid();syncColorUI();renderPx();document.getElementById('ai-apply-pal').style.display='none';
+    }catch(ex){alert('Could not parse palette from AI response: '+ex.message)}
+  },
+
+  // ── LLM CONTEXT EXPORT ─────────────────────────────────────────
+  exportLLMContext(){
+    const ctx=buildPaletteContext();
+    ctx.canvas.pixels=Array.from(S.px);
+    ctx.instructions='To modify this sprite: change values in canvas.pixels (palette indices 0-15) and apply the updated palette. Color 0 = transparent.';
+    const json=JSON.stringify(ctx,null,2);
+    dlBlob(json,'application/json','llm_context.json');
+  },
+  copyLLMContext(){
+    const ctx=buildPaletteContext();
+    const json=JSON.stringify(ctx,null,2);
+    navigator.clipboard.writeText(json).then(()=>alert('LLM context copied to clipboard!')).catch(()=>alert('Copy failed — use Export instead'));
+  },
+
+  // ── EXPORT ────────────────────────────────────────────────────
+  exportPNG(){
+    const c=document.createElement('canvas');c.width=S.W;c.height=S.H;
+    const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;
+    const id=ctx.createImageData(S.W,S.H);
+    S.px.forEach((ci,i)=>{if(!ci||!S.pal[ci]){id.data[i*4+3]=0;return}const[r,g,b]=h2r(S.pal[ci]);id.data[i*4]=r;id.data[i*4+1]=g;id.data[i*4+2]=b;id.data[i*4+3]=255});
+    ctx.putImageData(id,0,0);dl(c.toDataURL(),'sprite.png');
+  },
+  exportAllPNG(){
+    const c=document.createElement('canvas');c.width=S.W*S.frames.length;c.height=S.H;
+    const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;
+    S.frames.forEach((fr,fi)=>{const id=ctx.createImageData(S.W,S.H);fr.forEach((ci,i)=>{if(!ci||!S.pal[ci]){id.data[i*4+3]=0;return}const[r,g,b]=h2r(S.pal[ci]);id.data[i*4]=r;id.data[i*4+1]=g;id.data[i*4+2]=b;id.data[i*4+3]=255});ctx.putImageData(id,fi*S.W,0)});
+    dl(c.toDataURL(),'spritesheet.png');
+  },
+  exportJSON(){
+    const ctx=buildPaletteContext();
+    const data={...ctx,frames:S.frames.map((fr,i)=>({index:i,data:Array.from(fr)}))};
+    const json=JSON.stringify(data,null,2);
+    document.getElementById('excode').textContent=json.slice(0,400)+'...';
+    dlBlob(json,'application/json','sprite.json');
+  },
+  exportC(){
+    const lines=[`// GBA Pixel Art — ${S.W}×${S.H} — GBA Pixel Art Engine World Council Ed.`,
+      `const u16 pal[${S.pal.length}] = {`];
+    const palArr=S.pal.map((hex,i)=>{if(!i||!hex)return'0x8000';const[r,g,b]=h2r(hex);return'0x'+((Math.min(31,b>>3)<<10)|(Math.min(31,g>>3)<<5)|Math.min(31,r>>3)).toString(16).padStart(4,'0')});
+    for(let i=0;i<palArr.length;i+=8)lines.push('  '+palArr.slice(i,i+8).join(', ')+',');
+    lines.push('};','',`const u8 sprite[${S.W*S.H}] = {`);
+    for(let y=0;y<S.H;y++)lines.push('  '+Array.from(S.px.slice(y*S.W,(y+1)*S.W)).join(',')+',');
+    lines.push('};');const code=lines.join('\n');
+    document.getElementById('excode').textContent=code.slice(0,500)+'...';dlBlob(code,'text/plain','sprite.h');
+  },
+  exportTileset(){
+    const tw=8,th=8,tx=Math.floor(S.W/tw),ty=Math.floor(S.H/th),tiles=[];
+    for(let j=0;j<ty;j++)for(let i=0;i<tx;i++){const t=[];for(let y=0;y<th;y++)for(let x=0;x<tw;x++)t.push(S.px[(j*th+y)*S.W+i*tw+x]);tiles.push(t)}
+    const data=JSON.stringify({tilesX:tx,tilesY:ty,tileW:tw,tileH:th,palette:S.pal,tiles},null,2);
+    document.getElementById('excode').textContent=`// ${tiles.length} tiles\n`+data.slice(0,300)+'...';
+    dlBlob(data,'application/json','tileset.json');
+  },
+  importFile(input){
+    const file=input.files[0];if(!file)return;
+    if(file.name.endsWith('.json')){
+      const fr=new FileReader();fr.onload=e=>{
+        try{const d=JSON.parse(e.target.result);
+          if(d.width&&d.height&&(d.palette||d.pal)&&d.frames){
+            S.W=d.width;S.H=d.height;S.pal=(d.palette||d.pal);
+            S.frames=d.frames.map(f=>new Uint8Array(f.data||f.pixels||f));S.fi=0;S.px=S.frames[0].slice();
+            S.zoom=Math.max(1,Math.floor(Math.min(520/S.W,340/S.H)));
+            mkCanvases();buildPalGrid();syncColorUI();buildFrames();renderAll();
+          }
+        }catch(ex){alert('JSON error: '+ex.message)}
+      };fr.readAsText(file);
+    }else if(file.name.endsWith('.png')){
+      const fr=new FileReader();fr.onload=e=>{
+        const img=new Image();img.onload=()=>{
+          S.W=img.width;S.H=img.height;
+          const tc=document.createElement('canvas');tc.width=S.W;tc.height=S.H;
+          const tc2=tc.getContext('2d');tc2.drawImage(img,0,0);
+          const id=tc2.getImageData(0,0,S.W,S.H).data;S.px=new Uint8Array(S.W*S.H);
+          for(let i=0;i<S.W*S.H;i++){if(id[i*4+3]<64){S.px[i]=0;continue}const hex=r2h(id[i*4],id[i*4+1],id[i*4+2]);let best=1,bd=Infinity;S.pal.forEach((pc,pi)=>{if(!pi||!pc)return;const d=cDist(hex,pc);if(d<bd){bd=d;best=pi}});S.px[i]=best}
+          S.frames=[S.px.slice()];S.fi=0;
+          S.zoom=Math.max(1,Math.floor(Math.min(520/S.W,340/S.H)));
+          mkCanvases();buildFrames();renderAll();
+        };img.src=e.target.result;
+      };fr.readAsDataURL(file);
+    }input.value='';
+  },
+};
+
+// ══════════════════════════════════════════════════════════════════
+//  KEYBOARD
+// ══════════════════════════════════════════════════════════════════
+function bindEvents(){
+  document.addEventListener('keydown',e=>{
+    const tag=e.target.tagName;if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA')return;
+    const k=e.key.toLowerCase();
+    const TM={b:'pencil',e:'eraser',g:'fill',l:'line',r:'rect',f:'rectfill',o:'ellipse',v:'bezier',i:'eyedrop',c:'circle',a:'arc',d:'ditchfill',w:'shadow',t:'foliage'};
+    if(TM[k]&&!e.ctrlKey&&!e.altKey){E.tool(TM[k]);return}
+    if(k==='z'&&e.ctrlKey){e.preventDefault();E.undo();return}
+    if(k==='y'&&e.ctrlKey){e.preventDefault();E.redo();return}
+    if(k==='='||k==='+')E.zoomIn();
+    else if(k==='-')E.zoomOut();
+    else if(k==='[')E.brushDelta(-1);
+    else if(k===']')E.brushDelta(1);
+    else if(k==='?'||k==='/'){document.getElementById('helpmodal').classList.toggle('show')}
+    else if(k==='escape'){S.bezPts=[];S.arcPts=[];document.getElementById('hintbox').style.display='none';document.getElementById('shint').textContent='';renderOv()}
+    else if(k>='1'&&k<='9'){const idx=parseInt(k);if(idx<S.pal.length){S.ci=idx;syncColorUI();refreshSwatches()}}
+  });
+  document.getElementById('helpmodal').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('show')});
+  document.getElementById('hexin').addEventListener('change',e=>{
+    let h=e.target.value.trim().replace(/^#/,'');
+    if(/^[0-9a-fA-F]{6}$/.test(h)){S.pal[S.ci]='#'+h;syncColorUI();refreshSwatches();renderPx()}
+  });
+  document.getElementById('dithermode').addEventListener('change',e=>S.ditherMode=e.target.value);
+}
+
+function onZoomChange(){
+  const pw=S.W*S.zoom,ph=S.H*S.zoom;
+  const h=document.getElementById('canvasholder');h.style.width=pw+'px';h.style.height=ph+'px';
+  document.getElementById('zoomLabel').textContent=S.zoom+'×';renderAll();
+}
+function dl(url,name){const a=document.createElement('a');a.download=name;a.href=url;a.click()}
+function dlBlob(text,type,name){dl(URL.createObjectURL(new Blob([text],{type})),name)}
+
+
+// Register Service Worker for offline use
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+window.addEventListener('DOMContentLoaded',init);
+</script>
+<div style="position:fixed;bottom:3px;right:8px;font-size:7px;color:#1a1a2e;font-family:'Courier New',monospace;letter-spacing:1px;pointer-events:none;z-index:9999">
+  ◈ PALE SIGNAL · PIXEL ENGINE v1.2
+</div>
+</body>
+</html>

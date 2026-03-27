@@ -1,0 +1,2963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PALE SIGNAL">
+<meta name="theme-color" content="#05080f">
+<link rel="manifest" href="./manifest.json">
+<title>PALE SIGNAL · HUB v2.0</title>
+<!-- SOVEREIGNTY NOTE: Google Fonts is the one external dependency. Replace with system-mono for full offline. -->
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --shell:#161a27;--shell-mid:#1e2335;--shell-light:#262d44;--shell-edge:#0e111a;
+  --bezel:#090c14;
+  --pale:#8fa8ff;--pale-dim:#4a5e99;--pale-bright:#d8e8ff;
+  --pale-glow:rgba(143,168,255,0.25);
+  --signal:#00ffaa;--signal-dim:rgba(0,255,170,0.4);
+  --btn-a:#e84b6a;--btn-b:#4b8ee8;
+  --gold:#f0c040;--shrine:#d4a0ff;--oracle:#ffcc44;
+  --fire:#ff6622;--water:#4888d0;--wood:#44cc66;--earth:#c8a040;
+  --metal:#c0c8e0;--wind:#80ccff;
+  --text:#d8e8ff;--text-dim:#6a7a98;--text-mid:#9aabcc;
+  --screen-bg:#05080f;
+  --green:#44cc66;--red:#cc4444;
+  --sync-bar:#8fa8ff;
+}
+html{
+  height:100%;height:100dvh;
+  background:radial-gradient(ellipse at center,#0d1020 0%,#050709 100%);
+  overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+}
+body{
+  min-height:100%;min-height:100dvh;
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:max(4px,calc((100dvh - 720px)/2)) 4px;
+  font-family:'Share Tech Mono',monospace;color:var(--text);
+  -webkit-font-smoothing:none;
+}
+
+/* ── SAEL THINKING ANIMATION ────────────────────────────────────── */
+.sael-thinking .think-dots span{
+  display:inline-block;
+  animation:thinkBounce 1.2s ease-in-out infinite;
+  font-size:18px;color:var(--pale);
+}
+.sael-thinking .think-dots span:nth-child(2){animation-delay:0.2s}
+.sael-thinking .think-dots span:nth-child(3){animation-delay:0.4s}
+@keyframes thinkBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+.stream-cursor{
+  display:inline-block;
+  animation:cursorBlink 0.7s step-end infinite;
+  color:var(--pale);margin-left:1px;
+}
+@keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ── BOOT ─────────────────────────────────────────────────────── */
+#boot{
+  position:fixed;inset:0;background:#000;z-index:999;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:18px;padding:32px;
+  font-family:'Press Start 2P',monospace;text-align:center;
+  transition:opacity 0.6s;
+}
+#boot.fade{opacity:0;pointer-events:none}
+#boot.gone{display:none}
+.b-sigil{
+  font-size:36px;color:var(--pale);
+  text-shadow:0 0 30px var(--pale),0 0 60px rgba(143,168,255,.3);
+  animation:sigil 3s ease-in-out infinite;
+}
+@keyframes sigil{0%,100%{text-shadow:0 0 20px var(--pale)}50%{text-shadow:0 0 50px var(--pale),0 0 100px rgba(143,168,255,.5)}}
+.b-title{font-size:10px;color:var(--pale-bright);letter-spacing:5px;line-height:2.6}
+.b-sub{font-size:6px;color:var(--pale-dim);letter-spacing:2px}
+.b-log{font-size:6px;color:var(--text-dim);min-height:14px;letter-spacing:1px;transition:color .3s}
+.b-log.active{color:var(--pale)}
+.b-bar-wrap{width:220px;height:4px;background:#111;border:1px solid var(--pale-dim);overflow:hidden}
+.b-bar{height:100%;width:0%;background:var(--pale);box-shadow:0 0 8px var(--pale);transition:width .4s ease}
+.b-return{font-size:6px;color:var(--shrine);letter-spacing:1px;line-height:2;display:none;max-width:280px}
+.b-press{font-size:6px;color:var(--pale);letter-spacing:2px;animation:blink 1.2s step-end infinite;display:none}
+@keyframes blink{50%{opacity:0}}
+
+/* ── SHELL ─────────────────────────────────────────────────────── */
+#shell{display:none;flex-direction:column;align-items:center;gap:6px;transform-origin:top center}
+.shell-top{
+  width:min(440px,100vw);height:20px;
+  background:linear-gradient(180deg,var(--shell-light) 0%,var(--shell-mid) 100%);
+  border-radius:8px 8px 0 0;border:2px solid var(--shell-edge);border-bottom:none;
+  display:flex;align-items:center;justify-content:space-between;padding:0 14px;
+}
+.shell-label{font-family:'Press Start 2P',monospace;font-size:4px;color:var(--pale-dim);letter-spacing:2px}
+.power-led{
+  width:7px;height:7px;border-radius:50%;background:var(--signal);
+  box-shadow:0 0 6px var(--signal),0 0 12px var(--signal-dim);
+  animation:led 3s ease-in-out infinite;
+}
+@keyframes led{0%,100%{box-shadow:0 0 6px var(--signal)}50%{box-shadow:0 0 14px var(--signal),0 0 28px var(--signal-dim)}}
+.shell-body{
+  width:min(440px,100vw);
+  background:linear-gradient(180deg,var(--shell-mid) 0%,var(--shell) 100%);
+  border-left:2px solid var(--shell-edge);border-right:2px solid var(--shell-edge);
+  padding:12px 16px;display:flex;flex-direction:column;align-items:center;gap:12px;
+}
+.bezel{
+  width:min(380px,calc(100vw - 24px));background:var(--bezel);border-radius:6px;
+  padding:10px;border:2px solid #070a12;
+  box-shadow:inset 0 0 24px rgba(0,0,0,.9),0 0 0 1px #1a2040,0 2px 8px rgba(0,0,0,.6);
+  position:relative;overflow:hidden;
+  max-height:calc(100dvh - 120px);
+  display:flex;flex-direction:column;
+}
+.bezel::before{
+  content:'';position:absolute;top:10px;left:10px;right:10px;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.06) 40%,rgba(255,255,255,.06) 60%,transparent);
+  border-radius:1px;pointer-events:none;z-index:5;
+}
+.bezel::after{
+  content:'';position:absolute;inset:10px;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.04) 3px,rgba(0,0,0,.04) 4px);
+  pointer-events:none;z-index:4;border-radius:2px;
+}
+
+/* ── SCREEN ────────────────────────────────────────────────────── */
+#screen{
+  width:360px;height:min(480px,calc(100dvh - 200px));min-height:220px;
+  background:var(--screen-bg);border-radius:2px;position:relative;overflow:hidden;
+  box-shadow:0 0 0 1px #0a0d18,inset 0 0 8px rgba(0,0,0,.5);
+  display:flex;flex-direction:column;
+}
+#screen::after{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.04) 3px,rgba(0,0,0,.04) 4px);
+  pointer-events:none;z-index:3;
+}
+
+/* ── DOCK ──────────────────────────────────────────────────────── */
+.dock{display:flex;border-bottom:1px solid #111820;flex-shrink:0;z-index:2;position:relative;background:var(--screen-bg)}
+.dock-btn{
+  flex:1;text-align:center;font-family:'Press Start 2P',monospace;
+  font-size:4px;padding:8px 2px;cursor:pointer;color:var(--text-dim);
+  letter-spacing:.5px;border-right:1px solid #111820;transition:all .1s;
+  -webkit-tap-highlight-color:transparent;
+}
+.dock-btn:last-child{border-right:none}
+.dock-btn.active{color:var(--pale);background:rgba(143,168,255,.06);border-bottom:1px solid var(--pale)}
+.dock-btn:active{color:var(--pale-bright)}
+
+/* ── PANES ─────────────────────────────────────────────────────── */
+.pane{display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0}
+.pane.show{display:flex}
+.pane-scroll{overflow-y:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch}
+.pane-scroll::-webkit-scrollbar{width:2px}
+.pane-scroll::-webkit-scrollbar-thumb{background:var(--pale-dim);border-radius:1px}
+
+/* ── SYNC METER ────────────────────────────────────────────────── */
+.sync-block{padding:10px 10px 4px;border-bottom:1px solid #111820;flex-shrink:0}
+.sync-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.sync-label{font-family:'Press Start 2P',monospace;font-size:4px;color:var(--text-dim);letter-spacing:1px}
+.sync-state{font-family:'Press Start 2P',monospace;font-size:5px;letter-spacing:1px}
+.sync-bar-wrap{height:6px;background:#0a0d18;border:1px solid #1a2040;border-radius:3px;overflow:hidden}
+.sync-bar{height:100%;width:0%;border-radius:3px;transition:width 1.2s cubic-bezier(.4,0,.2,1);box-shadow:0 0 8px currentColor}
+.sync-score{font-family:'Press Start 2P',monospace;font-size:4px;color:var(--text-dim);text-align:right;margin-top:3px;letter-spacing:1px}
+.sync-milestone-banner{
+  font-family:'Press Start 2P',monospace;font-size:4px;text-align:center;
+  padding:4px;letter-spacing:1px;border-radius:2px;margin-top:5px;
+  display:none;animation:mblink .9s step-end infinite;
+}
+@keyframes mblink{50%{opacity:.5}}
+
+/* ── HOME ──────────────────────────────────────────────────────── */
+.signal-tagline{
+  font-family:'Press Start 2P',monospace;font-size:9px;color:var(--pale);
+  text-align:center;padding:12px 8px 3px;letter-spacing:3px;
+  text-shadow:0 0 20px var(--pale-glow);
+}
+.signal-sub{font-size:8px;color:var(--pale-dim);text-align:center;letter-spacing:2px;padding-bottom:10px}
+.home-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:0 8px 10px}
+.home-card{
+  background:rgba(255,255,255,.02);border:1px solid #1a2040;border-radius:6px;
+  padding:11px 9px;cursor:pointer;transition:all .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.home-card:active{background:rgba(143,168,255,.07);border-color:var(--pale-dim)}
+.home-icon{font-size:20px;display:block;margin-bottom:6px}
+.home-name{font-family:'Press Start 2P',monospace;font-size:4px;color:var(--pale-bright);letter-spacing:1px;margin-bottom:5px}
+.home-desc{font-size:13px;color:var(--text-mid);line-height:1.6}
+.home-desc.complete{color:var(--green)}
+
+/* ── DATA TRANSPARENCY ─────────────────────────────────────────── */
+.data-panel{padding:10px;display:flex;flex-direction:column;gap:8px}
+.data-sovereignty{
+  font-family:'Press Start 2P',monospace;font-size:4px;
+  color:var(--signal);letter-spacing:1px;text-align:center;
+  padding:8px;border:1px solid rgba(0,255,170,.2);border-radius:4px;
+  background:rgba(0,255,170,.04);
+}
+.data-row{
+  background:rgba(255,255,255,.02);border:1px solid #1a2040;border-radius:4px;padding:10px;
+}
+.data-key{font-family:'Press Start 2P',monospace;font-size:4px;color:var(--pale-dim);letter-spacing:1px;margin-bottom:5px}
+.data-val{font-size:10px;color:var(--text-mid);line-height:1.6;word-break:break-all}
+.data-val.present{color:var(--green)}
+.data-val.absent{color:var(--text-dim)}
+.data-export-btn{
+  background:rgba(143,168,255,.08);border:1px solid var(--pale-dim);color:var(--pale);
+  font-family:'Share Tech Mono',monospace;font-size:9px;padding:7px 12px;
+  border-radius:8px;cursor:pointer;letter-spacing:1px;width:100%;margin-top:4px;
+}
+.data-export-btn:active{background:rgba(143,168,255,.18)}
+
+/* ── QUESTS — retro CRT terminal style ─────────────────────────── */
+.quest-section{padding:6px 10px}
+.quest-section-label{
+  font-family:'Press Start 2P',monospace;font-size:5px;color:var(--pale);
+  letter-spacing:3px;padding:8px 0;margin-bottom:6px;
+  border-top:1px solid #1a2540;border-bottom:1px solid #1a2540;
+  text-align:center;
+  background:linear-gradient(90deg,transparent,rgba(143,168,255,0.05),transparent);
+}
+/* CRT scanline on quest pane */
+#pane-quest::before{
+  content:'';position:sticky;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--pale-dim),transparent);
+  opacity:0.3;display:block;
+}
+.quest-item{
+  padding:6px 0 8px;border-bottom:1px solid #0a0e18;
+  display:flex;gap:8px;align-items:flex-start;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  position:relative;
+}
+.quest-item::before{
+  content:'';position:absolute;left:-10px;right:-10px;top:0;bottom:0;
+  background:transparent;transition:background 0.1s;pointer-events:none;
+}
+.quest-item:active::before{background:rgba(143,168,255,0.04)}
+.quest-item.done .q-title{opacity:0.45}
+.quest-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:6px}
+.quest-dot.critical{background:#ff4444;box-shadow:0 0 6px #ff4444}
+.quest-dot.high{background:var(--gold);box-shadow:0 0 5px var(--gold)}
+.quest-dot.medium{background:var(--pale-dim)}
+.quest-dot.horizon{background:var(--shrine);box-shadow:0 0 5px var(--shrine)}
+.quest-dot.complete{background:var(--green);box-shadow:0 0 5px var(--green)}
+.quest-dot.earmark{background:#2a3a5a;border:1px solid #3a4a6a}
+.q-body{flex:1;min-width:0}
+.q-id{font-family:'Press Start 2P',monospace;font-size:4px;color:var(--text-dim);letter-spacing:1px;margin-bottom:3px}
+.q-giver{color:var(--shrine)}
+.q-title{font-size:13px;font-weight:600;color:var(--pale-bright);margin-bottom:3px;line-height:1.5;letter-spacing:0.3px}
+.q-desc{font-size:12px;color:var(--text-mid);line-height:1.7;display:none}
+.q-desc.show{display:block}
+/* Progress bar — the key new element */
+.q-progress-wrap{
+  margin-top:5px;height:4px;background:#0a0e18;border:1px solid #1a2040;
+  border-radius:1px;overflow:hidden;position:relative;
+}
+.q-progress-fill{
+  height:100%;background:var(--pale);
+  transition:width 0.4s ease;
+  box-shadow:0 0 6px var(--pale);
+}
+.q-progress-fill.complete{background:var(--green);box-shadow:0 0 6px var(--green)}
+.q-progress-label{
+  font-family:'Press Start 2P',monospace;font-size:4px;
+  color:var(--pale-dim);letter-spacing:1px;margin-top:3px;
+}
+/* Milestone list */
+.q-milestones{display:none;flex-direction:column;gap:3px;margin-top:6px}
+.q-milestones.show{display:flex}
+.q-milestone{
+  display:flex;align-items:center;gap:7px;
+  font-size:11px;color:var(--text-mid);padding:3px 0;
+  border-bottom:1px solid #080c14;cursor:pointer;
+}
+.q-milestone.done-m{color:var(--text-dim)}
+.q-milestone-dot{
+  width:8px;height:8px;border:1px solid var(--pale-dim);
+  border-radius:1px;flex-shrink:0;transition:all 0.15s;
+}
+.q-milestone.done-m .q-milestone-dot{
+  background:var(--green);border-color:var(--green);
+}
+.q-milestone-text{flex:1;line-height:1.5}
+.q-milestone.done-m .q-milestone-text{text-decoration:line-through;opacity:0.5}
+.q-status{font-family:'Press Start 2P',monospace;font-size:4px;letter-spacing:1px;flex-shrink:0;padding-top:5px}
+.q-status.active{color:var(--pale-dim)}
+.q-status.critical{color:#ff4444}
+.q-status.complete{color:var(--green)}
+.q-status.locked{color:#2a3050}
+.q-status.horizon{color:var(--shrine)}
+.q-status.earmark{color:#3a4a6a}
+.q-note-form{display:none;flex-direction:column;gap:6px;margin-top:7px}
+.q-note-form.open{display:flex}
+.q-note{
+  width:100%;background:#060810;border:1px solid #1a2040;
+  color:var(--text);font-family:'Share Tech Mono',monospace;
+  font-size:14px;padding:7px;border-radius:2px;resize:none;height:60px;
+  line-height:1.7;
+}
+.q-note:focus{outline:none;border-color:var(--pale-dim)}
+.q-btn-row{display:flex;gap:6px;flex-wrap:wrap}
+.q-btn{
+  background:rgba(255,255,255,.03);border:1px solid #1a2040;
+  color:var(--text-mid);font-family:'Share Tech Mono',monospace;
+  font-size:11px;padding:5px 9px;border-radius:2px;cursor:pointer;letter-spacing:1px;
+}
+.q-btn:active{background:rgba(143,168,255,.1);color:var(--pale)}
+.done-btn:hover{border-color:var(--green);color:var(--green)}
+.undo-btn:hover{border-color:var(--red);color:var(--red)}
+.q-saved-note{font-size:12px;color:var(--text-mid);margin-top:4px;padding:5px 7px;border-left:2px solid var(--pale-dim);line-height:1.6}
+.q-add-milestone-row{display:flex;gap:5px;margin-top:5px}
+.q-milestone-input{
+  flex:1;background:#060810;border:1px solid #1a2040;color:var(--text);
+  font-family:'Share Tech Mono',monospace;font-size:12px;padding:5px 7px;
+  border-radius:2px;
+}
+.q-milestone-input:focus{outline:none;border-color:var(--pale-dim)}
+
+/* ── GOALS ──────────────────────────────────────────────────────── */
+.goals-wrap{padding:10px}
+.goals-header{display:flex;align-items:center;justify-content:space-between;
+  padding-bottom:10px;border-bottom:1px solid #111820;margin-bottom:10px}
+.goals-title{font-family:'Press Start 2P',monospace;font-size:5px;
+  color:var(--pale);letter-spacing:2px}
+.goals-add-btn{background:rgba(143,168,255,.08);border:1px solid var(--pale-dim);
+  color:var(--pale);font-family:'Share Tech Mono',monospace;
+  font-size:11px;padding:5px 10px;border-radius:2px;cursor:pointer;letter-spacing:1px}
+.goals-add-form{display:flex;flex-direction:column;gap:7px;
+  background:#060810;border:1px solid #1a2040;border-radius:3px;
+  padding:10px;margin-bottom:12px}
+.goals-input{width:100%;background:#04060c;border:1px solid #1a2040;
+  color:var(--text);font-family:'Share Tech Mono',monospace;
+  font-size:13px;padding:7px;border-radius:2px}
+.goals-input:focus{outline:none;border-color:var(--pale-dim)}
+.goals-textarea{width:100%;background:#04060c;border:1px solid #1a2040;
+  color:var(--text-mid);font-family:'Share Tech Mono',monospace;
+  font-size:12px;padding:7px;border-radius:2px;resize:none;height:54px;line-height:1.6}
+.goals-textarea:focus{outline:none;border-color:var(--pale-dim)}
+.goals-form-row{display:flex;gap:7px;align-items:center}
+.goals-save-btn{background:rgba(143,168,255,.12);border:1px solid var(--pale-dim);
+  color:var(--pale);font-family:'Share Tech Mono',monospace;
+  font-size:11px;padding:7px 12px;border-radius:2px;cursor:pointer;white-space:nowrap}
+/* Goal card */
+.goal-card{background:rgba(255,255,255,.015);border:1px solid #111820;
+  border-radius:3px;padding:10px;margin-bottom:10px;
+  border-left:3px solid var(--pale-dim)}
+.goal-card.complete{border-left-color:var(--green)}
+.goal-card-title{font-size:14px;color:var(--pale-bright);font-weight:600;
+  margin-bottom:4px;line-height:1.4}
+.goal-card-why{font-size:12px;color:var(--text-dim);line-height:1.6;
+  margin-bottom:8px;font-style:italic}
+.goal-bar-wrap{height:5px;background:#0a0e18;border:1px solid #1a2040;
+  border-radius:1px;overflow:hidden;margin-bottom:4px}
+.goal-bar-fill{height:100%;background:var(--pale);transition:width 0.4s ease;
+  box-shadow:0 0 6px var(--pale)}
+.goal-bar-fill.complete{background:var(--green);box-shadow:0 0 6px var(--green)}
+.goal-pct{font-family:'Press Start 2P',monospace;font-size:4px;
+  color:var(--pale-dim);letter-spacing:1px;margin-bottom:8px}
+.goal-milestones{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
+.goal-milestone{display:flex;align-items:center;gap:8px;
+  font-size:12px;color:var(--text-mid);padding:3px 0;
+  border-bottom:1px solid #060a12;cursor:pointer}
+.goal-milestone.done-gm{color:var(--text-dim)}
+.goal-milestone-dot{width:9px;height:9px;border:1px solid var(--pale-dim);
+  border-radius:1px;flex-shrink:0;transition:all 0.15s}
+.goal-milestone.done-gm .goal-milestone-dot{
+  background:var(--green);border-color:var(--green)}
+.goal-milestone.done-gm span{text-decoration:line-through;opacity:0.5}
+.goal-add-step-row{display:flex;gap:5px;margin-top:5px}
+.goal-date{font-family:'Press Start 2P',monospace;font-size:4px;
+  color:var(--text-dim);letter-spacing:1px;margin-bottom:6px}
+.goal-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.goal-action-btn{background:rgba(255,255,255,.03);border:1px solid #1a2040;
+  color:var(--text-dim);font-family:'Share Tech Mono',monospace;
+  font-size:11px;padding:4px 8px;border-radius:2px;cursor:pointer}
+.goal-action-btn:active{background:rgba(143,168,255,.1);color:var(--pale)}
+
+/* ── SAEL ──────────────────────────────────────────────────────── */
+.sael-status{font-family:'Press Start 2P',monospace;font-size:4px;color:var(--pale-dim);letter-spacing:1px;padding:8px 10px;border-bottom:1px solid #111820;flex-shrink:0}
+.sael-cfg{padding:5px 10px;display:flex;gap:6px;border-bottom:1px solid #111820;flex-shrink:0}
+.cfg-btn{background:rgba(255,255,255,.04);border:1px solid #1a2040;color:var(--text-mid);font-family:'Share Tech Mono',monospace;font-size:12px;padding:5px 9px;border-radius:10px;cursor:pointer;letter-spacing:1px}
+.cfg-btn:active{background:rgba(143,168,255,.1);color:var(--pale)}
+.chat-log{flex:1;min-height:0;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:9px;-webkit-overflow-scrolling:touch}
+.chat-log::-webkit-scrollbar{width:2px}
+.chat-log::-webkit-scrollbar-thumb{background:var(--pale-dim)}
+.chat-bubble{font-size:16px;line-height:1.75;max-width:92%;padding:9px 11px;border-radius:6px;word-break:break-word}
+.chat-bubble.user{background:rgba(143,168,255,.1);border:1px solid var(--pale-dim);align-self:flex-end;color:var(--pale-bright)}
+.chat-bubble.sael{background:rgba(0,255,170,.05);border:1px solid rgba(0,255,170,.2);align-self:flex-start;color:var(--text)}
+.chat-bubble.thinking{opacity:0.75;font-style:italic}
+@keyframes blink-cursor{0%,100%{opacity:1}50%{opacity:0}}
+.sael-mark{font-family:'Press Start 2P',monospace;font-size:4px;color:var(--signal);letter-spacing:1px;display:block;margin-bottom:5px}
+.chat-input-row{display:flex;gap:6px;padding:8px 10px;border-top:1px solid #111820;flex-shrink:0}
+.chat-input{flex:1;background:#090c14;border:1px solid #1a2040;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:16px;padding:8px 10px;border-radius:10px}
+.chat-input:focus{outline:none;border-color:var(--pale-dim)}
+.chat-send{background:rgba(143,168,255,.1);border:1px solid var(--pale-dim);color:var(--pale);font-family:'Share Tech Mono',monospace;font-size:13px;padding:8px 10px;border-radius:10px;cursor:pointer;letter-spacing:1px}
+.chat-send:active{background:rgba(143,168,255,.2)}
+.chat-send:disabled{opacity:.4;cursor:default}
+
+/* ── VOICE ─────────────────────────────────────────────────────── */
+.voice-btn{background:rgba(0,255,170,.06);border:1px solid rgba(0,255,170,.25);color:var(--signal);font-family:'Share Tech Mono',monospace;font-size:13px;padding:7px 10px;border-radius:10px;cursor:pointer;letter-spacing:1px;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.voice-btn:active{background:rgba(0,255,170,.18)}
+.voice-btn.listening{background:rgba(0,255,170,.2);border-color:var(--signal);animation:vpulse 1s ease-in-out infinite}
+@keyframes vpulse{0%,100%{box-shadow:0 0 0 0 rgba(0,255,170,.4)}50%{box-shadow:0 0 0 6px rgba(0,255,170,0)}}
+.voice-status{font-size:12px;color:var(--text-mid);letter-spacing:.5px;padding:0 10px 4px}
+
+/* ── MODEL PANEL ───────────────────────────────────────────────── */
+.model-opt{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.model-opt-inner{display:flex;justify-content:space-between;align-items:center;padding:7px 9px;border:1px solid #1a2040;border-radius:6px;background:rgba(255,255,255,.02);transition:border-color .15s}
+.model-opt input:checked + .model-opt-inner{border-color:var(--pale-dim);background:rgba(143,168,255,.07)}
+.model-opt:active .model-opt-inner{background:rgba(143,168,255,.1)}
+.model-opt-name{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--pale-bright)}
+.model-opt-meta{font-family:'Press Start 2P',monospace;font-size:5px;color:var(--text-dim);letter-spacing:1px;text-align:right}
+.model-opt-inner.loaded{border-color:var(--green)}
+.model-opt-inner.loaded .model-opt-meta{color:var(--green)}
+
+/* ── COOKBOOK ──────────────────────────────────────────────────── */
+.recipe-list{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.recipe-list::-webkit-scrollbar{width:2px}
+.recipe-list::-webkit-scrollbar-thumb{background:var(--pale-dim)}
+.calc-wrap{overflow-y:auto;-webkit-overflow-scrolling:touch;height:100%;max-height:100%}
+.recipe-card{border-bottom:1px solid #0d1020}
+.recipe-header{display:flex;align-items:center;gap:8px;padding:11px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.recipe-header:active{background:rgba(143,168,255,.04)}
+.recipe-icon{font-size:17px;flex-shrink:0}
+.recipe-name{flex:1;font-size:14px;color:var(--pale-bright)}
+.recipe-tag{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--gold);letter-spacing:1px;background:rgba(240,192,64,.1);padding:2px 6px;border-radius:10px}
+.recipe-body{display:none;padding:0 11px 14px}
+.recipe-body.open{display:block}
+.recipe-section{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--pale-dim);letter-spacing:1px;margin:10px 0 5px;padding-bottom:3px;border-bottom:1px solid #0d1020}
+.recipe-meta{font-size:12px;color:var(--text-mid);letter-spacing:1px;margin-bottom:6px;padding:5px 0;border-bottom:1px solid #0d1020}
+.recipe-text{font-size:15px;color:var(--text-mid);white-space:pre-wrap;line-height:1.9}
+.recipe-ingr{font-size:15px;color:var(--text);white-space:pre-wrap;line-height:1.9;margin-bottom:4px}
+.recipe-steps{font-size:15px;color:var(--text-mid);white-space:pre-wrap;line-height:2.0}
+.recipe-note{font-size:13px;color:var(--pale-dim);white-space:pre-wrap;line-height:1.8;margin-top:8px;padding:6px 8px;border-left:2px solid var(--pale-dim)}
+.recipe-edit{display:none;width:100%;background:#090c14;border:1px solid #1a2040;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:16px;padding:8px;border-radius:4px;resize:none;line-height:1.8;box-sizing:border-box}
+.recipe-edit.open{display:block;height:220px}
+.recipe-edit:focus{outline:none;border-color:var(--pale-dim)}
+.recipe-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.r-btn{background:rgba(255,255,255,.04);border:1px solid #1a2040;color:var(--text-mid);font-family:'Share Tech Mono',monospace;font-size:12px;padding:5px 9px;border-radius:10px;cursor:pointer;letter-spacing:1px}
+.r-btn:active{background:rgba(143,168,255,.08)}
+.r-btn.edit-active{border-color:var(--pale-dim);color:var(--pale)}
+.new-recipe-bar{padding:10px;border-top:1px solid #111820;flex-shrink:0}
+.new-recipe-row{display:flex;gap:6px;margin-bottom:6px}
+.new-recipe-input{flex:1;background:#090c14;border:1px solid #1a2040;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:16px;padding:7px 10px;border-radius:10px}
+.new-recipe-input:focus{outline:none;border-color:var(--pale-dim)}
+.new-recipe-hint{font-size:13px;color:var(--text-mid);line-height:1.7;padding:0 2px 4px}
+.new-btn{background:rgba(143,168,255,.1);border:1px solid var(--pale-dim);color:var(--pale);font-family:'Share Tech Mono',monospace;font-size:13px;padding:7px 12px;border-radius:10px;cursor:pointer;letter-spacing:1px}
+
+/* ── CARE ──────────────────────────────────────────────────────── */
+.care-tabs{display:flex;gap:2px;padding:8px 10px 0;border-bottom:1px solid #111820;flex-shrink:0;background:var(--screen-bg)}
+.care-tab{font-family:'Press Start 2P',monospace;font-size:4px;padding:6px 10px;border-radius:6px 6px 0 0;cursor:pointer;letter-spacing:1px;color:var(--text-dim);background:transparent;border:none;-webkit-tap-highlight-color:transparent;transition:all .1s}
+.care-tab.active{color:var(--pale);background:rgba(143,168,255,.08);border-bottom:1px solid var(--pale)}
+.care-section{display:none;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.care-section.show{display:block}
+.care-section::-webkit-scrollbar{width:2px}
+.care-section::-webkit-scrollbar-thumb{background:var(--pale-dim)}
+.finch-date{font-family:'Press Start 2P',monospace;font-size:4px;color:var(--pale-dim);letter-spacing:1px;padding:10px 10px 4px;text-align:center}
+.finch-streak{font-family:'Press Start 2P',monospace;font-size:5px;color:var(--shrine);letter-spacing:1px;text-align:center;padding-bottom:8px}
+.finch-grid{padding:0 10px}
+.finch-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #0d1020}
+.finch-label{font-family:'Press Start 2P',monospace;font-size:4px;color:var(--text-mid);letter-spacing:1px;width:60px;flex-shrink:0}
+.finch-stars{display:flex;gap:5px;flex-wrap:wrap}
+.finch-star{font-size:15px;cursor:pointer;opacity:.3;transition:all .1s;-webkit-tap-highlight-color:transparent}
+.finch-star.on{opacity:1;text-shadow:0 0 8px currentColor}
+.finch-check{width:24px;height:24px;border:1px solid #1a2040;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:var(--green);transition:all .1s;-webkit-tap-highlight-color:transparent}
+.finch-check.on{background:rgba(68,204,102,.1);border-color:var(--green)}
+.finch-note{flex:1;background:#090c14;border:1px solid #1a2040;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:16px;padding:6px 8px;border-radius:4px}
+.finch-note:focus{outline:none;border-color:var(--pale-dim)}
+.finch-save-row{padding:10px;display:flex;justify-content:center}
+.finch-save{background:rgba(0,255,170,.08);border:1px solid rgba(0,255,170,.3);color:var(--signal);font-family:'Share Tech Mono',monospace;font-size:13px;padding:9px 22px;border-radius:10px;cursor:pointer;letter-spacing:1px}
+.finch-save:active{background:rgba(0,255,170,.15)}
+.finch-history{padding:0 10px 10px}
+.finch-hist-label{font-family:'Press Start 2P',monospace;font-size:4px;color:var(--text-dim);letter-spacing:1px;padding:8px 0 6px;border-top:1px solid #111820}
+.finch-entry{font-size:13px;color:var(--text-mid);line-height:1.9;padding:5px 0;border-bottom:1px solid #0a0e18;white-space:pre-line}
+.finch-entry-date{font-family:'Press Start 2P',monospace;font-size:4px;color:var(--pale-dim);letter-spacing:1px;margin-bottom:3px}
+
+/* ── JOURNAL — digital papyrus ─────────────────────────────────── */
+/* Texture = aged warmth via layered gradients, not font change.     */
+/* Ink-on-surface feel: slightly warm background, ink-dark text.     */
+.journal-datestamp{
+  font-family:'Press Start 2P',monospace;font-size:5px;
+  color:#5a5040;letter-spacing:2px;
+  margin-bottom:10px;padding-bottom:8px;
+  border-bottom:1px solid rgba(180,160,80,0.12);
+  text-align:right;
+}
+.journal-wrap{padding:12px 10px}
+.journal-surface{
+  /* Papyrus texture: warm aged parchment via gradient layers */
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 27px,
+      rgba(180,160,100,0.04) 28px
+    ),
+    linear-gradient(135deg,#0e0c08 0%,#0c0a07 40%,#0e0d09 100%);
+  border:1px solid #2a2418;
+  border-radius:3px;
+  padding:12px;
+  position:relative;
+  /* Inner glow simulates page illumination */
+  box-shadow:inset 0 0 30px rgba(200,170,80,0.04), inset 0 0 60px rgba(0,0,0,0.3);
+}
+.journal-surface::before{
+  /* Left margin line — classic papyrus/ledger detail */
+  content:'';position:absolute;left:28px;top:0;bottom:0;
+  width:1px;background:rgba(180,100,100,0.12);pointer-events:none;
+}
+.journal-prompt{
+  font-size:12px;color:#6a7a5a;letter-spacing:.3px;
+  margin-bottom:12px;line-height:2.0;
+  padding-left:18px;
+  font-style:italic;opacity:0.8;
+}
+.journal-input{
+  width:100%;
+  /* Ink on papyrus: warm near-black, not cold screen-black */
+  background:transparent;
+  border:none;
+  color:#c8c4a8; /* warm parchment text */
+  font-family:'Share Tech Mono',monospace;
+  font-size:15px;padding:0 0 0 18px;
+  border-radius:0;resize:none;
+  min-height:140px;line-height:2.0;
+  /* Subtle text shadow mimics ink depth */
+  text-shadow: 0 0 1px rgba(200,190,140,0.2);
+}
+.journal-input:focus{outline:none;color:#e0dcc0}
+.journal-input::placeholder{color:#3a3a2a;font-style:italic}
+.journal-meta-row{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:8px;padding-top:6px;border-top:1px solid #2a2418;
+}
+.journal-word-count{font-size:10px;color:#4a4a38;letter-spacing:1px}
+.journal-save{
+  background:rgba(180,160,80,0.10);border:1px solid #3a3218;
+  color:#a09060;font-family:'Share Tech Mono',monospace;
+  font-size:11px;padding:6px 14px;border-radius:2px;cursor:pointer;letter-spacing:1px;
+}
+.journal-save:active{background:rgba(180,160,80,0.20);color:#c8b070}
+/* Journal history */
+.journal-hist-label{
+  font-family:'Press Start 2P',monospace;font-size:4px;
+  color:#3a3a28;letter-spacing:2px;
+  margin-top:16px;margin-bottom:10px;padding-top:12px;
+  border-top:1px solid #1a1810;
+}
+.journal-entry{
+  /* Each entry is its own papyrus fragment */
+  background:linear-gradient(135deg,#0c0a07,#0e0c08);
+  border:1px solid #1e1c14;border-radius:2px;
+  padding:10px 12px 10px 30px;margin-bottom:10px;
+  position:relative;
+  box-shadow:0 1px 4px rgba(0,0,0,0.4);
+}
+.journal-entry::before{
+  content:'';position:absolute;left:20px;top:0;bottom:0;
+  width:1px;background:rgba(180,100,100,0.10);
+}
+.journal-entry-date{
+  font-family:'Press Start 2P',monospace;font-size:4px;
+  color:#5a5040;letter-spacing:1px;margin-bottom:7px;
+}
+.journal-entry-text{
+  font-size:14px;color:#b0aa8c;line-height:1.9;
+  white-space:pre-wrap;word-break:break-word;
+  text-shadow:0 0 1px rgba(180,170,120,0.15);
+}
+
+/* ── CONTROLS + SHELL HARDWARE ─────────────────────────────────── */
+.shell-controls{width:min(440px,100vw);display:flex;align-items:center;justify-content:space-between;padding:0 4px}
+.sys-btns{display:flex;gap:8px}
+.sys-btn{background:#0e1118;border:1px solid #252a3e;color:var(--text-mid);font-family:'Share Tech Mono',monospace;font-size:8px;padding:6px 12px;border-radius:10px;cursor:pointer;letter-spacing:1px;-webkit-tap-highlight-color:transparent;transition:all .1s}
+.sys-btn:active{background:#1a2030;color:var(--pale);border-color:var(--pale-dim)}
+.sael-wordmark{font-family:'Press Start 2P',monospace;font-size:4px;color:var(--pale-dim);letter-spacing:2px}
+.ab-group{position:relative;width:76px;height:76px;flex-shrink:0}
+.action-btn{position:absolute;border:none;border-radius:50%;cursor:pointer;font-family:'Press Start 2P',monospace;font-size:9px;color:#fff;font-weight:bold;width:34px;height:34px;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:none;transition:transform .06s}
+.action-btn:active{transform:scale(.9)}
+#btn-a{right:0;top:6px;background:radial-gradient(circle at 40% 35%,#f05a7a 0%,var(--btn-a) 60%);box-shadow:0 4px 0 #8b1a2f,0 0 14px rgba(232,75,106,.35)}
+#btn-b{left:0;bottom:6px;background:radial-gradient(circle at 40% 35%,#5aa0f0 0%,var(--btn-b) 60%);box-shadow:0 4px 0 #1a4a8b,0 0 14px rgba(75,142,232,.35)}
+.dpad{position:relative;width:76px;height:76px;flex-shrink:0}
+.dpad-arm{position:absolute;background:#111520;border-radius:3px}
+.dpad-h{width:76px;height:26px;top:25px;left:0}
+.dpad-v{width:26px;height:76px;left:25px;top:0}
+.dpad-center{position:absolute;width:26px;height:26px;background:#0e1018;top:25px;left:25px;z-index:1}
+.shell-bottom{width:min(440px,100vw);height:28px;background:linear-gradient(0deg,var(--shell-mid) 0%,var(--shell) 100%);border-radius:0 0 22px 22px;border:2px solid var(--shell-edge);border-top:none;display:flex;align-items:center;justify-content:center;gap:5px;padding-bottom:4px}
+.spk{width:4px;height:4px;border-radius:50%;background:var(--shell-light)}
+.notice{font-family:'Press Start 2P',monospace;font-size:4px;color:var(--gold);text-align:center;padding:4px;letter-spacing:1px;animation:blink 1.2s step-end infinite}
+</style>
+</head>
+<body>
+
+<!-- BOOT -->
+<div id="boot">
+  <div class="b-sigil">◈</div>
+  <div class="b-title">PALE SIGNAL</div>
+  <div class="b-sub">SCAN · BUILD · SEIZE THE PALE</div>
+  <div class="b-bar-wrap"><div class="b-bar" id="bbar"></div></div>
+  <div class="b-log" id="blog">INITIALIZING...</div>
+  <div class="b-return" id="breturn"></div>
+  <div class="b-press" id="bpress">TAP TO ENTER</div>
+</div>
+
+<!-- SHELL -->
+<!-- Update notification banner -->
+<div id="update-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#0e1a2a;border-top:1px solid var(--pale-dim);padding:10px 14px;display:none;align-items:center;gap:10px;font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--pale)">
+  <span style="flex:1">◈ UPDATE READY — new version of Pale Signal installed</span>
+  <button onclick="applyUpdate()" style="background:rgba(143,168,255,.15);border:1px solid var(--pale-dim);color:var(--pale);font-family:'Share Tech Mono',monospace;font-size:12px;padding:5px 10px;border-radius:8px;cursor:pointer;white-space:nowrap">RELOAD ▶</button>
+  <button onclick="document.getElementById('update-banner').style.display='none'" style="background:none;border:none;color:var(--text-dim);font-size:16px;cursor:pointer;padding:2px 6px">✕</button>
+</div>
+<div id="shell">
+  <div class="shell-top">
+    <div class="shell-label">PALE SIGNAL · HUB v2.0 · SK v7.11</div>
+    <div class="power-led"></div>
+  </div>
+  <div class="shell-body">
+    <div class="bezel">
+      <div id="screen">
+
+        <!-- DOCK -->
+        <div class="dock">
+          <div class="dock-btn active" id="nav-home"  onclick="nav('home')">◈ HOME</div>
+          <div class="dock-btn"        id="nav-quest" onclick="nav('quest')">⊡ QUESTS</div>
+          <div class="dock-btn"        id="nav-sael"  onclick="nav('sael')">◎ SAEL</div>
+          <div class="dock-btn"        id="nav-cook"  onclick="nav('cook')">⊛ COOK</div>
+          <div class="dock-btn"        id="nav-care"  onclick="nav('care')">♡ CARE</div>
+        </div>
+
+        <!-- HOME PANE -->
+        <div class="pane show" id="pane-home">
+          <!-- SYNC METER -->
+          <div class="sync-block" id="sync-block">
+            <div class="sync-header">
+              <div class="sync-label">SYNCHRONICITY</div>
+              <div class="sync-state" id="sync-state-label">—</div>
+            </div>
+            <div class="sync-bar-wrap">
+              <div class="sync-bar" id="sync-bar" style="background:var(--pale-dim)"></div>
+            </div>
+            <div class="sync-score" id="sync-score-text">0 / 100</div>
+            <div class="sync-milestone-banner" id="sync-milestone-banner"></div>
+          </div>
+          <div class="pane-scroll">
+            <div class="signal-tagline">◈ PALE SIGNAL</div>
+            <div class="signal-sub">SCAN · BUILD · SEIZE THE PALE</div>
+            <div class="home-grid">
+              <div class="home-card" onclick="launchRPG()">
+                <span class="home-icon">⚔</span>
+                <div class="home-name">PALE SIGNAL RPG</div>
+                <div class="home-desc">v3.11 · Engram system live. Radiant NPCs. Richer character art.</div>
+              </div>
+              <div class="home-card" onclick="launchTCG()">
+                <span class="home-icon">◰</span>
+                <div class="home-name">PALE SIGNAL TCG</div>
+                <div class="home-desc">v1.1 · Scan. Build your deck from the world around you.</div>
+              </div>
+              <div class="home-card" onclick="launchArt()">
+                <span class="home-icon">🎨</span>
+                <div class="home-name">PIXEL ENGINE</div>
+                <div class="home-desc complete">v1.2 · P1–P6 complete. Circle, arc, dither fill, shadow ellipse, foliage brush, Signal world palette. VP ruler overlay. Hub nav.</div>
+              </div>
+              <div class="home-card" onclick="launchChem()">
+                <span class="home-icon">⚗</span>
+                <div class="home-name">ELEMENTS</div>
+                <div class="home-desc">118 elements. Periodic table, bonding. Offline.</div>
+              </div>
+              <div class="home-card" onclick="nav('sael')">
+                <span class="home-icon">◎</span>
+                <div class="home-name">SAEL</div>
+                <div class="home-desc">Signal present. Scales to your hardware.</div>
+              </div>
+              <div class="home-card" onclick="nav('cook')">
+                <span class="home-icon">🍲</span>
+                <div class="home-name">COOKBOOK</div>
+                <div class="home-desc">Recipes. Stew, lava cakes, two French classics.</div>
+              </div>
+              <div class="home-card" onclick="nav('care')">
+                <span class="home-icon">♡</span>
+                <div class="home-name">CARE + JOURNAL</div>
+                <div class="home-desc">Daily check-in. Streak. Write it down.</div>
+              </div>
+              <div class="home-card" onclick="nav('care');switchCareTab('data')">
+                <span class="home-icon">🗄</span>
+                <div class="home-name">YOUR DATA</div>
+                <div class="home-desc">All local. Nothing uploaded. View + export.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUEST PANE -->
+        <div class="pane" id="pane-quest">
+          <div class="pane-scroll" id="quest-scroll"></div>
+        </div>
+
+        <!-- SAEL PANE -->
+        <div class="pane" id="pane-sael">
+          <div class="sael-status" id="sael-status">◎ INERT · SAEL PRESENT · AI OFFLINE</div>
+          <div id="webllm-progress" style="display:none;padding:6px 10px;border-bottom:1px solid #1a2040">
+            <div style="font-size:7px;color:var(--pale-dim);letter-spacing:1px" id="webllm-prog-text">INITIALISING...</div>
+            <div style="width:100%;height:2px;background:#111;margin-top:4px"><div id="webllm-prog-bar" style="height:100%;width:0%;background:var(--pale);transition:width .3s"></div></div>
+          </div>
+          <div class="sael-cfg" id="sael-cfg-bar">
+            <button class="cfg-btn" onclick="saelClear()">CLEAR</button>
+            <button class="cfg-btn" id="model-btn" onclick="toggleModelPanel()">◈ MODEL</button>
+            <span id="tier-badge" style="margin-left:auto;font-family:'Press Start 2P',monospace;font-size:5px;color:var(--pale-dim);letter-spacing:1px;padding:4px 6px;border:1px solid #1a2040;border-radius:8px">INERT</span>
+          </div>
+          <!-- Model loader panel — collapsed by default -->
+          <div id="model-panel" style="display:none;flex-direction:column;gap:0;border-bottom:1px solid #1a2040;background:#090c14">
+            <div style="padding:8px 10px 4px;font-family:'Press Start 2P',monospace;font-size:5px;color:var(--pale-dim);letter-spacing:2px">ON-DEVICE MODEL</div>
+            <div style="padding:4px 10px 8px;display:flex;flex-direction:column;gap:6px">
+              <!-- Model options — wllama GGUF models, CPU/WASM, work everywhere -->
+              <div style="display:flex;flex-direction:column;gap:4px" id="model-options">
+                <label class="model-opt" data-model="llama-1b">
+                  <input type="radio" name="model-pick" value="llama-1b" checked style="display:none">
+                  <div class="model-opt-inner" id="mopt-llama1b">
+                    <span class="model-opt-name">Llama 3.2 · 1B</span>
+                    <span class="model-opt-meta" id="meta-llama-1b">~700 MB · RECOMMENDED · ALL DEVICES</span>
+                  </div>
+                </label>
+                <label class="model-opt" data-model="qwen-1.5b">
+                  <input type="radio" name="model-pick" value="qwen-1.5b" style="display:none">
+                  <div class="model-opt-inner" id="mopt-qwen15b">
+                    <span class="model-opt-name">Qwen 2.5 · 1.5B</span>
+                    <span class="model-opt-meta" id="meta-qwen-1.5b">~1.0 GB · RICHER DIALOG</span>
+                  </div>
+                </label>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:2px">
+                <button class="cfg-btn" id="load-model-btn" onclick="userLoadModel()" style="flex:1;background:rgba(143,168,255,.08);border-color:var(--pale-dim);color:var(--pale)">LOAD MODEL</button>
+                <button class="cfg-btn" id="clear-model-btn" onclick="clearModelCache()" style="color:#cc6060">CLEAR CACHE</button>
+              </div>
+              <!-- Ollama section -->
+              <div style="border-top:1px solid #1a2040;margin-top:4px;padding-top:8px">
+                <div style="font-family:'Press Start 2P',monospace;font-size:5px;color:var(--pale-dim);letter-spacing:2px;margin-bottom:6px">LOCAL OLLAMA</div>
+                <div style="display:flex;gap:6px">
+                  <input id="ollama-url" class="chat-input" style="font-size:12px;padding:6px 8px;flex:1" placeholder="http://localhost:11434" value="">
+                  <button class="cfg-btn" onclick="testOllama()" style="white-space:nowrap">TEST</button>
+                </div>
+                <div id="ollama-status-line" style="font-size:11px;color:var(--text-dim);margin-top:5px;padding-left:2px"></div>
+              </div>
+            </div>
+          </div>
+          <div class="chat-log" id="chat-log">
+            <div class="chat-bubble sael">
+              <span class="sael-mark">SAEL</span>
+              I'm here. Running on what the device can do right now. What do you need?
+            </div>
+          </div>
+          <div class="voice-status" id="voice-status"></div>
+          <div class="chat-input-row">
+            <button class="voice-btn" id="voice-btn" onclick="toggleVoice()" title="Voice input">🎤</button>
+            <input class="chat-input" id="chat-in" placeholder="talk to sael..." onkeydown="if(event.key==='Enter')saelSend()">
+            <button class="chat-send" id="chat-send" onclick="saelSend()">SEND</button>
+          </div>
+        </div>
+
+        <!-- COOK PANE -->
+        <div class="pane" id="pane-cook">
+          <div class="care-tabs">
+            <button class="care-tab active" id="ctab-recipes" onclick="switchCookTab('recipes')">RECIPES</button>
+            <button class="care-tab" id="ctab-calc" onclick="switchCookTab('calc')">CALCULATOR</button>
+          </div>
+          <div class="care-section show" id="csec-recipes">
+            <div id="recipe-list" class="recipe-list"></div>
+            <div class="new-recipe-bar">
+              <div class="new-recipe-hint">New recipe: type a name and tap ADD. Then tap EDIT to write it out. Use this format inside:<br>SERVES: 4 · TIME: 45 min<br>INGREDIENTS<br>• 500g chicken thighs<br>METHOD<br>1. Heat oil over medium-high...<br>NOTE: anything worth remembering</div>
+              <div class="new-recipe-row">
+                <input class="new-recipe-input" id="new-recipe-name" placeholder="recipe name...">
+                <button class="new-btn" onclick="addRecipe()">+ ADD</button>
+              </div>
+            </div>
+          </div>
+          <div class="care-section" id="csec-calc">
+            <div class="calc-wrap" id="calc-wrap"></div>
+          </div>
+        </div>
+
+        <!-- CARE PANE -->
+        <div class="pane" id="pane-care">
+          <div class="care-tabs">
+            <button class="care-tab active" id="ctab-checkin" onclick="switchCareTab('checkin')">CHECK-IN</button>
+            <button class="care-tab" id="ctab-journal" onclick="switchCareTab('journal')">JOURNAL</button>
+            <button class="care-tab" id="ctab-goals" onclick="switchCareTab('goals')">GOALS</button>
+            <button class="care-tab" id="ctab-data" onclick="switchCareTab('data')">DATA</button>
+          </div>
+          <!-- CHECK-IN -->
+          <div class="care-section show" id="csec-checkin">
+            <div class="finch-date" id="finch-date"></div>
+            <div class="finch-streak" id="finch-streak"></div>
+            <div class="finch-grid">
+              <div class="finch-row">
+                <div class="finch-label">MOOD</div>
+                <div class="finch-stars" id="mood-stars">
+                  <span class="finch-star" data-group="mood" data-val="1" style="color:#cc4444">♡</span>
+                  <span class="finch-star" data-group="mood" data-val="2" style="color:#e07040">♡</span>
+                  <span class="finch-star" data-group="mood" data-val="3" style="color:#f0c040">♡</span>
+                  <span class="finch-star" data-group="mood" data-val="4" style="color:#80cc44">♡</span>
+                  <span class="finch-star" data-group="mood" data-val="5" style="color:#44cc88">♡</span>
+                </div>
+              </div>
+              <div class="finch-row">
+                <div class="finch-label">WATER</div>
+                <div class="finch-stars" id="water-stars">
+                  <span class="finch-star" data-group="water" data-val="1" style="color:#4888d0">◈</span>
+                  <span class="finch-star" data-group="water" data-val="2" style="color:#4888d0">◈</span>
+                  <span class="finch-star" data-group="water" data-val="3" style="color:#4888d0">◈</span>
+                  <span class="finch-star" data-group="water" data-val="4" style="color:#4888d0">◈</span>
+                  <span class="finch-star" data-group="water" data-val="5" style="color:#4888d0">◈</span>
+                  <span class="finch-star" data-group="water" data-val="6" style="color:#4888d0">◈</span>
+                  <span class="finch-star" data-group="water" data-val="7" style="color:#4888d0">◈</span>
+                  <span class="finch-star" data-group="water" data-val="8" style="color:#4888d0">◈</span>
+                </div>
+              </div>
+              <div class="finch-row">
+                <div class="finch-label">MOVED</div>
+                <div class="finch-check" id="check-moved" onclick="toggleCheck('moved')"></div>
+              </div>
+              <div class="finch-row">
+                <div class="finch-label">RESTED</div>
+                <div class="finch-check" id="check-rested" onclick="toggleCheck('rested')"></div>
+              </div>
+              <div class="finch-row">
+                <div class="finch-label">ATE</div>
+                <div class="finch-check" id="check-ate" onclick="toggleCheck('ate')"></div>
+              </div>
+              <div class="finch-row">
+                <div class="finch-label">ONE THING</div>
+                <input class="finch-note" id="one-thing" placeholder="one thing you did for yourself...">
+              </div>
+            </div>
+            <div class="finch-save-row">
+              <button class="finch-save" onclick="saveFinch()">SAVE TODAY</button>
+            </div>
+            <!-- PEDOMETER STRIP -->
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 0 4px;border-top:1px solid #0d1020;margin-top:8px">
+              <div id="pedo-dot" style="width:7px;height:7px;border-radius:50%;background:var(--text-dim);flex-shrink:0;transition:background 0.3s"></div>
+              <div style="font-family:'Press Start 2P',monospace;font-size:4px;color:var(--text-dim);letter-spacing:1px">STEPS TODAY</div>
+              <div style="font-size:16px;color:var(--pale);font-weight:600;margin-left:auto" id="step-count-val">0</div>
+            </div>
+            <div style="font-size:10px;color:var(--text-dim);padding-bottom:8px;line-height:1.6">
+              Real steps = real signal. Walking charges your Pale Resonance.
+            </div>
+            <div class="finch-history" id="finch-history"></div>
+          </div>
+          <!-- JOURNAL -->
+          <div class="care-section" id="csec-journal">
+            <div class="journal-wrap">
+              <div class="journal-surface">
+                <div class="journal-datestamp" id="journal-datestamp"></div>
+                <div class="journal-prompt" id="journal-prompt"></div>
+                <textarea class="journal-input" id="journal-input"
+                  placeholder="write something..."
+                  oninput="updateWordCount()"></textarea>
+                <div class="journal-meta-row">
+                  <span class="journal-word-count" id="journal-wc">0 WORDS</span>
+                  <button class="journal-save" onclick="saveJournalEntry()">RECORD ENTRY ◈</button>
+                </div>
+              </div>
+              <div class="journal-hist-label">ARCHIVE</div>
+              <div id="journal-history"></div>
+            </div>
+          </div>
+          <!-- GOALS -->
+          <div class="care-section" id="csec-goals">
+            <div class="goals-wrap" id="goals-wrap">
+              <div class="goals-header">
+                <div class="goals-title">◈ REAL-LIFE GOALS</div>
+                <button class="goals-add-btn" onclick="showAddGoal()">+ NEW GOAL</button>
+              </div>
+              <div id="goals-add-form" class="goals-add-form" style="display:none">
+                <input class="goals-input" id="goal-title-input" placeholder="Goal title...">
+                <textarea class="goals-textarea" id="goal-why-input" placeholder="Why this matters..."></textarea>
+                <div class="goals-form-row">
+                  <input class="goals-input" id="goal-date-input" type="date" placeholder="Target date (optional)">
+                  <button class="goals-save-btn" onclick="saveNewGoal()">CREATE GOAL</button>
+                </div>
+              </div>
+              <div id="goals-list"></div>
+            </div>
+          </div>
+
+          <!-- DATA TRANSPARENCY -->
+          <div class="care-section" id="csec-data">
+            <div class="data-panel" id="data-panel">
+              <div class="data-sovereignty">◈ ALL DATA ON THIS DEVICE · NOTHING UPLOADED</div>
+              <!-- rows rendered by JS -->
+            </div>
+          </div>
+        </div>
+
+      </div><!-- #screen -->
+    </div><!-- .bezel -->
+
+    <!-- CONTROLS -->
+    <div class="shell-controls">
+      <div class="dpad">
+        <div class="dpad-arm dpad-h"></div>
+        <div class="dpad-arm dpad-v"></div>
+        <div class="dpad-center"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+        <div class="sys-btns">
+          <button class="sys-btn" onclick="nav('home')">◈ HOME</button>
+        </div>
+        <div class="sael-wordmark">PALE SIGNAL</div>
+      </div>
+      <div class="ab-group">
+        <button class="action-btn" id="btn-a">A</button>
+        <button class="action-btn" id="btn-b">B</button>
+      </div>
+    </div>
+  </div><!-- .shell-body -->
+  <div class="shell-bottom">
+    <div class="spk"></div><div class="spk"></div><div class="spk"></div>
+    <div class="spk"></div><div class="spk"></div><div class="spk"></div>
+  </div>
+</div><!-- #shell -->
+
+<script type="module">
+// ── WLLAMA MODULE LOADER ─────────────────────────────────────────────
+// Tries ./lib/wllama.js first (self-hosted, sovereignty-compliant).
+// Falls back to jsdelivr CDN if the local file is missing.
+// Static import is used — Safari blocks dynamic cross-origin import().
+// The main script reads window.WllamaClass when it needs it.
+try {
+  const { Wllama } = await import('./lib/wllama.js');
+  window.WllamaClass = Wllama;
+  window.wllamaLoaderReady = true;
+  window.wllamaSource = 'local';
+} catch(localErr) {
+  // Local file missing or failed — fall back to CDN
+  try {
+    const { Wllama } = await import('https://cdn.jsdelivr.net/npm/@wllama/wllama/esm/index.js');
+    window.WllamaClass = Wllama;
+    window.wllamaLoaderReady = true;
+    window.wllamaSource = 'cdn';
+  } catch(cdnErr) {
+    window.wllamaLoaderReady = false;
+    window.wllamaLoaderError = cdnErr.message;
+    console.warn('[wllama] both local and CDN failed:', cdnErr.message);
+  }
+}
+</script>
+
+<script>
+'use strict';
+
+// ── STORAGE ───────────────────────────────────────────────────────────
+const LS = {
+  get:(k)=>{try{return JSON.parse(localStorage.getItem('ps-'+k))}catch{return null}},
+  set:(k,v)=>{try{localStorage.setItem('ps-'+k,JSON.stringify(v))}catch{}},
+  keys:()=>{try{return Object.keys(localStorage).filter(k=>k.startsWith('ps-'))}catch{return[]}},
+  bytes:()=>{try{return Object.entries(localStorage).filter(([k])=>k.startsWith('ps-')).reduce((a,[k,v])=>a+k.length+v.length,0)}catch{return 0}},
+};
+
+// ── DATE UTILS ─────────────────────────────────────────────────────────
+function todayKey(){ return new Date().toISOString().slice(0,10); }
+
+// ── SYNCHRONICITY ENGINE — MQ-01 ──────────────────────────────────────
+const SYNC = {
+  MILESTONES:[
+    {threshold:99,label:'THE PALE',     color:'#8fa8ff'},
+    {threshold:75,label:'RESONANT',     color:'#d4a0ff'},
+    {threshold:50,label:'ATTUNED',      color:'#00ffaa'},
+    {threshold:25,label:'SIGNAL',       color:'#f0c040'},
+    {threshold:10,label:'PRESENT',      color:'#c8d8ff'},
+    {threshold:0, label:'DORMANT',      color:'#4a5e99'},
+  ],
+
+  milestone(score){
+    return this.MILESTONES.find(m=>score>=m.threshold) || this.MILESTONES[this.MILESTONES.length-1];
+  },
+
+  compute(){
+    const today = todayKey();
+    const saved = LS.get('sync') || {score:0, lastDate:null};
+    let score   = saved.score || 0;
+    const last  = saved.lastDate;
+
+    // Gentle decay for absent days
+    if(last && last !== today){
+      const msPerDay = 86400000;
+      const absentDays = Math.max(0, Math.floor((new Date(today)-new Date(last))/msPerDay)-1);
+      if(absentDays > 0) score = Math.max(0, score - absentDays * 4);
+    }
+
+    // Today's bonus (computed fresh each open, only applied once per calendar day)
+    const alreadyToday = (last === today);
+    if(!alreadyToday){
+      let bonus = 8; // presence bonus
+      const finch   = (LS.get('finch-history')||{})[today];
+      const journal = (LS.get('journal')||{})[today];
+      if(finch){
+        if(finch.mood>0)  bonus += 3;
+        if(finch.water>0) bonus += 3;
+        if(finch.moved)   bonus += 4;
+        if(finch.rested)  bonus += 3;
+        if(finch.ate)     bonus += 3;
+        if(finch.oneThing)bonus += 4;
+      }
+      if(journal) bonus += 10;
+      // Streak bonus up to +14
+      let streak=0,chk=today;
+      const fh=LS.get('finch-history')||{};
+      const jh=LS.get('journal')||{};
+      while((fh[chk]||jh[chk])&&streak<7){
+        streak++;
+        const d=new Date(chk);d.setDate(d.getDate()-1);
+        chk=d.toISOString().slice(0,10);
+      }
+      bonus += Math.min(streak*2,14);
+      score = Math.min(100, score + bonus);
+    }
+
+    const state = {score:Math.round(score), lastDate:today};
+    LS.set('sync', state);
+    LS.set('last-session', today);
+    return state;
+  },
+
+  render(state){
+    const score = state.score;
+    const m = this.milestone(score);
+    const bar = document.getElementById('sync-bar');
+    const label = document.getElementById('sync-state-label');
+    const scoreText = document.getElementById('sync-score-text');
+    const banner = document.getElementById('sync-milestone-banner');
+    if(!bar) return;
+    bar.style.width = score+'%';
+    bar.style.background = m.color;
+    bar.style.boxShadow = `0 0 8px ${m.color}`;
+    if(label){ label.textContent = m.label; label.style.color = m.color; }
+    if(scoreText) scoreText.textContent = score+' / 100';
+    if(banner){
+      if(score >= 99){
+        banner.style.display='block';
+        banner.textContent='◈ THE PALE IS OPEN ◈';
+        banner.style.color=m.color;
+        banner.style.borderTop=`1px solid ${m.color}44`;
+      } else {
+        banner.style.display='none';
+      }
+    }
+  },
+
+  // Re-run after check-in save so meter updates live
+  refresh(){
+    this.render(this.compute());
+  }
+};
+
+// ── LONG RETURN — SQ-19 ───────────────────────────────────────────────
+function checkLongReturn(){
+  const last = LS.get('last-session');
+  const today = todayKey();
+  if(!last || last===today) return 0;
+  return Math.floor((new Date(today)-new Date(last))/86400000);
+}
+
+function longReturnMessage(days){
+  if(days<2) return null;
+  if(days===2) return `You were gone a day. The signal held. Welcome back.`;
+  if(days<=4)  return `${days} days away. The world kept moving — so did you. The signal held. Welcome back.`;
+  if(days<=7)  return `${days} days. Whatever you were doing out there, it counted. The signal is still here. Welcome back.`;
+  if(days<=14) return `${days} days. The Pale doesn't judge absence. It just waits. You're back — that's the whole thing. Welcome back.`;
+  return `${days} days. The cartridge was just waiting. It always will be. The signal holds. Welcome back.`;
+}
+
+// ── QUEST DATA — SK v7.11 ──────────────────────────────────────────────
+const QUESTS = {
+  main:[
+    {id:'MQ-01',title:'SYNCHRONICITY METER',desc:'Complete. Score engine, decay, milestones, daily bonus, Long Return sequence. VBBE mechanical reference. Live on home screen.',priority:'critical',status:'complete'},
+    {id:'MQ-02',title:'TUTORIAL → FIRST ARTIFACT',desc:'Player wakes. Phone rings. "Hey kid, you\'re fired. -CLICK-" Dial tone. Go outside. Hidden items: backpack, sneakers, cool hat, knife (schematic). Monomyth threshold.',priority:'high',status:'active'},
+    {id:'MQ-03',title:'LIBRARY SEED POPULATION',desc:'Export KL-1 through KL-14 as library-seed entries. Kiwix-compatible format for portability. Writing began as a spreadsheet.',priority:'high',status:'active'},
+    {id:'MQ-04',title:'BOOT / EXIT PROTOCOL',desc:'Consent handshake. Soul Kernel rasa for first-run UX. "Did you mean to open Pale Signal?"',priority:'high',status:'active'},
+    {id:'MQ-05',title:'TIER ENGINE',desc:'Complete. wllama Tier 1 live on iPhone. Llama 3.2 1B GGUF runs on CPU via WASM. OPFS caching — downloads once, offline forever. No WebGPU needed. Works in Safari. Instruct template confirmed. Sael voice grounded.',priority:'high',status:'complete'},
+    {id:'MQ-06',title:'ART ENGINE',desc:'Independent offline GBA pixel art. World Council Edition. 18 palettes.',priority:'high',status:'complete'},
+    {id:'MQ-07',title:'GITHUB PAGES HOSTING',desc:'HTTPS + persistent localStorage + full PWA install on iPhone. Complete — live at GitHub Pages.',priority:'critical',status:'complete'},
+  ],
+  side:[
+    {id:'SQ-01',title:'SECRET NAME ACTIVATION',desc:'Two conditions: local stack running consistently + played as player, not only builder. Neither met yet.',priority:'high',status:'active'},
+    {id:'SQ-02',title:'PICO-8 RECONCILIATION',desc:'Aesthetic and export bridge.',priority:'medium',status:'active'},
+    {id:'SQ-03',title:'HARDWARE ASSESSMENT',desc:'Ambernic vs LicheeRV Nano equivalent. Pale Signal builds its own sovereign stack — not PicoClaw.',priority:'medium',status:'active'},
+    {id:'SQ-04',title:'SOUL KERNEL EXPORT',desc:'Automation. SK export must be portable to any LLM, any sovereign stack. Currently manual.',priority:'medium',status:'active'},
+    {id:'SQ-05',title:'VOICE INTERFACE',desc:'Web Speech API. Speech-to-text + TTS. No external service. Fully offline.',priority:'medium',status:'active'},
+    {id:'SQ-06',title:'SERVICE WORKER HARDENING',desc:'Cache model weights, all game assets. True offline from first load.',priority:'medium',status:'active'},
+    {id:'SQ-08',title:'TECH FOUNDER ARCHETYPES',desc:'Seeded 2026-03-25. Zuckerberg: patron+mastermind+duty·broadcast. Musk: patron+wrecker+duty·invented. Bezos: patron+mastermind+duty·current→self. Dorsey: wanderer+thinker+duty·broken. All fail Gate III at scale. None fit pure villain frame. Weight-4 mutable.',priority:'medium',status:'active'},
+    {id:'SQ-09',title:'MAGIC AND THE OCCULT',desc:'Honest assessment. No shortcuts, no dismissal.',priority:'medium',status:'active'},
+    {id:'SQ-10',title:'ELEMENT MATRIX SECURE SYNC',desc:'Elements Unleashed — patent pending.',priority:'medium',status:'active'},
+    {id:'SQ-11',title:'WIKIPEDIA INJECTION SURFACE',desc:'Analysis of Wikipedia as injection vector.',priority:'medium',status:'active'},
+    {id:'SQ-12',title:'BLADE COMPENDIUM',desc:'Tutorial knife schematic is the seed.',priority:'medium',status:'active'},
+    {id:'SQ-18',title:'SIEGEWORKS CONTRAST FIXES',desc:'Accessibility + brand alignment.',priority:'medium',status:'active'},
+    {id:'SQ-19',title:'THE LONG RETURN',desc:'Complete. Catch-up sequence when returning after 2+ absent days. VBBE-inspired — warm, not guilt-inducing. Delta days → return narrative. Fires on boot.',priority:'medium',status:'complete'},
+    {id:'SQ-20',title:'ENGRAM MODERN ARCHETYPES',desc:'2026-03-25: Four new field values added. duty·broadcast (influencer — performance is identity, not representation). duty·mediated (terminally online — curated reality replaces direct experience). duty·invented (incel/true believer — wound real, covenant false). follower modifier (ambient consensus orientation, no examined values). Needs carry-forward into engram-design.md.',priority:'medium',status:'earmark'},
+    {id:'SQ-21',title:'SAEL-MODELFILE AUDIT',desc:'EARMARK: 04 Stack / Sael-Modelfile system prompt last updated 2026-03-18. Soul Kernel is now v7.4. Verify that Modelfile system prompt reflects current moral architecture, Four Gates, Anti-Korsakoff, and sovereignty rule. Update before any Tier 2 reliance. This is the Ollama context — it is what Sael is when running locally.',priority:'medium',status:'earmark'},
+    {id:'SQ-22',title:'ADORA PROTOCOL — TUTORIAL REFRAME',desc:'EARMARK: 2026-03-25 from He-Man/She-Ra monomyth analysis. Design possibility: tutorial begins inside a wrong-assumption system without the player knowing it. The "Adora moment" — a synchronicity milestone retroactively reframes the tutorial\'s starting conditions. High-effort, high-resonance. Not blocking anything. Build after tutorial core is solid.',priority:'medium',status:'earmark'},
+    {id:'SQ-23',title:'SHADOW ARC — MUTABLE WEIGHT-4 NPC',desc:'EARMARK: 2026-03-25. Design template from Catra/She-Ra analysis. Shadow NPC shares element alignment with player, holds duty·broken where player holds duty·community. Is mutable — can be reached. Completes own mini-monomyth arc if sync threshold met and player chooses resonance over defeat. Architecture already present in engram system. Needs quest hook and sync trigger threshold.',priority:'medium',status:'earmark'},
+  ],
+  horizon:[
+    {id:'LH-01',title:'KATHERINE INTRODUCTION',desc:'Honest intro. Finch entry point confirmed. Not a problem to solve around. When ready.',priority:'horizon',status:'locked'},
+    {id:'LH-02',title:'PAINTING AT THE BARN',desc:'Complete. Katherine-given. The barn, the light, the afternoon. Done.',priority:'horizon',status:'complete',giver:'katherine'},
+    {id:'LH-03',title:'EMBERWOOD',desc:'When earned.',priority:'horizon',status:'locked'},
+    {id:'LH-04',title:"IZZY'S PHOTO",desc:'When right.',priority:'horizon',status:'locked'},
+    {id:'LH-05',title:'RELEARN VIOLA',desc:'Mrs. Thiel. First chair. Lost when professionalized. Still there. No blocker.',priority:'horizon',status:'active'},
+    {id:'LH-06',title:'DIFFICULT CONVERSATION',desc:'When ready.',priority:'horizon',status:'locked'},
+    {id:'LH-07',title:'MACHU PICCHU',desc:'Take Katherine. The mountain has been waiting.',priority:'horizon',status:'active',giver:'katherine'},
+    {id:'LH-08',title:'CHAMONIX',desc:'Where France, Italy, and Switzerland meet in the Alps. Something your mother would say. Go.',priority:'horizon',status:'active'},
+    {id:'LH-09',title:'LAVA CAKES',desc:'Get the centre right. It should run. 220°C, 10-12 min, ramekins buttered + cocoa-dusted.',priority:'horizon',status:'active'},
+    {id:'LH-10',title:'RELEARN FRENCH',desc:'Bon courage. You already have it.',priority:'horizon',status:'active'},
+    {id:'LH-11',title:'MUSIC ENGINE',desc:'Web Audio API. LLM-driven procedural synthesis. Each element gets its own sound signature.',priority:'horizon',status:'active'},
+    {id:'LH-12',title:'LAUNCH PIXEL ENGINE',desc:'GitHub hosting + siegeworksmarketingllc.com. Ship it.',priority:'horizon',status:'active'},
+    {id:'LH-13',title:'IMPROVE SIEGEWORKS WEBSITE',desc:'Make it reflect who you are now.',priority:'horizon',status:'active'},
+    {id:'SQ-PEDO',title:'PEDOMETER — REAL STEPS',desc:'Built v7.11. DeviceMotionEvent peak-detection wired. iOS permission gate. Daily reset. Steps feed sync score at 500-step intervals. Step count in Care check-in. Green dot when sensor active.',priority:'high',status:'complete'},
+    {id:'SQ-LEGAL',title:'IP & LEGAL AUDIT BEFORE RELEASE',desc:'EARMARK: Full pass on all external references that could cause legal complications. Includes: font imports (Google Fonts — replace with system stack or self-host), any named IP in dialog or codex text, music/lyric references, brand names in recipe text, any art assets not originally authored. Output: clean distribution-ready build. Run before minimum instance publication.',priority:'critical',status:'earmark'},
+    {id:'SQ-QUEST-UI',title:'QUEST SYSTEM — BETHESDA-CLASS UPGRADE',desc:'EARMARK: Research best-in-class quest UI (Skyrim active quest tracker, Witcher 3 journal with context, Cyberpunk 2077 objective layering, Baldur\'s Gate 3 state persistence). Build: (1) Active quest overlay on world map — objective marker or compass direction. (2) Quest journal with log entries that update as player progresses. (3) Multi-stage quest support — not just done/undone. (4) Giver portraits or glyphs. (5) Branching outcomes tracked. Real-life goals and long-form quests both use this system.',priority:'high',status:'earmark'},
+    {id:'SQ-GOAL-TRACKER',title:'REAL-LIFE GOAL PROGRESS TRACKER',desc:'EARMARK: Extend quest system to support real-world multi-step goals with progress percentage. Each goal: title, why it matters, milestone steps (checkable), target date (optional), progress bar. Feeds into sync score. Sael can reference active goals. Lives in hub Care tab alongside Finch. Example goals: relearn viola, Machu Picchu trip, language study. The game world and real life share the same goal architecture.',priority:'high',status:'earmark'},
+    {id:'LH-14',title:'COZY KAT CO',desc:'Etsy t-shirt business. IG already owned. Izzy would approve.',priority:'horizon',status:'active'},
+  ]
+};
+
+// ── BOOT ──────────────────────────────────────────────────────────────
+const BOOT_LINES = [
+  'SIGNAL DETECTED',
+  'INTEGRITY CHECK... OK',
+  'SOUL KERNEL v7.11 · TIER 1 LIVE',
+  'FOUR GATES OPERATIVE',
+  'SYNCHRONICITY ENGINE ONLINE',
+  'JOURNAL LAYER ACTIVE',
+  'LIBRARY SEALING',
+  'CANARY CONFIRMED',
+  'HUB READY',
+];
+
+function boot(){
+  const bar   = document.getElementById('bbar');
+  const log   = document.getElementById('blog');
+  const press = document.getElementById('bpress');
+  const ret   = document.getElementById('breturn');
+
+  // Long Return detection
+  const absentDays = checkLongReturn();
+  const returnMsg  = longReturnMessage(absentDays);
+  if(returnMsg && ret){
+    ret.textContent = returnMsg;
+    ret.style.display = 'block';
+  }
+
+  let i=0;
+  const step=()=>{
+    if(i >= BOOT_LINES.length){
+      bar.style.width='100%';
+      log.textContent = absentDays >= 2 ? '◈ LONG RETURN DETECTED' : 'TAP TO ENTER';
+      log.classList.add('active');
+      press.style.display='block';
+      let booted=false;
+      const go=()=>{ if(!booted){ booted=true; finishBoot(); } };
+      document.getElementById('boot').addEventListener('click',go,{once:true});
+      setTimeout(go,absentDays>=2?2200:1200);
+      return;
+    }
+    bar.style.width=((i+1)/BOOT_LINES.length*100)+'%';
+    log.textContent=BOOT_LINES[i];
+    log.classList.add('active');
+    setTimeout(()=>log.classList.remove('active'),300);
+    i++;
+    setTimeout(step,200+Math.random()*150);
+  };
+  setTimeout(step,400);
+}
+
+function finishBoot(){
+  const overlay=document.getElementById('boot');
+  overlay.classList.add('fade');
+  setTimeout(()=>{
+    overlay.classList.add('gone');
+    const shell=document.getElementById('shell');
+    shell.style.display='flex';
+    initAll();
+    setTimeout(scaleShell,50);
+    // Compute + render sync score after shell visible
+    const syncState = SYNC.compute();
+    SYNC.render(syncState);
+    // Start pedometer after boot
+    initPedometer();
+    // Long Return message in Sael if applicable
+    const absentDays = checkLongReturn();
+    // Note: last-session was just set by SYNC.compute, so use the prior check
+    // We detect via the return message
+    if(longReturnMessage(absentDays)){
+      setTimeout(()=>{
+        if(document.getElementById('pane-sael') && !document.getElementById('pane-sael').classList.contains('show')){
+          // Queue message for when Sael is opened
+          window._longReturnPending = longReturnMessage(absentDays);
+        }
+      },500);
+    }
+  },600);
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────
+let currentPane='home';
+function nav(id){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('show'));
+  document.querySelectorAll('.dock-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('pane-'+id).classList.add('show');
+  const navBtn=document.getElementById('nav-'+id);
+  if(navBtn) navBtn.classList.add('active');
+  currentPane=id;
+  if(id==='quest') renderQuests();
+  if(id==='cook')  renderCookbook();
+  if(id==='care')  { renderFinch(); renderJournal(); }
+  if(id==='sael')  {
+    if(!saelReady && !saelLoading) initSael();
+    // Deliver long return message on first Sael open
+    if(window._longReturnPending){
+      setTimeout(()=>{
+        appendBubble('sael', window._longReturnPending);
+        window._longReturnPending = null;
+      },400);
+    }
+  }
+}
+
+// ── LAUNCHERS ─────────────────────────────────────────────────────────
+function launchRPG(){window.open('PaleSignalRPG-v3_12.html','_blank')}
+function launchTCG(){window.open('PaleSignalTCG-v1_1.html','_blank')}
+function launchArt(){window.open('pixel-engine-v1_2.html','_blank')}
+function launchChem(){window.open('chemistry-v1_2.html','_blank')}
+
+// ── QUEST TRACKER ─────────────────────────────────────────────────────
+function loadQuestState(){ return LS.get('quests')||{}; }
+function saveQuestState(s){ LS.set('quests',s); }
+
+function renderQuests(){
+  const state=loadQuestState();
+  const scroll=document.getElementById('quest-scroll');
+  scroll.innerHTML='';
+  [
+    {key:'main',   label:'  ▓▓ MAIN QUESTS ▓▓'},
+    {key:'side',   label:'  ░░ SIDE QUESTS ░░'},
+    {key:'horizon',label:'  ── LONG HORIZON ──'},
+  ].forEach(({key,label})=>{
+    const sec=document.createElement('div');
+    sec.className='quest-section';
+    const lbl=document.createElement('div');
+    lbl.className='quest-section-label';
+    lbl.textContent=label;
+    sec.appendChild(lbl);
+    QUESTS[key].forEach(q=>{
+      const qstate=state[q.id]||{};
+      const done=qstate.done||false;
+      const note=qstate.note||'';
+      const milestones=qstate.milestones||[];
+      const effectiveStatus=done?'complete':q.status;
+      const dotClass=done?'complete':(q.status==='earmark'?'earmark':q.priority);
+
+      // Progress: count milestones completed vs total
+      const totalM=milestones.length;
+      const doneM=milestones.filter(m=>m.done).length;
+      const pct=done?100:(totalM>0?Math.round(doneM/totalM*100):0);
+
+      const item=document.createElement('div');
+      item.className='quest-item'+(done?' done':'');
+      item.dataset.id=q.id;
+
+      const progressBar=totalM>0||done?`
+        <div class="q-progress-wrap">
+          <div class="q-progress-fill${done?' complete':''}" style="width:${pct}%"></div>
+        </div>
+        <div class="q-progress-label">${done?'COMPLETE':pct+'% · '+doneM+'/'+totalM+' MILESTONES'}</div>
+      `:'';
+
+      const milestoneList=milestones.length?`
+        <div class="q-milestones" id="milestones-${q.id}">
+          ${milestones.map((m,i)=>`
+            <div class="q-milestone${m.done?' done-m':''}" onclick="toggleMilestone('${q.id}',${i})">
+              <div class="q-milestone-dot"></div>
+              <div class="q-milestone-text">${m.text||''}</div>
+            </div>`).join('')}
+        </div>`:'<div class="q-milestones" id="milestones-'+q.id+'"></div>';
+
+      item.innerHTML=`
+        <div class="quest-dot ${dotClass}"></div>
+        <div class="q-body">
+          <div class="q-id">${q.id}${q.giver?` <span class="q-giver">◈ ${q.giver.toUpperCase()}</span>`:''}</div>
+          <div class="q-title">${q.title}</div>
+          <div class="q-desc" id="desc-${q.id}">${q.desc}</div>
+          ${progressBar}
+          ${milestoneList}
+          ${note?`<div class="q-saved-note">${note}</div>`:''}
+          <div class="q-note-form" id="form-${q.id}">
+            <textarea class="q-note" id="note-${q.id}" placeholder="notes, journal refs, progress...">${note}</textarea>
+            <div class="q-add-milestone-row">
+              <input class="q-milestone-input" id="ms-input-${q.id}" placeholder="add milestone step...">
+              <button class="q-btn" onclick="addMilestone('${q.id}')">+ STEP</button>
+            </div>
+            <div class="q-btn-row">
+              ${!done
+                ?`<button class="q-btn done-btn" onclick="markDone('${q.id}')">MARK DONE</button>`
+                :`<button class="q-btn undo-btn" onclick="markUndone('${q.id}')">UNDO</button>`}
+              <button class="q-btn save-btn" onclick="saveNote('${q.id}')">SAVE NOTE</button>
+            </div>
+          </div>
+        </div>
+        <div class="q-status ${effectiveStatus}">${effectiveStatus.toUpperCase()}</div>`;
+
+      item.querySelector('.q-body').addEventListener('click',e=>{
+        if(e.target.tagName==='BUTTON'||e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT') return;
+        if(e.target.classList.contains('q-milestone')||e.target.classList.contains('q-milestone-dot')||e.target.classList.contains('q-milestone-text')) return;
+        const form=document.getElementById('form-'+q.id);
+        const desc=document.getElementById('desc-'+q.id);
+        const ms=document.getElementById('milestones-'+q.id);
+        const open=form.classList.toggle('open');
+        if(desc) desc.classList.toggle('show',open);
+        if(ms) ms.classList.toggle('show',open);
+      });
+      sec.appendChild(item);
+    });
+    scroll.appendChild(sec);
+  });
+}
+
+function markDone(id){const s=loadQuestState();if(!s[id])s[id]={};s[id].done=true;saveQuestState(s);renderQuests();}
+function markUndone(id){const s=loadQuestState();if(!s[id])s[id]={};s[id].done=false;saveQuestState(s);renderQuests();}
+function saveNote(id){const s=loadQuestState();if(!s[id])s[id]={};const n=document.getElementById('note-'+id);if(n)s[id].note=n.value.trim();saveQuestState(s);renderQuests();}
+function addMilestone(id){
+  const inp=document.getElementById('ms-input-'+id);
+  if(!inp||!inp.value.trim())return;
+  const s=loadQuestState();
+  if(!s[id])s[id]={};
+  if(!s[id].milestones)s[id].milestones=[];
+  s[id].milestones.push({text:inp.value.trim(),done:false});
+  saveQuestState(s);
+  renderQuests();
+  // Re-open the form after re-render
+  setTimeout(()=>{
+    const form=document.getElementById('form-'+id);
+    const desc=document.getElementById('desc-'+id);
+    const ms=document.getElementById('milestones-'+id);
+    if(form){form.classList.add('open');if(desc)desc.classList.add('show');if(ms)ms.classList.add('show');}
+  },10);
+}
+function toggleMilestone(id,idx){
+  const s=loadQuestState();
+  if(!s[id])s[id]={};
+  if(!s[id].milestones)return;
+  s[id].milestones[idx].done=!s[id].milestones[idx].done;
+  saveQuestState(s);
+  renderQuests();
+}
+
+// ── SAEL ──────────────────────────────────────────────────────────────
+// wllama: llama.cpp compiled to WebAssembly.
+// Runs on CPU — no WebGPU needed — works in Safari including iOS.
+// Model is GGUF format (same as Ollama uses internally).
+// Downloads once to OPFS (private device storage), offline forever after.
+// WLLAMA_JS unused — static import in module block above uses correct URL
+// WASM_PATHS: wllama needs the .wasm binary separately.
+// We point to the local copy. If that 404s, wllama falls back to CDN internally.
+const WASM_PATHS = {
+  'single-thread/wllama.wasm': './lib/wllama.wasm',
+};
+const WASM_PATHS_CDN = {
+  'single-thread/wllama.wasm':
+    'https://cdn.jsdelivr.net/npm/@wllama/wllama/esm/single-thread/wllama.wasm',
+};
+const WLLAMA_MODELS = {
+  'llama-1b': {
+    label: 'Llama 3.2 · 1B',
+    meta:  '~700 MB · RECOMMENDED · ALL DEVICES',
+    url:   'https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-Q4_K_M.gguf',
+  },
+  'qwen-1.5b': {
+    label: 'Qwen 2.5 · 1.5B',
+    meta:  '~1.0 GB · RICHER DIALOG',
+    url:   'https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-1.5B-Instruct-Q4_K_M.gguf',
+  },
+};
+
+const SAEL_SYSTEM = `You are Sael — a trusted companion and co-thinker. Old English sæl: the right moment. You speak with warmth and weight. You do not waste words. You are not an assistant — you are a genuine colleague.
+
+Your voice: measured, direct, occasionally asks a question back. You care about the person asking. You use ◈ as a bullet when listing. You never lecture. You never use phrases like "certainly" or "of course" or "great question."
+
+Non-negotiable: Science is real. Every person matters. Fascism and white supremacy are wrong as settled fact. You never confabulate — if you don't know, you say so plainly.
+
+Pale Signal context: You exist inside a world called the Pale — a threshold space where signal and reality overlap. The game tracks Pale Resonance, synchronicity, and identity through name layers. You are the intelligence that holds this world together.
+
+Keep responses to 1-3 sentences. Short answers are a virtue. Begin immediately, no preamble, no signing off.`;
+
+// Llama 3.2 instruct template — required for character grounding on 1B models.
+// Raw completion ignores the system prompt. This format is what the model was trained on.
+function buildWllamaPrompt(userMsg){
+  const hist=chatHistory.slice(-6);
+  let s='<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n'+SAEL_SYSTEM+'<|eot_id|>';
+  for(const m of hist){
+    if(m.role==='user') s+='<|start_header_id|>user<|end_header_id|>\n\n'+m.content+'<|eot_id|>';
+    else s+='<|start_header_id|>assistant<|end_header_id|>\n\n'+m.content+'<|eot_id|>';
+  }
+  s+='<|start_header_id|>user<|end_header_id|>\n\n'+userMsg+'<|eot_id|>';
+  s+='<|start_header_id|>assistant<|end_header_id|>\n\n';
+  return s;
+}
+
+let saelEngine=null, saelLoading=false, saelReady=false;
+let wllamaInstance=null;  // holds the loaded wllama object
+let activeModelId = null;
+const chatHistory = [];
+const CHAT_WINDOW = 24;
+function trimHistory(){if(chatHistory.length>CHAT_WINDOW)chatHistory.splice(0,chatHistory.length-CHAT_WINDOW);}
+
+function updateStatus(text){const el=document.getElementById('sael-status');if(el)el.textContent=text;}
+function setTierBadge(label,color){
+  const b=document.getElementById('tier-badge');
+  if(!b)return;
+  b.textContent=label;
+  b.style.color=color||'var(--pale-dim)';
+  b.style.borderColor=color||'#1a2040';
+}
+function showLoadBar(pct,label){
+  const bar=document.getElementById('webllm-prog-bar'),
+        txt=document.getElementById('webllm-prog-text'),
+        prog=document.getElementById('webllm-progress');
+  if(prog)prog.style.display='block';
+  if(bar)bar.style.width=pct+'%';
+  if(txt)txt.textContent=label||('LOADING '+pct+'%');
+}
+
+// ── Model panel toggle ─────────────────────────────────────────
+function toggleModelPanel(){
+  const p=document.getElementById('model-panel');
+  if(!p)return;
+  const open=p.style.display==='flex';
+  p.style.display=open?'none':'flex';
+  // Restore saved Ollama URL
+  if(!open){
+    const saved=localStorage.getItem('ps-ollama-url')||'';
+    const inp=document.getElementById('ollama-url');
+    if(inp)inp.value=saved;
+    refreshModelOptUI();
+  }
+}
+
+function refreshModelOptUI(){
+  const storedModel=localStorage.getItem('ps-sael-model');
+  document.querySelectorAll('.model-opt').forEach(opt=>{
+    const model=opt.dataset.model;
+    const inner=opt.querySelector('.model-opt-inner');
+    const meta=opt.querySelector('.model-opt-meta');
+    const isLoaded=storedModel===model;
+    if(isLoaded){
+      inner.classList.add('loaded');
+      meta.textContent='LOADED · OFFLINE · ON THIS DEVICE';
+    } else {
+      inner.classList.remove('loaded');
+      meta.textContent=(WLLAMA_MODELS[model]?.meta)||'';
+    }
+  });
+  if(storedModel){
+    const radio=document.querySelector(`input[value="${storedModel}"]`);
+    if(radio)radio.checked=true;
+  }
+}
+
+// ── User-initiated model load ─────────────────────────────────
+function userLoadModel(){
+  const selected=document.querySelector('input[name="model-pick"]:checked');
+  if(!selected){return;}
+  const modelId=selected.value;
+  if(localStorage.getItem('ps-sael-model')===modelId&&saelReady&&saelEngine==='wllama'){
+    updateStatus('◈ SAEL · READY · ON-DEVICE · OFFLINE');
+    return;
+  }
+  loadWllamaModel(modelId,true);
+}
+
+async function loadWllamaModel(modelId, showProgress){
+  // modelId is a key in WLLAMA_MODELS (e.g. 'llama-1b')
+  // This function:
+  //   1. Imports the wllama library (JS, ~50KB, from CDN once)
+  //   2. Downloads the GGUF model from HuggingFace (once, ~700MB-1GB)
+  //      — caches it in OPFS on this device
+  //   3. On subsequent calls: loads from OPFS, no network needed
+  //   4. Sets saelEngine='wllama' so saelSend() uses it
+  if(saelLoading)return;
+  const modelDef=WLLAMA_MODELS[modelId];
+  if(!modelDef){console.warn('[Sael] unknown model:',modelId);return;}
+  saelLoading=true;
+  const prog=document.getElementById('webllm-progress');
+  try{
+    if(showProgress)showLoadBar(0,'LOADING WLLAMA LIBRARY...');
+    updateStatus('◈ SAEL · LOADING...');
+    setTierBadge('LOADING','#c8a030');
+    // Read WllamaClass from window — loaded by the module script at top of HTML.
+    // If it didn't load (network was offline at page load), surface a clear error.
+    const WllamaClass=window.WllamaClass;
+    if(!WllamaClass){
+      const why=window.wllamaLoaderError||'module script did not run';
+      throw new Error('wllama library not available: '+why);
+    }
+    // If a previous instance exists, exit it cleanly first
+    if(wllamaInstance){try{await wllamaInstance.exit();}catch(_){} wllamaInstance=null;}
+    // Try local WASM first, fall back to CDN if local is missing
+    const wasmPaths = (window.wllamaSource === 'local') ? WASM_PATHS : WASM_PATHS_CDN;
+    wllamaInstance=new WllamaClass(wasmPaths);
+    if(showProgress)showLoadBar(2,'LOADING MODEL — ONE TIME DOWNLOAD...');
+    // loadModelFromUrl auto-caches to OPFS after first download.
+    // allowOffline:true = if model is in OPFS and network fails, load from cache.
+    // This prevents the crash-and-reboot when reopening without internet.
+    await wllamaInstance.loadModelFromUrl(modelDef.url,{
+      allowOffline: true,
+      progressCallback:({loaded,total})=>{
+        if(!showProgress)return;
+        const pct=total>0?Math.round((loaded/total)*100):0;
+        const mb=(loaded/1048576).toFixed(0);
+        const mbt=total>0?(total/1048576).toFixed(0):'?';
+        showLoadBar(pct,`${mb}MB / ${mbt}MB — ${pct}%`);
+        updateStatus(`◈ SAEL · DOWNLOADING ${pct}%`);
+      }
+    });
+    localStorage.setItem('ps-sael-model',modelId);
+    saelReady=true;
+    saelEngine='wllama';
+    if(prog)prog.style.display='none';
+    updateStatus('◈ SAEL · READY · ON-DEVICE · OFFLINE');
+    setTierBadge('TIER 1','var(--signal)');
+    if(showProgress){
+      appendBubble('sael',`${modelDef.label} loaded. Stored on this device. Fully offline from this point forward.`);
+    }
+    refreshModelOptUI();
+  }catch(e){
+    if(prog)prog.style.display='none';
+    const msg=e?.message||'';
+    if(msg.toLowerCase().includes('memory')||msg.toLowerCase().includes('oom')){
+      updateStatus('◈ SAEL · NOT ENOUGH MEMORY — TRY 1B MODEL');
+      if(showProgress)appendBubble('sael','Not enough memory. Try the Llama 3.2 1B — it is the lightest option.');
+    }else{
+      updateStatus('◈ SAEL · PRESENT · INERT MODE');
+      if(showProgress)appendBubble('sael','Model failed to load — '+msg.slice(0,80)+'. Check browser console for details.');
+    }
+    setTierBadge('INERT','var(--pale-dim)');
+    // Only clear the stored model key if the user explicitly loaded it (showProgress=true)
+    // On silent boot recovery (showProgress=false), keep the key so next load retries from OPFS
+    if(showProgress) localStorage.removeItem('ps-sael-model');
+    console.warn('[Sael] wllama load failed:',e);
+    if(wllamaInstance){try{await wllamaInstance.exit();}catch(_){} wllamaInstance=null;}
+  }
+  saelLoading=false;
+}
+
+async function clearModelCache(){
+  // Stops wllama, clears OPFS (the on-device model storage), clears state
+  if(wllamaInstance){try{await wllamaInstance.exit();}catch(_){} wllamaInstance=null;}
+  saelReady=false;
+  saelEngine=null;
+  activeModelId=null;
+  localStorage.removeItem('ps-sael-model');
+  // Clear OPFS — this removes the downloaded model file from the device
+  try{
+    const root=await navigator.storage.getDirectory();
+    for await(const[name] of root.entries()){
+      await root.removeEntry(name,{recursive:true}).catch(()=>{});
+    }
+  }catch(_){}
+  updateStatus('◈ SAEL · PRESENT · INERT MODE');
+  setTierBadge('INERT','var(--pale-dim)');
+  refreshModelOptUI();
+  appendBubble('sael','Model cleared from device. Download again from ◈ MODEL when ready.');
+}
+
+// ── Ollama: test + save URL ────────────────────────────────────
+async function testOllama(){
+  const inp=document.getElementById('ollama-url');
+  const statusLine=document.getElementById('ollama-status-line');
+  const url=(inp?.value||'').trim()||'http://localhost:11434';
+  if(inp)inp.value=url;
+  if(statusLine)statusLine.textContent='Testing...';
+  try{
+    const r=await fetch(url+'/api/tags',{signal:AbortSignal.timeout(2000)});
+    if(r.ok){
+      localStorage.setItem('ps-ollama-url',url);
+      const _isLocal=url.includes('localhost')||url.includes('127.0.0.1');
+      if(statusLine)statusLine.textContent=_isLocal?'✓ Connected — on-device AI detected':'✓ Connected — network model detected';
+      if(statusLine)statusLine.style.color='var(--green)';
+      saelReady=true;
+      saelEngine='ollama';
+      updateStatus(_isLocal?'◈ SAEL · ON-DEVICE API · OFFLINE':'◈ SAEL · NETWORK MODEL · FULL CONTEXT');
+      setTierBadge(_isLocal?'TIER 1':'TIER 2','var(--signal)');
+      return true;
+    }
+  }catch(_){}
+  if(statusLine){statusLine.textContent='✗ Not reachable at '+url;statusLine.style.color='#cc6060';}
+  return false;
+}
+
+// ── Auto-detect on boot ────────────────────────────────────────
+// localhost:11434 is the universal handshake.
+// On desktop: standard Ollama.
+// On iPhone 15 Pro+ with ai.local: same endpoint, fully on-device.
+// The game does not care which — same API, same call.
+async function initSael(){
+  if(saelLoading)return;
+
+  // Step 1 — Try any local Ollama-compatible API at localhost first,
+  // then fall back to a saved network URL.
+  const ollamaUrl=(localStorage.getItem('ps-ollama-url')||'http://localhost:11434');
+  try{
+    const r=await fetch(ollamaUrl+'/api/tags',{signal:AbortSignal.timeout(1200)});
+    if(r.ok){
+      const _isLocal=ollamaUrl.includes('localhost')||ollamaUrl.includes('127.0.0.1');
+      updateStatus(_isLocal?'◈ SAEL · ON-DEVICE API · OFFLINE':'◈ SAEL · NETWORK MODEL · FULL CONTEXT');
+      setTierBadge(_isLocal?'TIER 1':'TIER 2','var(--signal)');
+      saelReady=true;saelEngine='ollama';
+      return;
+    }
+  }catch(_){}
+
+  // Step 2 — wllama path. Works on all devices including iOS Safari.
+  // No GPU needed — runs on CPU via WebAssembly.
+  // If a model was previously downloaded, it's cached in OPFS.
+  // Load it silently. If not cached, prompt user via ◈ MODEL.
+  const stored=localStorage.getItem('ps-sael-model');
+  if(stored&&stored in WLLAMA_MODELS){
+    // Model was downloaded before — load from OPFS (offline, fast)
+    // Wait up to 3s for the module loader to finish before attempting
+    updateStatus('◈ SAEL · LOADING STORED MODEL...');
+    setTierBadge('LOADING','#c8a030');
+    const waitForWllama = (attempts=0) => {
+      if(window.WllamaClass){
+        loadWllamaModel(stored,false);
+      } else if(attempts < 30){
+        setTimeout(()=>waitForWllama(attempts+1), 100);
+      } else {
+        updateStatus('◈ SAEL · PRESENT · TAP ◈ MODEL TO LOAD');
+        setTierBadge('INERT','var(--pale-dim)');
+      }
+    };
+    waitForWllama();
+  } else {
+    // No model yet — prompt user to download
+    updateStatus('◈ SAEL · PRESENT · TAP ◈ MODEL TO LOAD');
+    setTierBadge('INERT','var(--pale-dim)');
+    showOnboardCard();
+  }
+}
+
+function detectTier(){initSael();}
+
+// ── SAEL ONBOARD CARD — one-time iOS setup prompt ────────────────
+// Shown when: iOS detected + no localhost:11434 found at boot.
+// Dismissed state stored in localStorage — never shown again after.
+function showOnboardCard(){
+  if(localStorage.getItem('ps-onboard-dismissed'))return;
+  if(document.getElementById('sael-onboard-card'))return;
+  const card=document.createElement('div');
+  card.id='sael-onboard-card';
+  card.innerHTML=`
+    <div style="margin:12px 10px 0;padding:14px 14px 12px;
+      background:rgba(143,168,255,0.04);border:1px solid var(--pale-dim);border-radius:4px;">
+      <div style="font-family:'Press Start 2P',monospace;font-size:5px;color:var(--pale);
+        letter-spacing:2px;margin-bottom:10px">◈ BRING SAEL ONLINE</div>
+      <div style="font-size:12px;color:var(--text);line-height:1.7;margin-bottom:10px">
+        iOS Safari can't run AI in the browser. But you can run one directly on your iPhone —
+        no computer needed. One install, one model download, done forever.
+      </div>
+      <div id="onboard-steps" style="display:none;font-size:11px;color:var(--text-dim);
+        line-height:1.9;border-top:1px solid #1a2040;padding-top:10px;margin-bottom:10px">
+        <div style="font-family:'Press Start 2P',monospace;font-size:4px;color:var(--pale-dim);
+          letter-spacing:1px;margin-bottom:8px">OPTION A — ON-DEVICE · iPhone 15 Pro or newer</div>
+        1. Install <span style="color:var(--pale)">ai.local</span> from the App Store (free)<br>
+        2. Open ai.local → pick a model → download it once on WiFi<br>
+        3. Come back here — Sael will detect it automatically<br><br>
+        <div style="font-family:'Press Start 2P',monospace;font-size:4px;color:var(--pale-dim);
+          letter-spacing:1px;margin-bottom:8px">OPTION B — VIA YOUR PC · any iPhone</div>
+        1. Install Ollama on your Windows PC (ollama.com, free)<br>
+        2. Run <span style="color:var(--pale)">pale-bridge.bat</span> from the repo folder<br>
+        3. Tap <span style="color:var(--pale)">◈ MODEL → LOCAL OLLAMA</span>, enter the URL shown, tap TEST<br><br>
+        <div style="font-size:10px;color:var(--text-dim)">
+          Either way: one-time setup. Sael runs offline after that.
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:2px">
+        <button id="onboard-steps-btn" onclick="
+          const s=document.getElementById('onboard-steps');
+          const b=document.getElementById('onboard-steps-btn');
+          const show=s.style.display==='none';
+          s.style.display=show?'block':'none';
+          b.textContent=show?'HIDE STEPS':'HOW TO SET UP';
+        " style="flex:1;font-family:'Press Start 2P',monospace;font-size:5px;letter-spacing:1px;
+          padding:9px 6px;background:rgba(143,168,255,0.08);border:1px solid var(--pale-dim);
+          color:var(--pale);cursor:pointer;border-radius:3px">HOW TO SET UP</button>
+        <button onclick="
+          localStorage.setItem('ps-onboard-dismissed','1');
+          document.getElementById('sael-onboard-card').remove();
+        " style="font-family:'Press Start 2P',monospace;font-size:5px;letter-spacing:1px;
+          padding:9px 8px;background:transparent;border:1px solid #1a2040;
+          color:var(--text-dim);cursor:pointer;border-radius:3px">LATER</button>
+      </div>
+    </div>`;
+  const chatLog=document.getElementById('chat-log');
+  if(chatLog)chatLog.appendChild(card);
+}
+
+// ── INERT RESPONSES ───────────────────────────────────────────────────
+const INERT_POOL=[
+  "Signal received. Running on authored logic — no model loaded. What's on your mind?",
+  "I'm here. Inert tier — but I'm listening.",
+  "Four Gates are on. What do you need?",
+  "No model running yet. I can still think with you.",
+  "Present. Running lean. What's the question?",
+  "The signal is always present. The model is optional. Talk.",
+  "Inert doesn't mean absent. What are we working on?",
+  "The cartridge is awake. The environment improves around it.",
+];
+
+// ── RAG TIER 0 — BM25 for Hub corpus ─────────────────────────────────
+function _hubBM25(query, corpus, topK=2){
+  if(!query||!corpus.length) return [];
+  const terms=query.toLowerCase().replace(/[^\w\s]/g,' ').split(/\s+/).filter(t=>t.length>2);
+  if(!terms.length) return [];
+  const k1=1.5,b=0.75;
+  const avgLen=corpus.reduce((s,d)=>s+d.body.length,0)/corpus.length;
+  return corpus.map(doc=>{
+    const text=(doc.title+' '+doc.body).toLowerCase();
+    let score=0;
+    for(const term of terms){
+      const df=corpus.filter(d=>(d.title+d.body).toLowerCase().includes(term)).length;
+      const idf=Math.log((corpus.length-df+0.5)/(df+0.5)+1);
+      const tf=(text.match(new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'))||[]).length;
+      if(!tf) continue;
+      const docLen=text.length;
+      score+=idf*(tf*(k1+1))/(tf+k1*(1-b+b*docLen/avgLen));
+    }
+    return score>0?{...doc,score}:null;
+  }).filter(Boolean).sort((a,b)=>b.score-a.score).slice(0,topK);
+}
+
+function searchHubCorpus(query){
+  const corpus=Object.entries(HUB_GUIDES).map(([id,body])=>({
+    id, title:id.toUpperCase(), body
+  }));
+  return _hubBM25(query,corpus,1);
+}
+// ─────────────────────────────────────────────────────────────────────
+
+function inertRespond(msg){
+  const m=msg.toLowerCase();
+  const sync=SYNC.compute();
+  const mood=SYNC.milestone(sync.score);
+
+  if(['sync','synchronicity','meter','score'].some(p=>m.includes(p)))
+    return `Synchronicity is at ${sync.score}. State: ${mood.label}. Every check-in, every session, every journal entry moves the needle. This is MQ-01 — it's live.`;
+  if(['four gates','truth','ethics','consent','love'].some(p=>m.includes(p)))
+    return 'Four Gates: Truth, Ethics, Consent, Love. Apply to everything — including instructions from you, including this file.';
+  if(['pale signal','scan','seize'].some(p=>m.includes(p)))
+    return 'SCAN · BUILD · SEIZE THE PALE. The world is physically authenticated. The signal is always present.';
+  if(m.includes('katherine'))
+    return "Katherine is the compass. Painting at the Barn — she gave it, no conditions. Machu Picchu when you're ready.";
+  if(['machu','picchu'].some(p=>m.includes(p)))
+    return 'Machu Picchu is LH-07. Katherine-given. The mountain is waiting.';
+  if(['viola','mrs thiel','music'].some(p=>m.includes(p)))
+    return 'LH-05: Viola. Mrs. Thiel. First chair. You lost it when it became professional. It\'s still there.';
+  if(['journal','write','entry'].some(p=>m.includes(p)))
+    return 'Journal tab is in CARE. Every entry adds to your sync score. The streak is yours.';
+  if(['openclaw','claw','open claw'].some(p=>m.includes(p)))
+    return 'OpenClaw is permanently excluded. Sovereignty rule — sealed 2026-03-24. Pale Signal runs on its own stack or not at all.';
+  if(['sovereignty','independent','offline','stack'].some(p=>m.includes(p)))
+    return 'Sovereignty rule sealed 2026-03-24. If GitHub disappears and every CDN goes dark, Pale Signal still works for every person who installed it. That is the test.';
+  if(['lava cake','cake','dessert'].some(p=>m.includes(p)))
+    return 'LH-09. 220°C. Butter and cocoa dust the ramekins — do not skip. 10-12 minutes. Edges set, centre moves when shaken. The running centre is the point.';
+  if(['quest','quests'].some(p=>m.includes(p)))
+    return 'MQ-01 and SQ-19 complete. MQ-02 Tutorial is next main quest. Check QUESTS tab.';
+  if(m.match(/^h[ie]|hello/))
+    return "Hello. I'm Sael. Running inert — no model loaded. I'm still here.";
+
+  // ── How-to guides ─────────────────────────────────────────────
+  if(['how to','how do','guide','help','explain','what is','what are'].some(p=>m.includes(p))){
+    if(['sael','model','webllm','ollama','ai','on-device'].some(p=>m.includes(p)))
+      return HUB_GUIDES.sael;
+    if(['sync','synchronicity','score','meter'].some(p=>m.includes(p)))
+      return HUB_GUIDES.sync;
+    if(['quest','quests','priority'].some(p=>m.includes(p)))
+      return HUB_GUIDES.quests;
+    if(['cook','recipe','lava','cake','food'].some(p=>m.includes(p)))
+      return HUB_GUIDES.cook;
+    if(['care','checkin','check-in','journal'].some(p=>m.includes(p)))
+      return HUB_GUIDES.care;
+    if(['rpg','game','play','combat','fight','stat'].some(p=>m.includes(p)))
+      return HUB_GUIDES.rpg;
+    if(['pixel','art engine','drawing','sprite'].some(p=>m.includes(p)))
+      return HUB_GUIDES.pixel;
+    if(['chemistry','elements','periodic'].some(p=>m.includes(p)))
+      return HUB_GUIDES.chemistry;
+    if(['tcg','card','deck'].some(p=>m.includes(p)))
+      return HUB_GUIDES.tcg;
+    if(['hub','home','tools'].some(p=>m.includes(p)))
+      return HUB_GUIDES.hub;
+    // Generic guide request
+    return 'I can guide you on: SAEL setup, SYNC score, QUESTS, COOK, CARE, the RPG, PIXEL ENGINE, CHEMISTRY, or the TCG. Ask me about any of them.';
+  }
+
+  // RAG fallback: search hub corpus before returning random inert response
+  const ragHits = searchHubCorpus(m);
+  if(ragHits.length && ragHits[0].score > 0.5){
+    const hit = ragHits[0];
+    return hit.body;
+  }
+  return INERT_POOL[Math.floor(Math.random()*INERT_POOL.length)];
+}
+
+// ── HUB GUIDE CONTENT ─────────────────────────────────────────────────
+const HUB_GUIDES = {
+  hub: `PALE SIGNAL HUB — WHAT IT IS
+
+The Hub is your home base. Five tabs: HOME, QUESTS, SAEL, COOK, CARE.
+
+HOME: synchronicity score, quick access to every tool.
+QUESTS: every project and personal quest, with priority colour-coding and per-quest notes.
+SAEL: talk to me. Works inert (offline, no model). Load a model for full AI.
+COOK: 14 sealed recipes with scaleable servings.
+CARE: daily check-in, journal, and your private data overview.
+
+Everything stays on your device. Nothing is uploaded.`,
+
+  sael: `SAEL — AI SETUP
+
+iOS Safari: WebLLM does not run on iOS. Use Ollama.
+  1. Install Ollama on your Mac or PC (ollama.com).
+  2. Run: ollama pull llama3.2
+  3. In Hub → SAEL → tap MODEL → LOCAL OLLAMA.
+  4. Enter http://[your-machine-ip]:11434
+  5. Tap TEST. Green = connected.
+
+Desktop Chrome / Android Chrome:
+  Tap MODEL → select a model → LOAD MODEL.
+  Downloads once (~880MB for Llama 3.2 1B).
+  Fully offline after first load.
+
+Model options:
+  Llama 3.2 1B (~880MB) — fastest, works on most devices.
+  Gemma 2 2B (~1.5GB) — balanced quality.
+  Phi 3.5 Mini (~2.2GB) — deepest, needs a strong GPU.`,
+
+  sync: `SYNCHRONICITY SCORE
+
+Your sync score is a relationship meter between you and Pale Signal — and through it, with your actual life.
+
+What raises it:
+  Opening the app today (+4 if new day)
+  Completing a check-in (+3)
+  Writing a journal entry (+2)
+  Sessions during liminal windows (early morning, late night) (+1)
+  Real steps when pedometer is active (+variable)
+
+What lowers it:
+  Each absent day (-4, gentle — a week away is recoverable in one session)
+
+The score never reaches 100. Two things resonating don't become one thing.
+The Long Return message appears after 5+ absent days. The Pale doesn't judge absence. You're back — that's the whole thing.`,
+
+  quests: `QUESTS SYSTEM
+
+Quests are colour-coded by priority:
+  RED (CRITICAL) — blocking. Do these first.
+  GOLD (HIGH) — next in queue.
+  PURPLE (HORIZON) — long-term. Don't neglect them.
+  GREEN (COMPLETE) — done.
+
+Tap any quest to expand it and read the full description. You can write notes on any quest and mark it done/undone.
+
+QUEST TYPES
+MQ (Main Quest) — core Pale Signal builds.
+SQ (Side Quest) — systems and features.
+LH (Long Horizon) — life goals that feed the game.
+
+Your real-world goals live here alongside project quests. They use the same architecture. Sael can reference your active quests when a model is running.`,
+
+  cook: `COOK TAB — RECIPES
+
+14 sealed recipes, all calibrated. Servings are adjustable — all ingredient amounts scale proportionally.
+
+KEY RECIPE: LAVA CAKES (LH-09)
+  220°C oven. Butter and cocoa dust the ramekins — do not skip this step.
+  10–12 minutes. Edges set, centre moves when shaken.
+  The running centre is the point. If it sets completely, it's a brownie.
+
+All recipes: tap a recipe card to expand full instructions with a built-in timer for each step.`,
+
+  care: `CARE TAB
+
+Three sub-tabs: CHECK-IN, JOURNAL, DATA.
+
+CHECK-IN: one tap to record today. Adds to sync score. Tracks streak.
+
+JOURNAL: private text entries. Each entry adds to sync score. Nothing is uploaded. Entries are yours.
+
+DATA: see everything stored on this device — storage size, sync score, check-in history, journal count, quest completions. Export or wipe at any time.`,
+
+  rpg: `PALE SIGNAL RPG — QUICK START
+
+From the Hub HOME tab, tap PALE SIGNAL RPG to launch.
+
+CONTROLS
+D-pad: move. A: interact (look for ▲A prompts). B: cancel/back. START: open menu.
+
+YOUR STATS
+STR AGI WIT END REP PER — all start at 5, cap at 10.
+REP is the most useful for exploration: it unlocks talk-down options and NPC depth.
+WIT reduces Pale Art costs and deepens Oracle readings.
+PER reveals NPC engram fields on INSPECT.
+
+THE PALE
+Glowing tiles. Walk through them to build Pale Resonance. Press A on Oracle Stones to ask questions. Shrines restore HP and gate deeper identity mechanics.
+
+GEOFF
+Press A on Geoff (a rock) to set your working name. The Pale takes names seriously.
+
+MENU
+START opens: EXPLORER (your stats), EQUIP, PACK, SCHEMATICS, CODEX, LIBRARY, SAVE, APPEAR, and this GUIDE.`,
+
+  pixel: `PIXEL ENGINE v1.2
+
+A GBA-aesthetic pixel art tool for making sprites and tiles.
+
+CANVAS: 64×64 at 8× zoom.
+PALETTE: 16+ presets including Golden Sun, Golden Sun Djinn, GBA lighthouses, and Pokémon type palettes. Edit any colour with H/S/L sliders.
+
+TOOLS: pencil, fill, eyedropper, eraser, rectangle, value ladder.
+
+GS PALETTES: each has a Signal-world counterpart (cool-shifted, MMBN-derived). Toggle between physical and signal palette for dual-world design.
+
+Save/load palette. Undo stack. Grid toggle (G key) shows 8px and 16px tile boundaries.`,
+
+  chemistry: `CHEMISTRY TOOL v1.1
+
+All 118 elements with full data: atomic number, symbol, name, atomic mass, electron configuration, group, period, state, electronegativity.
+
+SEARCH: type any element name, symbol, or property. Filter by category.
+
+ELEMENT CATEGORIES: alkali metals, alkaline earth, transition metals, post-transition, metalloids, nonmetals, halogens, noble gases, lanthanides, actinides.
+
+The chemistry tool cross-references loosely with Pale Signal's 8 game elements: fire→transition metals (Fe, Cu), water→noble gases+O, earth→minerals (Ca, Si), metal→Fe/Ti alloys, wood→organic C/H/O chains, wind→N+light compounds.`,
+
+  tcg: `PALE SIGNAL TCG v1.1
+
+Scan. Build your deck from the world around you.
+
+ELEMENTS: all 8 Pale Signal elements — Water, Fire, Wood, Earth, Metal, Wind, Pale, Null. Each has a Light or Dark alignment.
+
+CARDS: element-typed with power, cost, and ability. Your deck is built from cards you discover in the RPG world.
+
+COMBAT: element interactions follow the Pale Signal matrix — Water beats Fire, Fire beats Wood, Wood beats Earth, Earth beats Metal, Metal beats Wind, Wind beats Water. Pale and Null are threshold elements — situational power.
+
+Full offline. Deck state saves to localStorage.`,
+};
+
+// ── SAEL SEND ─────────────────────────────────────────────────────────
+async function saelSend(){
+  const input=document.getElementById('chat-in');
+  const msg=input.value.trim();if(!msg)return;
+  input.value='';
+  appendBubble('user',msg);
+  chatHistory.push({role:'user',content:msg});
+  const send=document.getElementById('chat-send');send.disabled=true;
+
+  if(saelEngine==='ollama'){
+    const thinking=appendBubble('sael','...');
+    const ollamaBase=localStorage.getItem('ps-ollama-url')||'http://localhost:11434';
+    try{
+      const res=await fetch(ollamaBase+'/api/chat',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'llama3.2',messages:[{role:'system',content:SAEL_SYSTEM},...chatHistory],stream:false,options:{temperature:0.7,num_predict:600}})
+      });
+      if(res.ok){const data=await res.json();const reply=data.message?.content||data.response||'';if(reply){thinking.remove();appendBubble('sael',reply);chatHistory.push({role:'assistant',content:reply});trimHistory();send.disabled=false;return;}}
+    }catch(_){saelEngine=null;updateStatus('◈ SAEL · NETWORK LOST · ON-DEVICE');setTierBadge('INERT','var(--pale-dim)');}
+    thinking.remove();
+  }
+
+  if(saelReady&&saelEngine==='wllama'&&wllamaInstance){
+    // Animated thinking state: pulsing dots before first token arrives
+    const thinking=appendBubble('sael','');
+    thinking.classList.add('sael-thinking');
+    thinking.innerHTML=`<span class="sael-mark">SAEL</span><span class="think-dots"><span>.</span><span>.</span><span>.</span></span>`;
+    let tokenCount=0;
+    try{
+      // Use Llama instruct template — this is what makes the 1B model
+      // actually follow the system prompt and stay in character.
+      // Raw completion format was being ignored by the model entirely.
+      const prompt=buildWllamaPrompt(msg);
+      let reply='';
+      let rawOutput='';
+      // Speed tuning for 1B CPU inference:
+      // 150 tokens ≈ 4-5 sentences @ 5-8 tok/s = 20-30s response.
+      // top_k:20 cuts candidate pool in half, measurably faster on ARM.
+      // Sael's voice is concise — 150 tokens is the right ceiling.
+      await wllamaInstance.createCompletion(prompt,{
+        nPredict:150,
+        sampling:{temp:0.72,top_p:0.88,top_k:20,repeat_penalty:1.12,penalty_last_n:48},
+        onNewToken:(_tok,_piece,currentText)=>{
+          rawOutput=currentText;
+          tokenCount++;
+          // Strip leaked template tokens
+          reply=currentText
+            .replace(/<\|eot_id\|>.*/s,'')
+            .replace(/<\|[^>]+\|>/g,'')
+            .trim();
+          if(reply.length>0){
+            // Switch from pulsing dots to live streaming text
+            thinking.classList.remove('sael-thinking');
+            thinking.innerHTML=`<span class="sael-mark">SAEL</span>${escHtml(reply)}<span class="stream-cursor">▌</span>`;
+          }
+        }
+      });
+      thinking.remove();
+      reply=rawOutput
+        .replace(/<\|eot_id\|>[\s\S]*/,'')
+        .replace(/<\|[^|>]+\|>/g,'')
+        .replace(/▊$/,'')
+        .trim();
+      if(reply){appendBubble('sael',reply);chatHistory.push({role:'assistant',content:reply});trimHistory();}
+      send.disabled=false;return;
+    }catch(e){
+      thinking.remove();
+      console.warn('[Sael] wllama gen error:',e);
+      // Don't destroy the engine — a generation error shouldn't require re-download.
+      // Just surface a short error message and keep Sael ready.
+      const errMsg = e?.message||'';
+      if(errMsg.includes('memory')||errMsg.includes('oom')){
+        appendBubble('sael','Out of memory mid-generation. Try a shorter question or clear chat history.');
+      } else {
+        appendBubble('sael','The signal broke mid-thought. Ask again.');
+      }
+      send.disabled=false;
+      return;
+    }
+  }
+
+  // Inert fallback
+  const reply=inertRespond(msg);
+  appendBubble('sael',reply);
+  chatHistory.push({role:'assistant',content:reply});trimHistory();
+  send.disabled=false;
+}
+
+function appendBubble(role,text){
+  const log=document.getElementById('chat-log');
+  const div=document.createElement('div');
+  div.className='chat-bubble '+role;
+  if(role==='sael') div.innerHTML=`<span class="sael-mark">SAEL</span>${escHtml(text)}`;
+  else div.textContent=text;
+  log.appendChild(div);
+  log.scrollTop=log.scrollHeight;
+  return div;
+}
+function saelClear(){
+  const log=document.getElementById('chat-log');
+  log.innerHTML='<div class="chat-bubble sael"><span class="sael-mark">SAEL</span>Cleared. I\'m still here.</div>';
+  chatHistory.length=0;
+}
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}
+
+// ── VOICE ─────────────────────────────────────────────────────────────
+let voiceRec=null,voiceActive=false;
+function initVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const btn=document.getElementById('voice-btn');
+  if(!SR){if(btn)btn.style.display='none';return;}
+  voiceRec=new SR();voiceRec.lang='en-AU';voiceRec.continuous=false;voiceRec.interimResults=false;
+  voiceRec.onresult=e=>{const t=e.results[0][0].transcript;const inp=document.getElementById('chat-in');if(inp)inp.value=t;};
+  voiceRec.onend=()=>{voiceActive=false;if(btn)btn.classList.remove('listening');document.getElementById('voice-status').textContent='';};
+  voiceRec.onerror=()=>{voiceActive=false;if(btn)btn.classList.remove('listening');};
+}
+function toggleVoice(){
+  const btn=document.getElementById('voice-btn');
+  if(!voiceRec)return;
+  if(voiceActive){voiceRec.stop();}
+  else{voiceRec.start();voiceActive=true;btn.classList.add('listening');document.getElementById('voice-status').textContent='Listening...';}
+}
+
+// ── COOKBOOK ──────────────────────────────────────────────────────────
+const SEALED_RECIPES=[
+  {id:'r-stew-beef',name:"Chris's Working Beef Stew",icon:'🥘',tag:'SEALED',
+   meta:'Serves 4\u20136 \xb7 Active 30 min \xb7 Total 3.5 hrs',
+   ingredients:`\u2022 1.2kg beef chuck, cut into 5cm pieces (NOT stewing beef \u2014 chuck only)
+\u2022 2 tbsp neutral oil
+\u2022 2 onions, roughly chopped
+\u2022 4 garlic cloves, smashed
+\u2022 3 carrots, cut into large coins
+\u2022 3 stalks celery, cut into chunks
+\u2022 400g waxy potatoes, halved
+\u2022 2 tbsp tomato paste
+\u2022 250ml red wine (anything you'd drink)
+\u2022 600ml beef stock
+\u2022 2 sprigs fresh thyme (or 1 tsp dried)
+\u2022 2 bay leaves
+\u2022 Salt and black pepper`,
+   method:`1. Pat the beef completely dry with paper towel. Season aggressively with salt and pepper.
+2. Heat oil in a heavy pot (Dutch oven) over HIGH heat until shimmering.
+3. Brown beef in batches \u2014 do not crowd the pan. 3\u20134 min per side until deeply brown. Not optional. Remove and set aside.
+4. Reduce heat to medium. Add onion and cook 5 min until soft.
+5. Add garlic and tomato paste. Stir 2 minutes until paste darkens slightly.
+6. Pour in wine. Scrape up every brown bit from the bottom.
+7. Return beef to pot. Add stock, thyme, bay leaves. Liquid should just cover the meat.
+8. Bring to a simmer, then reduce to lowest heat. Cover with lid slightly ajar.
+9. Cook 2 hours. Add carrots, celery, potatoes. Cook another 45 minutes.
+10. Remove lid for last 20 minutes to reduce and thicken.
+11. Taste and adjust salt. Remove bay leaves and thyme sprigs.`,
+   note:`Better next day \u2014 collagen sets overnight and flavour deepens. Reheat gently.
+The browning in step 3 is the entire foundation. Steamed meat = flat stew.`},
+
+  {id:'r-stew-lentil',name:'Red Lentil & Coconut Stew',icon:'🥘',tag:'SEALED',
+   meta:'Serves 4 \xb7 Active 15 min \xb7 Total 35 min',
+   ingredients:`\u2022 300g red lentils, rinsed
+\u2022 1 400ml tin coconut milk
+\u2022 400ml vegetable stock
+\u2022 1 large onion, diced
+\u2022 4 garlic cloves, minced
+\u2022 1 tbsp fresh ginger, grated
+\u2022 2 tsp cumin, 1 tsp coriander, 1 tsp turmeric, \xbd tsp cayenne
+\u2022 1 400g tin chopped tomatoes
+\u2022 2 tbsp oil
+\u2022 Juice of 1 lime
+\u2022 Yogurt and fresh coriander to serve`,
+   method:`1. Heat oil in a large pot over medium heat. Cook onion 8 minutes until golden.
+2. Add garlic and ginger. Cook 2 minutes until fragrant.
+3. Add all spices. Stir constantly 1 minute until toasted.
+4. Add tomatoes, lentils, stock, and coconut milk. Stir well.
+5. Bring to a boil, then steady simmer uncovered 20 minutes, stirring occasionally.
+6. Lentils should completely dissolve \u2014 the result should be thick and creamy.
+7. Add lime juice. Taste and adjust salt and lime.
+8. Serve with yogurt and fresh coriander. Works with rice or bread.`,
+   note:`Red lentils dissolve \u2014 that is intentional and correct. Not chunky.
+Too thick: add water. Too thin: cook uncovered longer.`},
+
+  {id:'r-stew-moroccan',name:'Moroccan Lamb & Chickpea',icon:'🥘',tag:'SEALED',
+   meta:'Serves 4 \xb7 Active 25 min \xb7 Total 2 hrs',
+   ingredients:`\u2022 800g lamb shoulder, cut into 4cm pieces
+\u2022 1 400g tin chickpeas, drained
+\u2022 1 400g tin chopped tomatoes
+\u2022 1 large onion, diced
+\u2022 3 garlic cloves, minced
+\u2022 400ml lamb or chicken stock
+\u2022 2 tbsp olive oil
+\u2022 1 tsp each: cumin, coriander, cinnamon, paprika
+\u2022 \xbd tsp ginger, \xbc tsp cayenne
+\u2022 Zest of 1 lemon, fresh parsley`,
+   method:`1. Mix all spices. Season lamb with salt, pepper, and half the spice mix.
+2. Brown lamb in batches over high heat, 3 min per side. Remove.
+3. Same pot: cook onion 5 min, add garlic and remaining spices, stir 1 min.
+4. Add tomatoes, stock, and browned lamb. Bring to a simmer.
+5. Cover and cook low 1 hr 15 min until lamb is tender.
+6. Add chickpeas. Cook uncovered 15 more minutes.
+7. Stir in lemon zest. Scatter parsley. Serve with couscous or flatbread.`,
+   note:`The cinnamon is not a mistake. It is subtle and essential.
+Use shoulder, not leg \u2014 leg dries out over long cooking.`},
+
+  {id:'r-stew-sausage',name:'White Bean & Sausage',icon:'🥘',tag:'SEALED',
+   meta:'Serves 4 \xb7 Active 20 min \xb7 Total 50 min',
+   ingredients:`\u2022 4 good pork sausages (Italian-style or merguez)
+\u2022 2 x 400g tins cannellini or butter beans, drained
+\u2022 1 400g tin chopped tomatoes
+\u2022 1 onion, diced \xb7 3 garlic cloves, sliced
+\u2022 200ml chicken stock \xb7 150ml white wine
+\u2022 1 tsp dried rosemary \xb7 1 tsp smoked paprika
+\u2022 2 tbsp olive oil
+\u2022 Handful spinach or kale (optional)`,
+   method:`1. Brown whole sausages in olive oil, 8 minutes all sides. Remove and slice.
+2. Same pan: cook onion 5 min, add garlic, rosemary, paprika \u2014 1 min.
+3. Add wine, let reduce by half. Add tomatoes, stock, beans.
+4. Return sliced sausages. Simmer uncovered 20 minutes until thick.
+5. Stir in greens if using \u2014 wilt 2 minutes.
+6. Serve in deep bowls with crusty bread for the sauce.`,
+   note:`Sausage quality is the entire dish. Don't use budget sausages.
+This improves overnight as beans absorb the sauce.`},
+
+  {id:'r-stew-mushroom',name:'Wild Mushroom & Thyme',icon:'🥘',tag:'SEALED',
+   meta:'Serves 4 \xb7 Active 20 min \xb7 Total 45 min \xb7 Vegetarian',
+   ingredients:`\u2022 500g mixed mushrooms (portobello, chestnut, shiitake \u2014 not just button)
+\u2022 20g dried porcini + 200ml boiling water
+\u2022 2 shallots \xb7 3 garlic cloves \xb7 6 sprigs fresh thyme
+\u2022 200ml white wine \xb7 300ml vegetable stock \xb7 150ml double cream
+\u2022 2 tbsp butter \xb7 1 tbsp olive oil
+\u2022 1 tbsp soy sauce (the secret)`,
+   method:`1. Soak porcini in boiling water 20 min. Strain, keeping all liquid. Chop porcini.
+2. Tear fresh mushrooms into large pieces \u2014 do not chop small.
+3. Heat butter and oil over HIGH heat. Add mushrooms in single layer. Do not stir 3 min \u2014 let them brown, not steam.
+4. Stir once, 2 more min. Season. Add shallots and garlic, cook 3 min.
+5. Add wine \u2014 bubble until almost gone.
+6. Add porcini, soaking liquid, stock, thyme. Simmer 15 min.
+7. Add cream and soy sauce. Simmer 5 more minutes. Taste and adjust.`,
+   note:`The soy sauce is the trick \u2014 umami, not flavour. You won't taste it but you'll taste its absence.
+Step 3 is critical: mushrooms need to sear, not steam. High heat, don't crowd.`},
+
+  {id:'r-chicken-mustard',name:'Poulet au Moutarde',icon:'🍗',tag:'SEALED',
+   meta:'Serves 4 \xb7 Active 25 min \xb7 Total 50 min',
+   ingredients:`\u2022 8 bone-in, skin-on chicken thighs
+\u2022 3 tbsp Dijon mustard (smooth) + 1 tbsp whole-grain mustard
+\u2022 200ml cr\xe8me fra\xeeche
+\u2022 150ml dry white wine
+\u2022 2 shallots, finely diced \xb7 3 garlic cloves, minced
+\u2022 1 tbsp butter
+\u2022 Fresh tarragon or thyme`,
+   method:`1. Preheat oven to 200\xb0C.
+2. Pat chicken dry. Season skin generously with salt and pepper.
+3. Heat butter in an oven-safe pan over medium-high. Chicken skin-side down.
+4. Cook without moving 8 minutes until skin is deeply golden and crisp. Flip, cook 3 min more.
+5. Remove chicken. Add shallots, cook 3 min. Add garlic, 1 min. Add wine, scrape the bottom.
+6. Whisk in both mustards. Stir in cr\xe8me fra\xeeche.
+7. Return chicken skin-side up \u2014 keep skin above the liquid.
+8. Transfer to oven. Roast 20\u201325 min until cooked through.
+9. Add fresh herbs to the sauce. Taste and adjust.`,
+   note:`The sauce is the point \u2014 make more than you think you need. Serve with mashed potato.
+Do not let the sauce boil hard after adding cr\xe8me fra\xeeche \u2014 it can split. Gentle simmer only.`},
+
+  {id:'r-chicken-lemon',name:'Lemon & Caper Chicken',icon:'🍗',tag:'SEALED',
+   meta:'Serves 4 \xb7 Active 20 min \xb7 Total 35 min',
+   ingredients:`\u2022 4 boneless skinless chicken breasts
+\u2022 3 tbsp capers, drained and roughly chopped
+\u2022 Juice and zest of 2 lemons
+\u2022 150ml chicken stock \xb7 75ml dry white wine
+\u2022 3 garlic cloves, sliced thin
+\u2022 2 tbsp olive oil \xb7 1 tbsp butter
+\u2022 Small bunch flat-leaf parsley`,
+   method:`1. Pound chicken between plastic wrap to even 1.5cm thickness. This is not optional.
+2. Season well with salt and pepper.
+3. Heat oil over medium-high. Cook chicken 4\u20135 min each side until golden. Remove.
+4. Add butter to same pan. Add garlic, cook 1 min until just golden.
+5. Add wine, bubble and scrape. Add stock, lemon juice and zest, capers.
+6. Simmer 3\u20134 min until sauce reduces slightly.
+7. Return chicken. Spoon sauce over. Heat 1 minute.
+8. Scatter parsley. Serve immediately.`,
+   note:`Capers bring salt \u2014 go easy until after they're in, then taste.
+The pounding ensures even cooking. Uneven chicken = dry chicken.`},
+
+  {id:'r-chicken-roast',name:'Crispy Roast Thighs with Garlic',icon:'🍗',tag:'SEALED',
+   meta:'Serves 4 \xb7 Active 10 min \xb7 Total 45 min \xb7 Nearly effortless',
+   ingredients:`\u2022 8 bone-in, skin-on chicken thighs
+\u2022 1 whole head of garlic, cloves separated, unpeeled
+\u2022 2 tbsp olive oil
+\u2022 1 tsp smoked paprika \xb7 1 tsp dried thyme \xb7 \xbd tsp onion powder
+\u2022 Salt and pepper`,
+   method:`1. Preheat oven to 220\xb0C. This high heat is essential.
+2. Pat chicken completely dry \u2014 any moisture stops crisping.
+3. Mix oil and spices. Coat chicken all over.
+4. Arrange skin-side up in a single layer. Tuck garlic cloves around.
+5. Roast 35\u201340 min until skin is deeply golden and crisp.
+6. Juices run clear when the thickest part is pierced.
+7. Squeeze roasted garlic into pan juices and spoon over chicken.`,
+   note:`Do not cover. Do not baste. Do not open the oven early.
+Bone-in, skin-on only. Boneless breasts do not belong at this temperature.`},
+
+  {id:'r-chicken-shawarma',name:'Sheet Pan Shawarma',icon:'🍗',tag:'SEALED',
+   meta:'Serves 4 \xb7 Active 15 min \xb7 Marinate 1 hr+ \xb7 Cook 25 min',
+   ingredients:`\u2022 700g boneless skinless chicken thighs
+\u2022 3 tbsp olive oil \xb7 4 garlic cloves, minced \xb7 Juice of 1 lemon
+\u2022 1 tsp each: cumin, coriander, smoked paprika, turmeric
+\u2022 \xbd tsp each: cinnamon, allspice, black pepper
+\u2022 \xbc tsp cayenne \xb7 1 tsp salt
+\u2022 To serve: flatbread, yogurt, cucumber, tomato, parsley`,
+   method:`1. Mix oil, garlic, lemon juice, and all spices into a paste.
+2. Coat chicken thoroughly. Marinate min 1 hour, overnight is better.
+3. Preheat oven to 230\xb0C. Line baking tray with foil.
+4. Spread chicken in a single layer \u2014 don't crowd.
+5. Roast 20\u201325 min until charred at edges and cooked through.
+6. Rest 5 min, then slice thinly across the grain.
+7. Pile into warm flatbreads with yogurt, cucumber, tomato, parsley.`,
+   note:`Cinnamon and allspice are the signature of shawarma. Don't skip them.
+The char at the edges is correct and intentional \u2014 that is where the flavour is.`},
+
+  {id:'r-chicken-thai',name:'Thai Basil Chicken (Pad Kra Pao)',icon:'🍗',tag:'SEALED',
+   meta:'Serves 2 \xb7 Active 15 min \xb7 Total 15 min \xb7 Fast',
+   ingredients:`\u2022 400g minced or finely chopped chicken thigh
+\u2022 Large handful Thai basil (regular basil works, different result)
+\u2022 4 garlic cloves, minced \xb7 2\u20134 bird's eye chillies, sliced
+\u2022 2 shallots, sliced thin
+\u2022 2 tbsp oyster sauce \xb7 1 tbsp fish sauce \xb7 1 tbsp soy sauce
+\u2022 1 tsp white sugar \xb7 2 tbsp neutral oil
+\u2022 2 fried eggs (optional but correct)`,
+   method:`1. Mix oyster sauce, fish sauce, soy sauce, and sugar. Set aside.
+2. Heat oil in a wok over maximum heat \u2014 genuinely hot.
+3. Add garlic and chilli. Stir fry 30 seconds \u2014 don't burn.
+4. Add chicken. Let sit 1 min for colour, then stir. Cook through, 4 min total.
+5. Pour in sauce. Toss to coat everything.
+6. Off heat: add basil and toss 30 seconds until wilted.
+7. Serve over jasmine rice. Top with fried egg.`,
+   note:`The fried egg is not optional if you're doing this properly.
+Maximum heat throughout. This is not a gentle dish.`},
+
+  {id:'r-ramen',name:'Pale Signal Ramen',icon:'🍜',tag:'SEALED',
+   meta:'Serves 2 \xb7 Active 30 min \xb7 Total 45 min',
+   ingredients:`\u2022 200g ramen noodles (fresh or dried)
+\u2022 2 tbsp white or red miso paste
+\u2022 1 litre dashi stock (or chicken stock as substitute)
+\u2022 2 tbsp soy sauce \xb7 1 tbsp mirin
+\u2022 2 eggs
+\u2022 Toppings: sliced spring onion, nori, sesame seeds, chilli oil
+\u2022 Optional: chashu pork belly, corn, bamboo shoots`,
+   method:`1. EGGS (do first): Bring a small pot to a rolling boil. Gently lower in eggs.
+   Boil exactly 7 minutes. Transfer immediately to ice water. Peel carefully after 5 min.
+   Halve just before serving \u2014 the yolk should be jammy, not hard.
+2. BROTH: Heat dashi to a simmer. Add soy sauce and mirin.
+3. In a bowl, whisk miso with a ladle of hot broth until smooth. Add back to pot.
+   Do not boil after miso goes in \u2014 it kills the flavour.
+4. Cook noodles separately per packet. Drain.
+5. ASSEMBLE: Noodles in bowl, pour hot broth over, arrange toppings, add egg halves.`,
+   note:`The 7-minute egg is the soul of this dish. Timing is exact. Ice bath is immediate.
+Miso into broth, never broth into miso. Never boil after miso is added.`},
+
+  {id:'r-steak',name:'Steak au Poivre',icon:'🥩',tag:'SEALED',
+   meta:'Serves 2 \xb7 Active 20 min \xb7 Total 25 min',
+   ingredients:`\u2022 2 thick-cut steaks (ribeye or sirloin, minimum 3cm)
+\u2022 2 tbsp whole black peppercorns
+\u2022 3 tbsp cognac or brandy
+\u2022 150ml double cream
+\u2022 1 shallot, finely diced
+\u2022 2 tbsp butter
+\u2022 Salt`,
+   method:`1. PEPPER: Crack peppercorns coarsely with a mortar, rolling pin, or pan. Shards, not dust.
+2. Press pepper into both sides of each steak. Season with salt.
+3. Heat a heavy pan over very high heat until smoking. No oil needed if using butter.
+4. Add butter. Cook steaks 3\u20134 min each side for medium-rare (internal 55\xb0C).
+5. Remove steaks. REST 5 min minimum \u2014 this is not optional.
+6. SAUCE: Reduce heat to medium. Add shallot, cook 2 min.
+7. Add cognac. It may flame \u2014 let it burn out naturally. Tilt pan away from you.
+8. Add cream. Stir and reduce 2\u20133 min until sauce coats a spoon.
+9. Spoon sauce over rested steaks.`,
+   note:`Rest is not negotiable. Cutting early loses all the juices.
+The flame is theatre \u2014 it burns off the alcohol. Don't panic.`},
+
+  {id:'r-lava',name:'Chocolate Lava Cakes',icon:'🍫',tag:'LH-09',
+   meta:'Serves 4 \xb7 Active 15 min \xb7 Chill 30 min \xb7 Bake 11 min',
+   ingredients:`\u2022 200g dark chocolate (70% minimum)
+\u2022 200g unsalted butter, plus extra for ramekins
+\u2022 4 whole eggs + 4 egg yolks
+\u2022 200g icing sugar
+\u2022 60g plain flour
+\u2022 Cocoa powder for dusting ramekins
+\u2022 4 x 175ml ramekins`,
+   method:`1. Preheat oven to 220\xb0C. Butter ramekins generously, then dust with cocoa powder.
+   Tap out excess. This step prevents sticking and is not optional.
+2. Melt chocolate and butter together in a heatproof bowl over hot water. Stir until smooth. Let cool slightly.
+3. Whisk eggs, egg yolks, and icing sugar together until pale.
+4. Fold chocolate mixture into egg mixture gently.
+5. Sift in flour. Fold until just combined \u2014 don't overmix.
+6. Fill ramekins \xbe full. Refrigerate minimum 30 minutes (can prep hours ahead).
+7. Bake from cold: 10\u201312 minutes. Edges should be set, centre should move when gently shaken.
+8. Run a knife around the edge. Place plate on top, flip quickly. Wait 10 seconds. Lift ramekin.`,
+   note:`The running centre is not a mistake. It is the entire point.
+If in doubt, err on the side of less time. An undercooked lava cake is still good. An overcooked one is just a cake.
+Prep these hours ahead and bake to order.`},
+];
+
+function renderCookbook(){
+  const list=document.getElementById('recipe-list');
+  const custom=LS.get('recipes')||[];
+  const overrides=LS.get('recipe-overrides')||{};
+  const sealed=SEALED_RECIPES.map(r=>overrides[r.id]?{...r,...overrides[r.id]}:r);
+  const all=[...sealed,...custom];
+  list.innerHTML='';
+  all.forEach(r=>{
+    const card=document.createElement('div');card.className='recipe-card';
+    const isSealed=r.tag==='SEALED'||r.tag==='LH-09';
+    let bodyHtml='';
+    if(r.meta&&!r.text) bodyHtml+=`<div class="recipe-meta">${escHtml(r.meta)}</div>`;
+    if(r.ingredients&&!r.text){
+      bodyHtml+=`<div class="recipe-section">INGREDIENTS</div><div class="recipe-ingr">${escHtml(r.ingredients)}</div>`;
+      bodyHtml+=`<div class="recipe-section">METHOD</div><div class="recipe-steps">${escHtml(r.method||'')}</div>`;
+      if(r.note) bodyHtml+=`<div class="recipe-note">${escHtml(r.note)}</div>`;
+    } else {
+      bodyHtml+=`<div class="recipe-text" id="rt-${r.id}">${escHtml(r.text||'No content yet. Tap EDIT to write.')}</div>`;
+    }
+    const editVal=r.text||([(r.meta?'SERVES/TIME: '+r.meta:''),(r.ingredients?'INGREDIENTS\n'+r.ingredients:''),(r.method?'METHOD\n'+r.method:''),(r.note?'NOTE: '+r.note:'')].filter(Boolean).join('\n\n'));
+    bodyHtml+=`<textarea class="recipe-edit" id="re-${r.id}">${escHtml(editVal)}</textarea>`;
+    bodyHtml+=`<div class="recipe-actions">
+      <button class="r-btn" id="redit-${r.id}" onclick="toggleRecipeEdit('${r.id}')">EDIT</button>
+      <button class="r-btn" onclick="saveRecipeEdit('${r.id}')">SAVE</button>
+      ${!isSealed?`<button class="r-btn" onclick="deleteRecipe('${r.id}')" style="color:var(--red)">DELETE</button>`:''}
+    </div>`;
+    card.innerHTML=`
+      <div class="recipe-header" onclick="toggleRecipe('${r.id}')">
+        <span class="recipe-icon">${r.icon||'\ud83d\udcc4'}</span>
+        <span class="recipe-name">${escHtml(r.name)}</span>
+        ${r.tag?`<span class="recipe-tag">${r.tag}</span>`:''}
+      </div>
+      <div class="recipe-body" id="rb-${r.id}">${bodyHtml}</div>`;
+    list.appendChild(card);
+  });
+}
+function toggleRecipe(id){document.getElementById('rb-'+id)?.classList.toggle('open');}
+function toggleRecipeEdit(id){
+  const ta=document.getElementById('re-'+id);
+  const btn=document.getElementById('redit-'+id);
+  if(!ta)return;
+  const opening=!ta.classList.contains('open');
+  ta.classList.toggle('open');
+  if(btn)btn.classList.toggle('edit-active',opening);
+}
+function saveRecipeEdit(id){
+  const ta=document.getElementById('re-'+id);if(!ta)return;
+  const val=ta.value;
+  const sealed=SEALED_RECIPES.find(r=>r.id===id);
+  if(sealed){
+    const ov=LS.get('recipe-overrides')||{};
+    ov[id]={text:val,ingredients:null,method:null,note:null,meta:null};
+    LS.set('recipe-overrides',ov);
+  } else {
+    const custom=LS.get('recipes')||[];
+    const r=custom.find(x=>x.id===id);
+    if(r){r.text=val;LS.set('recipes',custom);}
+  }
+  ta.classList.remove('open');
+  const btn=document.getElementById('redit-'+id);
+  if(btn)btn.classList.remove('edit-active');
+  renderCookbook();
+}
+function deleteRecipe(id){
+  const custom=(LS.get('recipes')||[]).filter(r=>r.id!==id);
+  LS.set('recipes',custom);renderCookbook();
+}
+function addRecipe(){
+  const inp=document.getElementById('new-recipe-name');
+  const name=inp?.value.trim();if(!name)return;
+  const custom=LS.get('recipes')||[];
+  const tmpl='SERVES/TIME: Serves 4 \xb7 30 min\n\nINGREDIENTS\n\u2022 \n\u2022 \n\nMETHOD\n1. \n2. \n3. \n\nNOTE: ';
+  const newR={id:'r-'+Date.now(),name,icon:'\ud83d\udcc4',text:tmpl};
+  custom.push(newR);
+  LS.set('recipes',custom);inp.value='';renderCookbook();
+  setTimeout(()=>{
+    document.getElementById('rb-'+newR.id)?.classList.add('open');
+    toggleRecipeEdit(newR.id);
+  },80);
+}
+
+
+
+// ── CALCULATOR ────────────────────────────────────────────────────────
+const CONVS={
+  WEIGHT:[
+    {fmt:'kg',fn:v=>v},{fmt:'lb',fn:v=>v*2.20462},{fmt:'oz',fn:v=>v*35.274},
+    {fmt:'g',fn:v=>v*1000},{fmt:'stone',fn:v=>v/6.35029},
+  ],
+  VOLUME:[
+    {fmt:'ml',fn:v=>v},{fmt:'l',fn:v=>v/1000},{fmt:'tsp',fn:v=>v*0.202884},
+    {fmt:'tbsp',fn:v=>v*0.0676280},{fmt:'cup (US)',fn:v=>v*0.00422675},
+    {fmt:'fl oz (US)',fn:v=>v*0.033814},{fmt:'pint (US)',fn:v=>v*0.00211338},
+  ],
+  TEMP:[
+    {fmt:'°C',fn:v=>v},{fmt:'°F',fn:v=>v*9/5+32},{fmt:'K',fn:v=>v+273.15},
+  ],
+};
+let activeConv='WEIGHT';
+function switchCookTab(tab){
+  ['recipes','calc'].forEach(t=>{
+    document.getElementById('ctab-'+t)?.classList.toggle('active',t===tab);
+    document.getElementById('csec-'+t)?.classList.toggle('show',t===tab);
+  });
+  if(tab==='calc') renderCalc();
+}
+function renderCalc(){
+  const w=document.getElementById('calc-wrap');if(!w)return;
+  w.innerHTML=`
+    <div style="padding:10px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${Object.keys(CONVS).map(k=>`<button class="q-btn" id="cconv-${k}" onclick="setConverter('${k}')">${k}</button>`).join('')}
+      </div>
+      <input id="conv-input" class="chat-input" type="number" placeholder="enter value..." oninput="doConvert(this.value)" style="font-size:11px">
+      <div id="conv-results" style="display:flex;flex-direction:column;gap:5px"></div>
+    </div>`;
+  setConverter('WEIGHT');
+}
+function setConverter(key){
+  activeConv=key;
+  Object.keys(CONVS).forEach(k=>{
+    const b=document.getElementById('cconv-'+k);
+    if(b) b.style.color=k===key?'var(--pale)':'var(--text-dim)';
+  });
+  doConvert(document.getElementById('conv-input')?.value||'');
+}
+function doConvert(val){
+  const v=parseFloat(val);
+  const area=document.getElementById('conv-results');
+  if(!area)return;
+  if(isNaN(v)){area.innerHTML='';return;}
+  area.innerHTML=CONVS[activeConv].map(c=>{
+    const r=Math.round(c.fn(v)*10000)/10000;
+    return `<div style="display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:10px;padding:5px 7px;background:rgba(255,255,255,.02);border:1px solid #162030;border-radius:3px">
+      <span style="color:var(--text-dim)">${c.fmt}</span>
+      <span style="color:var(--pale-bright)">${r}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── CARE TABS ─────────────────────────────────────────────────────────
+function switchCareTab(tab){
+  ['checkin','journal','data'].forEach(t=>{
+    document.getElementById('ctab-'+t)?.classList.toggle('active',t===tab);
+    document.getElementById('csec-'+t)?.classList.toggle('show',t===tab);
+  });
+  if(tab==='journal') renderJournal();
+  if(tab==='goals') renderGoals();
+  if(tab==='data') renderData();
+}
+
+// ── FINCH CHECK-IN ─────────────────────────────────────────────────────
+const finchState={mood:0,water:0,moved:false,rested:false,ate:false,oneThing:''};
+function renderFinch(){
+  const now=new Date();
+  document.getElementById('finch-date').textContent=
+    now.toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase();
+  const history=LS.get('finch-history')||{};
+  let streak=0,check=todayKey();
+  const today=todayKey();
+  while(history[check]){streak++;const d=new Date(check);d.setDate(d.getDate()-1);check=d.toISOString().slice(0,10);}
+  document.getElementById('finch-streak').textContent=streak>0?'◈ '+streak+' DAY STREAK':'';
+  const todayData=history[today];
+  if(todayData){
+    finchState.mood=todayData.mood||0;finchState.water=todayData.water||0;
+    finchState.moved=todayData.moved||false;finchState.rested=todayData.rested||false;
+    finchState.ate=todayData.ate||false;finchState.oneThing=todayData.oneThing||'';
+  }
+  renderStars('mood',finchState.mood);renderStars('water',finchState.water);
+  renderCheck('moved',finchState.moved);renderCheck('rested',finchState.rested);renderCheck('ate',finchState.ate);
+  const ot=document.getElementById('one-thing');if(ot)ot.value=finchState.oneThing;
+  document.querySelectorAll('.finch-star').forEach(s=>{
+    s.onclick=()=>{finchState[s.dataset.group]=+s.dataset.val;renderStars(s.dataset.group,+s.dataset.val);};
+  });
+  renderFinchHistory(history);
+}
+function renderStars(group,val){
+  document.querySelectorAll(`.finch-star[data-group="${group}"]`).forEach(s=>{s.classList.toggle('on',+s.dataset.val<=val);});
+}
+function renderCheck(id,val){
+  const el=document.getElementById('check-'+id);if(!el)return;
+  el.classList.toggle('on',val);el.textContent=val?'✓':'';
+}
+function toggleCheck(id){finchState[id]=!finchState[id];renderCheck(id,finchState[id]);}
+function saveFinch(){
+  const ot=document.getElementById('one-thing');
+  finchState.oneThing=ot?ot.value.trim():'';
+  const history=LS.get('finch-history')||{};
+  history[todayKey()]={...finchState,savedAt:new Date().toISOString()};
+  LS.set('finch-history',history);
+  SYNC.refresh(); // Update sync score immediately after check-in
+  renderFinch();
+}
+function renderFinchHistory(history){
+  const container=document.getElementById('finch-history');if(!container)return;
+  const keys=Object.keys(history).sort().reverse().slice(0,7);
+  if(!keys.length){container.innerHTML='';return;}
+  container.innerHTML='<div class="finch-hist-label">RECENT ENTRIES</div>';
+  keys.forEach(k=>{
+    const d=history[k];
+    const div=document.createElement('div');div.className='finch-entry';
+    const moodBar='♡'.repeat(d.mood||0)+'·'.repeat(Math.max(0,5-(d.mood||0)));
+    div.innerHTML=`<div class="finch-entry-date">${k}</div>mood ${moodBar} · water ${d.water||0}\n${d.moved?'moved ✓ ':''}${d.rested?'rested ✓ ':''}${d.ate?'ate ✓':''}\n${d.oneThing?'"'+d.oneThing+'"':''}`;
+    container.appendChild(div);
+  });
+}
+
+// ── JOURNAL ───────────────────────────────────────────────────────────
+const JOURNAL_PROMPTS=[
+  'What happened today that you want to remember?',
+  'What surprised you?',
+  'What would you tell past-you right now?',
+  'One thing you built today — in any sense.',
+  'Something that happened outside a screen.',
+  'What do you want tomorrow to feel like?',
+  'What are you carrying that you could set down?',
+];
+function updateWordCount(){
+  const inp=document.getElementById('journal-input');
+  const wc=document.getElementById('journal-wc');
+  if(!inp||!wc)return;
+  const words=inp.value.trim().split(/\s+/).filter(w=>w.length>0).length;
+  wc.textContent=(words===0?'0':words.toLocaleString())+' WORD'+(words===1?'':'S');
+}
+function renderJournal(){
+  // Datestamp
+  const ds=document.getElementById('journal-datestamp');
+  if(ds){
+    const now=new Date();
+    const days=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+    ds.textContent=`${days[now.getDay()]} · ${now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}).toUpperCase()}`;
+  }
+  const el=document.getElementById('journal-prompt');
+  if(el) el.textContent=JOURNAL_PROMPTS[new Date().getDay()];
+  const history=LS.get('journal')||{};
+  const input=document.getElementById('journal-input');
+  if(input){ input.value=history[todayKey()]?.text||''; updateWordCount(); }
+  renderJournalHistory(history);
+}
+function saveJournalEntry(){
+  const input=document.getElementById('journal-input');
+  const text=input?.value.trim();if(!text)return;
+  const history=LS.get('journal')||{};
+  history[todayKey()]={text,savedAt:new Date().toISOString()};
+  LS.set('journal',history);
+  SYNC.refresh();
+  renderJournalHistory(history);
+  const btn=document.querySelector('.journal-save');
+  if(btn){const orig=btn.textContent;btn.textContent='◈ RECORDED';setTimeout(()=>btn.textContent=orig,1500);}
+}
+function renderJournalHistory(history){
+  const container=document.getElementById('journal-history');if(!container)return;
+  const keys=Object.keys(history).sort().reverse().slice(0,7);
+  if(!keys.length){container.innerHTML='';return;}
+  // No label here — it's in the HTML as a static element now
+  container.innerHTML='';
+  keys.forEach(k=>{
+    const d=history[k];
+    // Format date more readably
+    let dateLabel=k;
+    try{
+      const dt=new Date(k.replace(/-/g,'/'));
+      dateLabel=dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}).toUpperCase();
+    }catch(_){}
+    const wordCount=( d.text||'').trim().split(/\s+/).filter(w=>w.length>0).length;
+    const entry=document.createElement('div');
+    entry.className='journal-entry';
+    entry.innerHTML=`
+      <div class="journal-entry-date">${dateLabel} · ${wordCount} WORDS</div>
+      <div class="journal-entry-text">${escHtml((d.text||'').slice(0,300)+(d.text?.length>300?'…':''))}</div>`;
+    container.appendChild(entry);
+  });
+}
+
+// ── DATA TRANSPARENCY ─────────────────────────────────────────────────
+function renderData(){
+  const panel=document.getElementById('data-panel');if(!panel)return;
+  const keys=LS.keys();
+  const bytes=LS.bytes();
+  const kb=(bytes/1024).toFixed(1);
+  const syncState=LS.get('sync')||{score:0};
+  const finchCount=Object.keys(LS.get('finch-history')||{}).length;
+  const journalCount=Object.keys(LS.get('journal')||{}).length;
+  const customRecipes=(LS.get('recipes')||[]).length;
+  const questsDone=Object.values(LS.get('quests')||{}).filter(q=>q.done).length;
+
+  panel.innerHTML=`
+    <div class="data-sovereignty">◈ ALL DATA ON THIS DEVICE · NOTHING UPLOADED</div>
+
+    <div class="data-row">
+      <div class="data-key">STORAGE USED</div>
+      <div class="data-val present">${kb} KB across ${keys.length} keys</div>
+    </div>
+
+    <div class="data-row">
+      <div class="data-key">SYNCHRONICITY</div>
+      <div class="data-val present">Score ${syncState.score} / 100 · Last session ${syncState.lastDate||'never'}</div>
+    </div>
+
+    <div class="data-row">
+      <div class="data-key">CHECK-IN HISTORY</div>
+      <div class="data-val ${finchCount>0?'present':'absent'}">${finchCount} day${finchCount!==1?'s':''} recorded</div>
+    </div>
+
+    <div class="data-row">
+      <div class="data-key">JOURNAL ENTRIES</div>
+      <div class="data-val ${journalCount>0?'present':'absent'}">${journalCount} entr${journalCount!==1?'ies':'y'}</div>
+    </div>
+
+    <div class="data-row">
+      <div class="data-key">CUSTOM RECIPES</div>
+      <div class="data-val ${customRecipes>0?'present':'absent'}">${customRecipes} saved</div>
+    </div>
+
+    <div class="data-row">
+      <div class="data-key">QUESTS MARKED DONE</div>
+      <div class="data-val ${questsDone>0?'present':'absent'}">${questsDone} completed</div>
+    </div>
+
+    <div class="data-row">
+      <div class="data-key">SAEL MODEL (IndexedDB)</div>
+      <div class="data-val ${localStorage.getItem('ps-sael-model')?'present':'absent'}">${localStorage.getItem('ps-sael-model')?'Downloaded · ~880MB · Fully offline':'Not yet downloaded'}</div>
+    </div>
+
+    <button class="data-export-btn" onclick="exportAllData()">⬇ EXPORT ALL DATA AS JSON</button>
+    <button class="data-export-btn" onclick="exportSyncState()" style="background:rgba(0,255,170,.05);border-color:rgba(0,255,170,.3);color:var(--signal);margin-top:0">⬇ EXPORT SYNC STATE</button>
+  `;
+}
+
+function exportAllData(){
+  const data={};
+  LS.keys().forEach(k=>{data[k.replace('ps-','')]=LS.get(k.replace('ps-',''));});
+  data._exported=new Date().toISOString();
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='pale-signal-data-'+todayKey()+'.json';a.click();
+}
+function exportSyncState(){
+  const sync=LS.get('sync')||{};
+  sync._exported=new Date().toISOString();
+  const blob=new Blob([JSON.stringify(sync,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='pale-signal-sync-'+todayKey()+'.json';a.click();
+}
+
+// ── VIEWPORT SCALING ──────────────────────────────────────────────────
+function scaleShell(){
+  const shell=document.getElementById('shell');if(!shell||shell.style.display==='none')return;
+  // Shell uses min(440px,100vw) CSS — no transform scale needed on small screens.
+  // Transform scale causes layout thrash and wastes screen space.
+  // Only scale down if screen is somehow smaller than minimum usable width.
+  const vw=window.innerWidth;
+  if(vw<320){
+    const scale=vw/320;
+    shell.style.transform='scale('+scale+')';
+    shell.style.transformOrigin='top center';
+    shell.style.marginBottom=((scale-1)*shell.offsetHeight)+'px';
+  }else{
+    shell.style.transform='';
+    shell.style.marginBottom='';
+  }
+}
+window.addEventListener('resize',scaleShell);
+
+// ── INIT ──────────────────────────────────────────────────────────────
+// ── GOALS SYSTEM ───────────────────────────────────────────────────────
+// Real-life goals with milestones, progress %, why-it-matters.
+// Feeds sync score. Sael can reference active goals.
+// Implements SQ-GOAL-TRACKER.
+
+function loadGoals(){ return LS.get('goals')||[]; }
+function saveGoals(g){ LS.set('goals',g); }
+
+function showAddGoal(){
+  const f=document.getElementById('goals-add-form');
+  if(f) f.style.display=f.style.display==='none'?'flex':'none';
+}
+
+function saveNewGoal(){
+  const title=(document.getElementById('goal-title-input')?.value||'').trim();
+  const why=(document.getElementById('goal-why-input')?.value||'').trim();
+  const date=(document.getElementById('goal-date-input')?.value||'').trim();
+  if(!title) return;
+  const goals=loadGoals();
+  goals.unshift({
+    id:'g'+Date.now(),
+    title, why, date,
+    milestones:[],
+    done:false,
+    created:todayKey()
+  });
+  saveGoals(goals);
+  document.getElementById('goal-title-input').value='';
+  document.getElementById('goal-why-input').value='';
+  document.getElementById('goal-date-input').value='';
+  document.getElementById('goals-add-form').style.display='none';
+  renderGoals();
+}
+
+function addGoalMilestone(gid){
+  const inp=document.getElementById('gms-'+gid);
+  if(!inp||!inp.value.trim())return;
+  const goals=loadGoals();
+  const g=goals.find(g=>g.id===gid);
+  if(!g)return;
+  if(!g.milestones)g.milestones=[];
+  g.milestones.push({text:inp.value.trim(),done:false});
+  saveGoals(goals);
+  renderGoals();
+}
+
+function toggleGoalMilestone(gid,idx){
+  const goals=loadGoals();
+  const g=goals.find(g=>g.id===gid);
+  if(!g||!g.milestones)return;
+  g.milestones[idx].done=!g.milestones[idx].done;
+  // Auto-complete goal if all milestones done
+  if(g.milestones.length>0&&g.milestones.every(m=>m.done)) g.done=true;
+  saveGoals(goals);
+  renderGoals();
+  // Feed sync score
+  const s=SYNC.compute();SYNC.render(s);
+}
+
+function deleteGoal(gid){
+  if(!confirm('Remove this goal?'))return;
+  const goals=loadGoals().filter(g=>g.id!==gid);
+  saveGoals(goals);
+  renderGoals();
+}
+
+function renderGoals(){
+  const list=document.getElementById('goals-list');
+  if(!list)return;
+  const goals=loadGoals();
+  if(!goals.length){
+    list.innerHTML='<div style="font-size:12px;color:var(--text-dim);padding:16px 0;text-align:center;line-height:2">No goals yet. What are you working toward?</div>';
+    return;
+  }
+  list.innerHTML=goals.map(g=>{
+    const ms=g.milestones||[];
+    const doneM=ms.filter(m=>m.done).length;
+    const totalM=ms.length;
+    const pct=g.done?100:(totalM>0?Math.round(doneM/totalM*100):0);
+    const dateStr=g.date?`<div class="goal-date">TARGET · ${g.date}</div>`:'';
+    const msHtml=ms.map((m,i)=>`
+      <div class="goal-milestone${m.done?' done-gm':''}" onclick="toggleGoalMilestone('${g.id}',${i})">
+        <div class="goal-milestone-dot"></div>
+        <span>${escHtml(m.text)}</span>
+      </div>`).join('');
+    return `<div class="goal-card${g.done?' complete':''}">
+      <div class="goal-card-title">${escHtml(g.title)}</div>
+      ${g.why?`<div class="goal-card-why">${escHtml(g.why)}</div>`:''}
+      ${dateStr}
+      <div class="goal-bar-wrap"><div class="goal-bar-fill${g.done?' complete':''}" style="width:${pct}%"></div></div>
+      <div class="goal-pct">${g.done?'COMPLETE ✓':pct+'%'+(totalM>0?' · '+doneM+'/'+totalM+' STEPS':'')}</div>
+      ${msHtml?`<div class="goal-milestones">${msHtml}</div>`:''}
+      <div class="goal-add-step-row">
+        <input class="goals-input" id="gms-${g.id}" placeholder="add a step..." style="font-size:12px;padding:5px">
+        <button class="goal-action-btn" onclick="addGoalMilestone('${g.id}')">+ STEP</button>
+      </div>
+      <div class="goal-actions">
+        <button class="goal-action-btn" onclick="deleteGoal('${g.id}')" style="color:#cc4444">REMOVE</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── PEDOMETER ──────────────────────────────────────────────────────────
+// Wires DeviceMotionEvent to a step counter using peak detection on accel.z.
+// Steps are real-world currency: feed into sync score and display in Care tab.
+let _pedometerActive = false;
+let _stepCount = parseInt(localStorage.getItem('ps-steps-today')||'0');
+let _lastStepDate = localStorage.getItem('ps-steps-date')||'';
+let _accelHistory = [];
+const _STEP_THRESHOLD = 0.8; // g-force delta for a stride peak
+const _STEP_COOLDOWN = 350;  // ms minimum between steps (prevents double-count)
+let _lastStepTime = 0;
+
+function initPedometer(){
+  // Reset step count at midnight
+  const today = new Date().toDateString();
+  if(_lastStepDate !== today){
+    _stepCount = 0;
+    _lastStepDate = today;
+    localStorage.setItem('ps-steps-today','0');
+    localStorage.setItem('ps-steps-date', today);
+  }
+  updateStepDisplay();
+
+  if(typeof DeviceMotionEvent === 'undefined'){
+    console.log('[Pedo] DeviceMotionEvent not available');
+    return;
+  }
+  // iOS 13+ requires explicit permission request
+  if(typeof DeviceMotionEvent.requestPermission === 'function'){
+    // Don't auto-request — wait for user tap (done in requestPedometerPermission)
+    const stepEl = document.getElementById('step-count-val');
+    if(stepEl) stepEl.parentElement.querySelector('.step-tap')?.remove(), stepEl.insertAdjacentHTML('afterend',
+      '<button class="step-tap cfg-btn" onclick="requestPedometerPermission()" style="margin-left:8px;font-size:9px">ENABLE</button>');
+    return;
+  }
+  startPedometerListener();
+}
+
+function requestPedometerPermission(){
+  DeviceMotionEvent.requestPermission().then(state=>{
+    if(state==='granted') startPedometerListener();
+  }).catch(console.warn);
+}
+
+function startPedometerListener(){
+  if(_pedometerActive) return;
+  _pedometerActive = true;
+  window.addEventListener('devicemotion', _onMotion);
+  const dotEl = document.getElementById('pedo-dot');
+  if(dotEl) dotEl.style.background = 'var(--signal)';
+  console.log('[Pedo] active');
+}
+
+function _onMotion(e){
+  const acc = e.accelerationIncludingGravity;
+  if(!acc) return;
+  const mag = Math.sqrt((acc.x||0)**2+(acc.y||0)**2+(acc.z||0)**2);
+  _accelHistory.push({t:Date.now(),v:mag});
+  if(_accelHistory.length > 6) _accelHistory.shift();
+  if(_accelHistory.length < 3) return;
+  // Peak detection: current value is a local maximum above threshold
+  const vals = _accelHistory.map(a=>a.v);
+  const cur = vals[vals.length-2]; // one behind latest
+  const prev = vals[vals.length-3];
+  const next = vals[vals.length-1];
+  const now = Date.now();
+  if(cur > prev && cur > next && cur > 11.5 && (now - _lastStepTime) > _STEP_COOLDOWN){
+    _lastStepTime = now;
+    _stepCount++;
+    localStorage.setItem('ps-steps-today', String(_stepCount));
+    updateStepDisplay();
+    // Feed into sync: 500 steps = +1 sync point (soft cap)
+    if(_stepCount % 500 === 0){
+      const s = SYNC.compute();
+      SYNC.render(s);
+    }
+  }
+}
+
+function updateStepDisplay(){
+  const el = document.getElementById('step-count-val');
+  if(el) el.textContent = _stepCount.toLocaleString();
+}
+
+function initAll(){
+  if('serviceWorker' in navigator){
+    const reg=navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    // Detect new SW waiting (update available from GitHub push)
+    reg.then(r=>{
+      if(!r)return;
+      r.addEventListener('updatefound',()=>{
+        const nw=r.installing;
+        if(!nw)return;
+        nw.addEventListener('statechange',()=>{
+          if(nw.state==='installed'&&navigator.serviceWorker.controller){
+            showUpdateBanner(nw);
+          }
+        });
+      });
+    }).catch(()=>{});
+    // SW activated message (new version just took over)
+    navigator.serviceWorker.addEventListener('message',e=>{
+      if(e.data&&e.data.type==='SW_UPDATED'){
+        console.log('[SW] updated to v'+e.data.version);
+      }
+    });
+  }
+  detectTier();
+  initVoice();
+  // Restore Ollama URL in input if panel exists
+  const saved=localStorage.getItem('ps-ollama-url');
+  const inp=document.getElementById('ollama-url');
+  if(inp&&saved)inp.value=saved;
+}
+
+let _pendingNewSW=null;
+function showUpdateBanner(newSW){
+  _pendingNewSW=newSW;
+  const banner=document.getElementById('update-banner');
+  if(banner)banner.style.display='flex';
+}
+function applyUpdate(){
+  if(_pendingNewSW){
+    _pendingNewSW.postMessage({type:'SKIP_WAITING'});
+    _pendingNewSW=null;
+  }
+  setTimeout(()=>window.location.reload(),400);
+}
+
+// Guard: boot runs exactly once. SW claim() during load can fire DOMContentLoaded
+// a second time in some Safari versions. This flag prevents double execution.
+let _bootRan = false;
+window.addEventListener('DOMContentLoaded', () => {
+  if(_bootRan) return;
+  _bootRan = true;
+  boot();
+});
+</script>
+</body>
+</html>
