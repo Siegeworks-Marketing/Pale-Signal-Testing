@@ -1,15 +1,16 @@
-// PALE SIGNAL · Service Worker v2.12
+// PALE SIGNAL · Service Worker v2.13
 // Cache-first. Full offline. Single repo.
-// v2.12 — wllama Tier 1, creatures, goals system, pedometer, chemistry mobile fix.
-const CACHE = 'pale-signal-v2.12';
-const VERSION = '2.12';
+// v2.13 — TCG v1.2 pixel portraits, shared pale-pixel.js engine, chemistry filename fix.
+const CACHE = 'pale-signal-v2.13';
+const VERSION = '2.13';
 
 const CORE = [
   './index.html',
   './PaleSignalRPG-v3_12.html',
-  './PaleSignalTCG-v1_1.html',
+  './PaleSignalTCG-v1_2.html',
   './pixel-engine-v1_2.html',
   './chemistry-v1_1.html',
+  './lib/pale-pixel.js',
   './manifest.json',
   './sw.js',
 ];
