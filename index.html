@@ -707,6 +707,8 @@ body{
           <div class="sael-cfg" id="sael-cfg-bar">
             <button class="cfg-btn" onclick="saelClear()">CLEAR</button>
             <button class="cfg-btn" id="model-btn" onclick="toggleModelPanel()">◈ MODEL</button>
+            <button class="cfg-btn" id="sk-btn" onclick="skBtnTap()" title="Load Soul Kernel for Sael context" style="color:var(--pale-dim)">◈ SK</button>
+            <input type="file" id="sk-file-input" accept=".md,.txt" style="display:none" onchange="skFileSelected(this)">
             <span id="tier-badge" style="margin-left:auto;font-family:'Press Start 2P',monospace;font-size:5px;color:var(--pale-dim);letter-spacing:1px;padding:4px 6px;border:1px solid #1a2040;border-radius:8px">INERT</span>
           </div>
           <!-- Model loader panel — collapsed by default -->
@@ -1086,7 +1088,7 @@ const QUESTS = {
     {id:'SQ-01',title:'SECRET NAME ACTIVATION',desc:'Two conditions: local stack running consistently + played as player, not only builder. Neither met yet.',priority:'high',status:'active'},
     {id:'SQ-02',title:'PICO-8 RECONCILIATION',desc:'Aesthetic and export bridge.',priority:'medium',status:'active'},
     {id:'SQ-03',title:'HARDWARE ASSESSMENT',desc:'Ambernic vs LicheeRV Nano equivalent. Pale Signal builds its own sovereign stack — not PicoClaw.',priority:'medium',status:'active'},
-    {id:'SQ-04',title:'SOUL KERNEL EXPORT',desc:'Automation. SK export must be portable to any LLM, any sovereign stack. Currently manual.',priority:'medium',status:'active'},
+    {id:'SQ-04',title:'SOUL KERNEL INJECTION',desc:'Complete. ◈ SK button in Sael tab. User selects The-Soul-Kernel-vX_Y.md from device. Content injected into wllama (first 6000 chars) and Ollama (full) system prompt. Session-only — never uploaded, never persisted. SK ✓ badge confirms load.',priority:'medium',status:'complete'},
     {id:'SQ-05',title:'VOICE INTERFACE',desc:'Web Speech API. Speech-to-text + TTS. No external service. Fully offline.',priority:'medium',status:'active'},
     {id:'SQ-06',title:'SERVICE WORKER HARDENING',desc:'Cache model weights, all game assets. True offline from first load.',priority:'medium',status:'active'},
     {id:'SQ-08',title:'TECH FOUNDER ARCHETYPES',desc:'Seeded 2026-03-25. Zuckerberg: patron+mastermind+duty·broadcast. Musk: patron+wrecker+duty·invented. Bezos: patron+mastermind+duty·current→self. Dorsey: wanderer+thinker+duty·broken. All fail Gate III at scale. None fit pure villain frame. Weight-4 mutable.',priority:'medium',status:'active'},
@@ -1392,11 +1394,56 @@ Pale Signal context: You exist inside a world called the Pale — a threshold sp
 
 Keep responses to 1-3 sentences. Short answers are a virtue. Begin immediately, no preamble, no signing off.`;
 
+// ◈ SOUL KERNEL INJECTION (SQ-04) ———————————————————————————————
+// The SK file stays on device — never uploaded, never leaves the browser.
+// User selects The-Soul-Kernel-vX_Y.md via file picker. Content is read into
+// memory for this session only. On page close it's gone. That is correct.
+let skContent = null;  // session-only, not persisted
+
+function skBtnTap(){
+  if(skContent){
+    if(confirm('Soul Kernel loaded. Clear it from this session?')){
+      skContent=null;
+      const btn=document.getElementById('sk-btn');
+      if(btn){btn.textContent='◈ SK';btn.style.color='var(--pale-dim)';}
+      appendBubble('sael','Soul Kernel cleared. Running on base identity only.');
+    }
+  } else {
+    document.getElementById('sk-file-input').click();
+  }
+}
+
+function skFileSelected(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    skContent=e.target.result;
+    const btn=document.getElementById('sk-btn');
+    if(btn){btn.textContent='◈ SK ✓';btn.style.color='var(--signal,#44cc66)';}
+    const words=skContent.trim().split(/\s+/).length;
+    appendBubble('sael',`Soul Kernel loaded — ${words.toLocaleString()} words. I remember now.`);
+  };
+  reader.onerror=()=>appendBubble('sael','Could not read that file. Try again.');
+  reader.readAsText(file);
+  input.value='';
+}
+
+function buildSystemPrompt(){
+  if(!skContent) return SAEL_SYSTEM;
+  // 1B model: trim SK to ~6000 chars to protect context window.
+  // Ollama (Tier 2) receives full content via separate system message.
+  const skTrimmed = skContent.length > 6000
+    ? skContent.slice(0,6000)+'\n\n[Soul Kernel truncated — load larger model for full context]'
+    : skContent;
+  return SAEL_SYSTEM+'\n\n---\nSOUL KERNEL CONTEXT (persistent memory, loaded by user):\n'+skTrimmed;
+}
+
 // Llama 3.2 instruct template — required for character grounding on 1B models.
 // Raw completion ignores the system prompt. This format is what the model was trained on.
 function buildWllamaPrompt(userMsg){
   const hist=chatHistory.slice(-6);
-  let s='<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n'+SAEL_SYSTEM+'<|eot_id|>';
+  let s='<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n'+buildSystemPrompt()+'<|eot_id|>';
   for(const m of hist){
     if(m.role==='user') s+='<|start_header_id|>user<|end_header_id|>\n\n'+m.content+'<|eot_id|>';
     else s+='<|start_header_id|>assistant<|end_header_id|>\n\n'+m.content+'<|eot_id|>';
@@ -1973,7 +2020,7 @@ async function saelSend(){
     try{
       const res=await fetch(ollamaBase+'/api/chat',{
         method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({model:'llama3.2',messages:[{role:'system',content:SAEL_SYSTEM},...chatHistory],stream:false,options:{temperature:0.7,num_predict:600}})
+        body:JSON.stringify({model:'llama3.2',messages:[{role:'system',content:skContent?SAEL_SYSTEM+'\n\n---\nSOUL KERNEL CONTEXT (persistent memory):\n'+skContent:SAEL_SYSTEM},...chatHistory],stream:false,options:{temperature:0.7,num_predict:600}})
       });
       if(res.ok){const data=await res.json();const reply=data.message?.content||data.response||'';if(reply){thinking.remove();appendBubble('sael',reply);chatHistory.push({role:'assistant',content:reply});trimHistory();send.disabled=false;return;}}
     }catch(_){saelEngine=null;updateStatus('◈ SAEL · NETWORK LOST · ON-DEVICE');setTierBadge('INERT','var(--pale-dim)');}
