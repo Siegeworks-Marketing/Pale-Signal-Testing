@@ -1,8 +1,8 @@
-// PALE SIGNAL · Service Worker v2.13
+// PALE SIGNAL · Service Worker v2.14
 // Cache-first. Full offline. Single repo.
-// v2.13 — TCG v1.2 pixel portraits, shared pale-pixel.js engine, chemistry filename fix.
-const CACHE = 'pale-signal-v2.13';
-const VERSION = '2.13';
+// v2.14 — chemistry launchChem filename fix (v1_2→v1_1), TCG EchoArt window.PalePixel guard fix.
+const CACHE = 'pale-signal-v2.14';
+const VERSION = '2.14';
 
 const CORE = [
   './index.html',

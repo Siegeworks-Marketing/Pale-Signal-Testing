@@ -1338,7 +1338,7 @@ function EchoArt({ element, rarity, name, size, priEl, al, echo }) {
 
   React.useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !window.PalePixel) return;
+    if (!canvas || !PalePixel) return;
     const ctx = canvas.getContext('2d');
     // Disable antialiasing — pixel art must be crisp
     ctx.imageSmoothingEnabled = false;
