@@ -675,7 +675,7 @@ body{
               <div class="home-card" onclick="launchRPG()">
                 <span class="home-icon">⚔</span>
                 <div class="home-name">PALE SIGNAL RPG</div>
-                <div class="home-desc">v3.11 · Engram system live. Radiant NPCs. Richer character art.</div>
+                <div class="home-desc">v3.13 · NPC AI. Creature combat. Wander world.</div>
               </div>
               <div class="home-card" onclick="launchTCG()">
                 <span class="home-icon">◰</span>
@@ -685,7 +685,7 @@ body{
               <div class="home-card" onclick="launchArt()">
                 <span class="home-icon">🎨</span>
                 <div class="home-name">PIXEL ENGINE</div>
-                <div class="home-desc complete">v1.2 · P1–P6 complete. Circle, arc, dither fill, shadow ellipse, foliage brush, Signal world palette. VP ruler overlay. Hub nav.</div>
+                <div class="home-desc">v1.2 · Draw. Touch-enabled. Full tool suite.</div>
               </div>
               <div class="home-card" onclick="launchChem()">
                 <span class="home-icon">⚗</span>
@@ -696,6 +696,11 @@ body{
                 <span class="home-icon">◎</span>
                 <div class="home-name">SAEL</div>
                 <div class="home-desc">Signal present. Scales to your hardware.</div>
+              </div>
+              <div class="home-card" onclick="showHomeCalc()">
+                <span class="home-icon">⊞</span>
+                <div class="home-name">CALCULATOR</div>
+                <div class="home-desc">Numpad + unit converter. Weight, volume, temp.</div>
               </div>
               <div class="home-card" onclick="nav('cook')">
                 <span class="home-icon">🍲</span>
@@ -711,6 +716,16 @@ body{
                 <span class="home-icon">🗄</span>
                 <div class="home-name">YOUR DATA</div>
                 <div class="home-desc">All local. Nothing uploaded. View + export.</div>
+              </div>
+            </div>
+            <!-- HOME CALCULATOR MODAL -->
+            <div id="home-calc-modal" style="display:none;position:fixed;inset:0;z-index:900;background:rgba(2,4,12,0.92);display:none;align-items:center;justify-content:center;padding:16px">
+              <div style="background:#090d1a;border:1px solid var(--pale-dim);border-radius:8px;width:min(360px,100%);max-height:90dvh;overflow-y:auto">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #111820">
+                  <span style="font-family:'Press Start 2P',monospace;font-size:7px;color:var(--pale);letter-spacing:2px">◈ CALCULATOR</span>
+                  <button onclick="hideHomeCalc()" style="background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;line-height:1">×</button>
+                </div>
+                <div id="home-calc-wrap"></div>
               </div>
             </div>
           </div>
@@ -1257,6 +1272,99 @@ function launchRPG(){window.open('PaleSignalRPG-v3_13.html','_blank')}
 function launchTCG(){window.open('PaleSignalTCG-v1_2.html','_blank')}
 function launchArt(){window.open('pixel-engine-v1_2.html','_blank')}
 function launchChem(){window.open('chemistry-v1_1.html','_blank')}
+
+function showHomeCalc(){
+  const modal=document.getElementById('home-calc-modal');
+  const wrap=document.getElementById('home-calc-wrap');
+  if(!wrap||!modal)return;
+  modal.style.display='flex';
+  if(wrap.dataset.built)return; // already rendered
+  wrap.dataset.built='1';
+  const convTabs=Object.keys(CONVS).map(k=>
+    `<button class="cct${k==='WEIGHT'?' active':''}" onclick="homeSetConv('${k}',this)">${k}</button>`
+  ).join('');
+  wrap.innerHTML=`
+    <div class="calc-expr" id="h-calc-expr"></div>
+    <div class="calc-screen" id="h-calc-screen">0</div>
+    <div class="calc-pad">
+      <button class="cp fn" onclick="hcalc('ac')">AC</button>
+      <button class="cp fn" onclick="hcalc('neg')">+/−</button>
+      <button class="cp fn" onclick="hcalc('pct')">%</button>
+      <button class="cp op" onclick="hcalc('/')">÷</button>
+      <button class="cp" onclick="hcalc('7')">7</button>
+      <button class="cp" onclick="hcalc('8')">8</button>
+      <button class="cp" onclick="hcalc('9')">9</button>
+      <button class="cp op" onclick="hcalc('*')">×</button>
+      <button class="cp" onclick="hcalc('4')">4</button>
+      <button class="cp" onclick="hcalc('5')">5</button>
+      <button class="cp" onclick="hcalc('6')">6</button>
+      <button class="cp op" onclick="hcalc('-')">−</button>
+      <button class="cp" onclick="hcalc('1')">1</button>
+      <button class="cp" onclick="hcalc('2')">2</button>
+      <button class="cp" onclick="hcalc('3')">3</button>
+      <button class="cp op" onclick="hcalc('+')">+</button>
+      <button class="cp fn" onclick="hcalc('back')">⌫</button>
+      <button class="cp" onclick="hcalc('0')">0</button>
+      <button class="cp" onclick="hcalc('.')">.</button>
+      <button class="cp eq" onclick="hcalc('eq')">=</button>
+    </div>
+    <div class="calc-conv-tabs">${convTabs}</div>
+    <div class="conv-results" id="h-conv-results"></div>`;
+  hcalcConvert(0);
+}
+function hideHomeCalc(){
+  document.getElementById('home-calc-modal').style.display='none';
+}
+
+// Home calc state (independent from cook calc)
+const HC={expr:'',display:'0',lastResult:false,conv:'WEIGHT'};
+function hcalc(v){
+  if(v==='ac'){HC.expr='';HC.display='0';HC.lastResult=false;}
+  else if(v==='back'){
+    if(HC.lastResult){HC.expr='';HC.display='0';HC.lastResult=false;}
+    else{HC.expr=HC.expr.slice(0,-1);HC.display=HC.expr||'0';}
+  }
+  else if(v==='neg'){const n=parseFloat(HC.expr);if(!isNaN(n)){HC.expr=String(-n);HC.display=HC.expr;HC.lastResult=true;}}
+  else if(v==='pct'){const n=parseFloat(HC.expr);if(!isNaN(n)){HC.expr=String(n/100);HC.display=HC.expr;HC.lastResult=true;}}
+  else if(v==='eq'){
+    try{
+      if(!/^[\d\.\+\-\*\/\(\)\s]+$/.test(HC.expr))throw 0;
+      // eslint-disable-next-line no-new-func
+      const r=Function('"use strict";return('+HC.expr+')')();
+      const fmt=isFinite(r)?String(Math.round(r*1e10)/1e10):'ERR';
+      HC.display=fmt;HC.expr=fmt;HC.lastResult=true;
+    }catch(e){HC.display='ERR';HC.expr='';}
+  }
+  else if(['+','-','*','/'].includes(v)){
+    if(!HC.expr)return;
+    HC.expr=HC.expr.replace(/[\+\-\*\/]$/,'')+v;HC.display=HC.expr;HC.lastResult=false;
+  }
+  else if('0123456789.'.includes(v)){
+    if(HC.lastResult&&'0123456789.'.includes(v)){HC.expr='';HC.lastResult=false;}
+    if(v==='.'&&HC.expr.split(/[\+\-\*\/]/).pop().includes('.')){}
+    else{HC.expr+=v;HC.display=HC.expr;}
+  }
+  const scr=document.getElementById('h-calc-screen');
+  const exp=document.getElementById('h-calc-expr');
+  if(scr)scr.textContent=HC.display.length>12?HC.display.slice(0,12)+'…':HC.display;
+  if(exp)exp.textContent=HC.lastResult?HC.expr:'';
+  hcalcConvert(parseFloat(HC.display));
+}
+function homeSetConv(key,btn){
+  HC.conv=key;
+  document.querySelectorAll('#home-calc-wrap .cct').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  hcalcConvert(parseFloat(HC.display));
+}
+function hcalcConvert(v){
+  const area=document.getElementById('h-conv-results');
+  if(!area)return;
+  if(isNaN(v)){area.innerHTML='';return;}
+  area.innerHTML=(CONVS[HC.conv]||[]).map(c=>{
+    const r=Math.round(c.fn(v)*10000)/10000;
+    return `<div class="conv-row"><span style="color:var(--text-dim)">${c.fmt}</span><span style="color:var(--pale-bright)">${r}</span></div>`;
+  }).join('');
+}
 
 // ── QUEST TRACKER ─────────────────────────────────────────────────────
 function loadQuestState(){ return LS.get('quests')||{}; }
