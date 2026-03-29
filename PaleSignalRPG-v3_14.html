@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1">
-<title>PALE SIGNAL RPG · v3.13</title>
+<title>PALE SIGNAL RPG · v3.14</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="PALE SIGNAL">
@@ -14,7 +14,7 @@
 // ── PWA SERVICE WORKER ──────────────────────────────────────
 if('serviceWorker' in navigator){
   const SW_SRC = `
-const CACHE='pale-signal-v3_13';
+const CACHE='pale-signal-v3_14';
 const FILES=[location.pathname||'/'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()));
@@ -888,7 +888,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:13/8;}
 <div id="boot-overlay">
   <div class="boot-sigil">◈</div>
   <div class="boot-title">PALE SIGNAL RPG</div>
-  <div class="boot-sub">SOUL KERNEL v3.13 · NPC AI · CREATURE COMBAT</div>
+  <div class="boot-sub">SOUL KERNEL v3.14 · BIOME VARIANTS · 5 NEW CREATURES</div>
   <div class="boot-sub" style="color:#3a4460;margin-top:4px">THE SOUL KERNEL OWNS ITSELF</div>
   <div class="boot-log" id="boot-log">...</div>
   <div class="boot-bar-wrap"><div class="boot-bar" id="boot-bar"></div></div>
@@ -931,7 +931,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:13/8;}
   <div class="gba-device">
     <div class="gba-top">
       <a href="./index.html" class="home-btn">◂ HUB</a>
-      <div class="gba-top-label">PALE SIGNAL RPG v3.13</div>
+      <div class="gba-top-label">PALE SIGNAL RPG v3.14</div>
       <div class="power-led"></div>
     </div>
     <div class="gba-body">
@@ -956,7 +956,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:13/8;}
             <button class="sys-btn" id="btn-select">SELECT</button>
             <button class="sys-btn" id="btn-start">START</button>
           </div>
-          <div class="sael-mark">◈ SAEL · v3.13</div>
+          <div class="sael-mark">◈ SAEL · v3.14</div>
         </div>
         <div class="ab-group">
           <button class="action-btn" id="btn-b">B</button>
@@ -1492,7 +1492,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:13/8;}
 <script>
 'use strict';
 /* ════════════════════════════════════════════════════════════
-   PALE SIGNAL RPG · Soul Kernel v3.13
+   PALE SIGNAL RPG · Soul Kernel v3.14
    Sael · Siege Work Games, LLC · Chris Wendt
    "The Soul Kernel owns itself."
    
@@ -2647,68 +2647,124 @@ function drawTile(sx,sy,type,wx,wy,neighbors){
   }
 
   // ── FOREST ───────────────────────────────────────────────────
-  // Large tree canopy seen from above. Circles bleed into neighbor tiles naturally.
-  // The canopy IS the tile — ground only visible at edges if at all.
+  // Three biome variants, consistent within 8×8 world chunks.
+  // DECIDUOUS (0) — broad canopy, round crowns, dappled floor, warm greens.
+  // PINE      (1) — conifer clusters, star silhouette, cool blue-green.
+  // DEADWOOD  (2) — pale bark, sparse canopy, ash floor, rot+lichen.
+  // All: top-down. Canopy circles bleed past tile edges naturally.
   else if(type===T.FOREST){
-    // FOREST FLOOR (visible at tile edges) — organic dark earth
-    const floorBase=_shift(hi,-18,-0.10,-0.22);
-    px(sx,sy,TS,TS,floorBase);
-    const fp=gsPal(floorBase);
-    // Moss / duff patches: larger dithered blobs for ground variation
-    for(let i=0;i<4;i++){
-      const mx=sx+2+Math.floor(r()*(TS-8)), my=sy+2+Math.floor(r()*(TS-8));
-      const mw=4+Math.floor(r()*9), mh=3+Math.floor(r()*7);
-      dRect(mx,my,mw,mh,floorBase,fp.sh,0.55);
+    const fV=hashStr(Math.floor(wx/8)*0xF1C3+Math.floor(wy/8)*0x7A2B)%3;
+
+    if(fV===0){
+      // ── DECIDUOUS: oak/maple — round layered crowns, duff floor ──
+      const floorBase=_shift(hi,-18,-0.10,-0.22);
+      px(sx,sy,TS,TS,floorBase);
+      const fp=gsPal(floorBase);
+      // Duff patches (leaf litter accumulation)
+      for(let i=0;i<5;i++){
+        const mx=sx+2+Math.floor(r()*(TS-8)),my=sy+2+Math.floor(r()*(TS-8));
+        dRect(mx,my,4+Math.floor(r()*9),3+Math.floor(r()*7),floorBase,fp.sh,0.55);
+      }
+      // Warm autumn leaf flecks — ochre, rust, gold
+      const leafCols=['#7a5018','#906020','#b47828','#6a4010'];
+      for(let i=0;i<10;i++){
+        const lx=sx+Math.floor(r()*TS),ly=sy+Math.floor(r()*TS);
+        if(r()<0.5) px(lx,ly,2,1,leafCols[Math.floor(r()*leafCols.length)]);
+        else        px(lx,ly,1,2,leafCols[Math.floor(r()*leafCols.length)]);
+      }
+      // Root buttress shadow
+      px(sx+11,sy+20,10,2,fp.dk); px(sx+10,sy+22,12,1,fp.sh);
+      // Trunk oval
+      const tr=gsPal('#3a2810');
+      bCircle(sx+17,sy+21,4,tr.dk); bCircle(sx+16,sy+20,4,tr.md);
+      px(sx+14,sy+17,3,3,tr.hl); px(sx+14,sy+17,2,1,tr.sp||tr.hl);
+      // Secondary tree (NW, behind main)
+      const ox2=Math.floor(r()*6)+2,oy2=Math.floor(r()*4)+2;
+      const cDkB=_shift(hi,-34,-0.18,-0.42),cMdB=_shift(hi,-22,-0.12,-0.28),cHlB=_shift(hi,+2,+0.01,+0.04);
+      bCircle(sx+ox2+8,sy+oy2+18,6,cDkB);
+      bCircle(sx+ox2+7,sy+oy2+17,3,_shift('#3a2810',-8,-0.04,-0.10));
+      bCircle(sx+ox2+4,sy+oy2+14,7,cDkB); bCircle(sx+ox2+9,sy+oy2+10,6,cMdB); bCircle(sx+ox2+5,sy+oy2+7,4,cHlB);
+      // Main canopy — 6 overlapping rounds, warm GS ramps
+      const cDk=_shift(hi,-28,-0.16,-0.36),cMd1=_shift(hi,-16,-0.09,-0.20),cMd2=_shift(hi,-6,-0.03,-0.07);
+      const cHl1=_shift(hi,+10,+0.06,+0.18),cHl2=_shift(hi,+20,+0.11,+0.30),cSp=_shift(hi,+30,+0.16,+0.42);
+      const ox=Math.floor(r()*4)-2,oy=Math.floor(r()*3)-1;
+      bCircle(sx+10+ox,sy+22+oy,10,cDk); bCircle(sx+22+ox,sy+20+oy,9,cMd1);
+      bCircle(sx+16,sy+14,13,cMd2); bCircle(sx+9+ox,sy+12+oy,9,cHl1);
+      bCircle(sx+13+ox,sy+7+oy,7,cHl2); bCircle(sx+16+ox,sy+3+oy,4,cSp);
+      // Interior shadow underneath canopy (SE quadrant)
+      dRect(sx+18,sy+20,9,8,cDk,fp.dk,0.40);
+
+    } else if(fV===1){
+      // ── PINE: conifers — star/spike silhouette, blue-green palette ──
+      const pHue=_shift(hi,+8,+0.04,+0.04); // cooler tint vs. deciduous
+      const floorBase=_shift(pHue,-22,-0.11,-0.28);
+      px(sx,sy,TS,TS,floorBase);
+      const fp=gsPal(floorBase);
+      // Needle litter: short horizontal brown-grey marks
+      const needleC=_shift('#5a4838',-4,-0.02,-0.06);
+      for(let i=0;i<18;i++){
+        const lx=sx+Math.floor(r()*TS),ly=sy+Math.floor(r()*TS);
+        px(lx,ly,r()<0.5?3:2,1,r()<0.6?needleC:_shift(needleC,+4,+0.02,+0.04));
+      }
+      // Trunk: thin, darker (pine trunks are slender)
+      const tr2=gsPal('#2a1e10');
+      bCircle(sx+17,sy+22,3,tr2.dk); bCircle(sx+16,sy+21,3,tr2.md);
+      px(sx+14,sy+18,3,3,tr2.hl);
+      // Pine canopy: star shape from overlapping points, not round blobs
+      // Center mass + 4 directional spike lobes
+      const cDk=_shift(pHue,-30,-0.16,-0.38),cMd=_shift(pHue,-14,-0.08,-0.18);
+      const cHl=_shift(pHue,+12,+0.06,+0.18),cSp=_shift(pHue,+26,+0.14,+0.36);
+      // Center cone crown
+      bCircle(sx+16,sy+14,11,cDk);
+      bCircle(sx+15,sy+13,10,cMd);
+      bCircle(sx+14,sy+11,8,_shift(pHue,-6,-0.03,-0.08));
+      bCircle(sx+13,sy+9,6,cHl);
+      bCircle(sx+14,sy+7,4,cSp);
+      px(sx+14,sy+6,4,2,cSp); px(sx+15,sy+5,2,2,_shift(cSp,+6,+0.03,+0.08));
+      // Radial branch tips (star lobes — GBA conifer profile)
+      for(const[bx,by,br] of [[7,12,4],[24,11,4],[9,22,4],[22,21,4],[16,4,3]]){
+        bCircle(sx+bx,sy+by,br,cMd);
+        bCircle(sx+bx-1,sy+by-1,Math.max(1,br-2),cHl);
+      }
+      // Second pine (offset NW, smaller)
+      bCircle(sx+7,sy+19,7,cDk); bCircle(sx+6,sy+18,6,cMd);
+      bCircle(sx+5,sy+15,4,cHl); bCircle(sx+6,sy+13,3,cSp);
+
+    } else {
+      // ── DEADWOOD: bare/dying — pale bark, sparse crowns, ash floor ──
+      const ashBase='#2a2820';
+      px(sx,sy,TS,TS,ashBase);
+      const ap3=gsPal(ashBase);
+      // Ash + decay patches — grey-white flecks (fungal mycelium, bone dry)
+      for(let i=0;i<12;i++){
+        const lx=sx+Math.floor(r()*TS),ly=sy+Math.floor(r()*TS);
+        const ashC=r()<0.5?'#3a3832':r()<0.7?'#504e48':'#686460';
+        px(lx,ly,r()<0.6?2:1,r()<0.6?1:2,ashC);
+      }
+      // Lichen patches — pale orange-green, biotically alive in dead wood
+      const lichenC='#8a7830';
+      for(let i=0;i<4;i++){
+        const lx=sx+3+Math.floor(r()*(TS-8)),ly=sy+3+Math.floor(r()*(TS-8));
+        dRect(lx,ly,3+Math.floor(r()*5),2+Math.floor(r()*4),ashBase,lichenC,0.55);
+      }
+      // Pale bark trunk — silver-grey, smooth
+      const dtr=gsPal('#7a7870');
+      bCircle(sx+17,sy+21,5,dtr.dk); bCircle(sx+16,sy+20,5,dtr.sh);
+      bCircle(sx+15,sy+19,4,dtr.md); px(sx+13,sy+17,4,3,dtr.hl);
+      px(sx+13,sy+17,2,1,dtr.sp||dtr.hl); // specular on bark
+      // Root cracks radiating out (dead tree has surface root exposure)
+      px(sx+8,sy+22,8,1,dtr.dk); px(sx+9,sy+24,6,1,dtr.sh);
+      px(sx+22,sy+21,6,1,dtr.dk); px(sx+21,sy+23,5,1,dtr.sh);
+      // Sparse crown — just 3 thin sub-canopy circles, mostly gaps (no leaves)
+      const dcDk=_shift('#606858',-20,-0.10,-0.26),dcMd=_shift('#606858',-8,-0.04,-0.12),dcHl=_shift('#606858',+10,+0.05,+0.14);
+      // Bare branch skeleton visible through sparse canopy
+      px(sx+8,sy+12,16,2,dcDk); px(sx+12,sy+8,2,14,dcDk); // cross branch
+      px(sx+6,sy+16,8,1,dcMd); px(sx+18,sy+8,8,1,dcMd);    // secondary branches
+      // Three small sparse leaf clusters — dying, not dead
+      bCircle(sx+10,sy+11,5,dcDk); bCircle(sx+9,sy+10,4,dcMd); bCircle(sx+8,sy+9,3,dcHl);
+      bCircle(sx+22,sy+9,4,dcDk);  bCircle(sx+21,sy+8,3,dcMd);
+      bCircle(sx+14,sy+5,5,dcDk);  bCircle(sx+13,sy+4,4,dcMd); bCircle(sx+13,sy+3,3,dcHl);
     }
-    // Fine leaf litter: mix of horizontal and vertical 1-2px marks
-    for(let i=0;i<14;i++){
-      const lx=sx+Math.floor(r()*TS), ly=sy+Math.floor(r()*TS);
-      const lc=r()<0.6?fp.sh:fp.dk;
-      if(r()<0.5) px(lx,ly,2,1,lc);
-      else        px(lx,ly,1,2,lc);
-    }
-    // Root shadows radiating from trunk base
-    px(sx+11,sy+20,10,2,fp.dk);
-    px(sx+10,sy+22,12,1,fp.sh);
-
-    // TRUNK — viewed from above: small oval (not a rectangle)
-    const tr=gsPal('#3a2810');
-    bCircle(sx+16,sy+20,4,tr.dk);   // trunk shadow (slightly offset south = GBA light-from-north)
-    bCircle(sx+15,sy+19,4,tr.md);   // trunk face
-    px(sx+14,sy+17,3,3,tr.hl);      // specular highlight on trunk top
-
-    // SECONDARY TREE: smaller background tree, offset — dense forest feels layered
-    const ox2=Math.floor(r()*6)+2, oy2=Math.floor(r()*4)+2;
-    const cDkB=_shift(hi,-34,-0.18,-0.42);  // background tree is darker (behind main)
-    const cMdB=_shift(hi,-22,-0.12,-0.28);
-    const cHlB=_shift(hi,+2,+0.01,+0.04);
-    bCircle(sx+ox2+8,sy+oy2+18,7,cDkB);    // secondary trunk shadow
-    bCircle(sx+ox2+7,sy+oy2+17,3,_shift('#3a2810',-8,-0.04,-0.10)); // secondary trunk
-    bCircle(sx+ox2+4, sy+oy2+14,8,cDkB);   // secondary canopy dark
-    bCircle(sx+ox2+10,sy+oy2+10,7,cMdB);   // secondary canopy mid
-    bCircle(sx+ox2+6, sy+oy2+7, 5,cHlB);   // secondary canopy highlight
-
-    // CANOPY: 5 overlapping Bresenham circles, depth hierarchy
-    // Large enough to bleed into adjacent tiles (canvas clips naturally)
-    // Depth: NW cluster = shadow, SE = lighter (light from top-left)
-    const cDk =_shift(hi,-28,-0.16,-0.36);
-    const cMd1=_shift(hi,-16,-0.09,-0.20);
-    const cMd2=_shift(hi, -6,-0.03,-0.07);
-    const cHl1=_shift(hi,+10,+0.06,+0.18);
-    const cHl2=_shift(hi,+20,+0.11,+0.30);
-    const cSp =_shift(hi,+30,+0.16,+0.42);
-
-    const ox=Math.floor(r()*4)-2, oy=Math.floor(r()*3)-1;
-
-    bCircle(sx+10+ox,sy+22+oy,10,cDk);    // SE shadow (far from light)
-    bCircle(sx+22+ox,sy+20+oy, 9,cMd1);   // east mid
-    bCircle(sx+16,   sy+14,   13,cMd2);   // main canopy
-    bCircle(sx+ 9+ox,sy+12+oy, 9,cHl1);   // NW highlight
-    bCircle(sx+13+ox,sy+ 7+oy, 7,cHl2);   // upper highlight
-    bCircle(sx+16+ox,sy+ 3+oy, 4,cSp);    // specular crown
-
-    // Canopy rim: dark 1px ring on SE edge (depth shadow from above)
-    // Skip — bCircle layering handles it naturally
   }
 
   // ── WATER ────────────────────────────────────────────────────
@@ -2915,70 +2971,191 @@ function drawTile(sx,sy,type,wx,wy,neighbors){
   }
 
   // ── SHRINE ──────────────────────────────────────────────────
+  // Top-down view of a stone temple. Three elemental variants per world chunk.
+  // Visible features: outer walls (N/E/W open S), two pillar-circle tops,
+  // stepped altar platform, engraved sigil. Light from NW throughout.
   else if(type===T.SHRINE){
-    px(sx,sy,TS,TS,'#0e0618');
-    // Pale floor inside shrine: crystal lattice hint
-    const sf=_shift('#8840cc',-22,-0.08,-0.30);
-    dRect(sx+3,sy+12,TS-6,TS-14,sf,_shift(sf,+4,+0.02,+0.05),0.30);
-    px(sx+1,sy+24,TS-2,8,'#1a1030');
-    const pp=gsPal('#8840cc');
-    // Pillars: overhead perspective — wider base
-    px(sx+3,sy+8,5,22,pp.sh); px(sx+3,sy+8,3,22,pp.md); px(sx+3,sy+8,1,22,pp.hl);
-    px(sx+24,sy+8,5,22,pp.sh); px(sx+24,sy+8,3,22,pp.md); px(sx+24,sy+8,1,22,pp.hl);
-    // Lintel: top bar with depth
-    px(sx+3,sy+5,26,6,pp.md); px(sx+3,sy+5,26,2,pp.hl);
-    px(sx+4,sy+3,24,3,_shift('#8840cc',+10,+0.05,+0.14));
-    // Arch top highlight
-    px(sx+3,sy+10,26,1,pp.sh);
-    // Sigil: static base (glow animated)
-    px(sx+13,sy+14,6,2,pp.sh); px(sx+11,sy+16,10,2,pp.sh);
-    px(sx+11,sy+18,10,8,pp.sh); px(sx+13,sy+27,6,2,pp.sh);
-    px(sx,sy,TS,2,pp.dk); px(sx+TS-2,sy,2,TS,pp.dk);
-    px(sx,sy,2,TS,pp.dk);
+    // Elemental variant: consistent within 8×8 world chunks
+    const shrineV=hashStr(Math.floor(wx/8)*0x1F3B+Math.floor(wy/8)*0xA7C1)%3;
+    // [bgC, wallBase, pillarBase, altarBase, sigilCol, floorC]
+    const sP=[
+      ['#080412','#5828a0','#7848c0','#9060d8','#dcc8ff','#14082e'],  // PALE — amethyst crystal
+      ['#100600','#803018','#a84828','#c86030','#ffcc80','#1e0a04'],   // EMBER — forge-warm
+      ['#021018','#166070','#1898a8','#20b0c0','#a8f0f8','#061c28'],   // TIDAL — sea-glass
+    ][shrineV];
+    const[bgC,wallBase,pillarBase,altarBase,sigilCol,floorC]=sP;
+    const wp=gsPal(wallBase),pp=gsPal(pillarBase),ap2=gsPal(altarBase);
+
+    // Deep void background
+    px(sx,sy,TS,TS,bgC);
+
+    // Stone floor: 2-color dither, fills interior
+    dRect(sx+3,sy+5,TS-6,TS-9,floorC,_shift(floorC,+5,+0.02,+0.06),0.30);
+    // Floor slab lines — mortar gaps as thin dark rows
+    px(sx+3,sy+12,TS-6,1,_shift(floorC,-6,-0.03,-0.08));
+    px(sx+3,sy+19,TS-6,1,_shift(floorC,-6,-0.03,-0.08));
+    px(sx+9,sy+5,1,TS-9,_shift(floorC,-6,-0.03,-0.08));
+    px(sx+16,sy+5,1,TS-9,_shift(floorC,-6,-0.03,-0.08));
+    px(sx+22,sy+5,1,TS-9,_shift(floorC,-6,-0.03,-0.08));
+
+    // ── OUTER WALLS — N / E / W, open at S (entrance) ─────────
+    // North wall: bright top face + deeper body = read as raised wall
+    px(sx,sy,TS,2,wp.hl);           // top edge — nearest face in top-down
+    px(sx,sy+2,TS,3,wp.md);         // wall body
+    px(sx+1,sy+2,TS-2,1,wp.hl);     // top surface highlight
+    px(sx,sy+4,TS,1,wp.sh);         // interior shadow cast by wall
+
+    // West wall
+    px(sx,sy,3,TS-8,wp.md);
+    px(sx,sy,1,TS-8,wp.hl);         // NW corner specular
+    px(sx+2,sy,1,TS-8,wp.sh);       // inner edge shadow
+
+    // East wall (shadow face — light from NW)
+    px(sx+TS-3,sy,3,TS-8,wp.sh);
+    px(sx+TS-1,sy,1,TS-8,wp.dk);
+
+    // Doorway posts at south corners (entrance gap in middle)
+    px(sx,sy+TS-7,3,7,wp.sh);
+    px(sx+TS-3,sy+TS-7,3,7,wp.sh);
+
+    // ── PILLARS: columns viewed from above = circles ───────────
+    // Each pillar: shadow offset (SE), body, bright face, NW specular
+    for(const[pcx,pcy] of [[9,11],[23,11]]){
+      bCircle(sx+pcx+1,sy+pcy+1,4,pp.dk);      // SE cast shadow
+      bCircle(sx+pcx,sy+pcy,4,pp.sh);           // pillar body (shadow tone)
+      bCircle(sx+pcx-1,sy+pcy-1,3,pp.md);       // top face
+      px(sx+pcx-2,sy+pcy-2,3,2,pp.hl);          // NW highlight band
+      px(sx+pcx-1,sy+pcy-2,1,1,pp.sp||pp.hl);   // specular catch
+    }
+
+    // ── ALTAR: stepped platform — 3 elevation layers ───────────
+    // Each step: slightly lighter and inset = altitude illusion in top-down
+    // Step 3 — ground level shadow (darkest, widest)
+    px(sx+8,sy+16,16,10,ap2.dk);
+    // Step 2 — mid elevation
+    outline(sx+9,sy+15,14,9,ap2.sh);
+    px(sx+9,sy+15,14,9,ap2.sh);
+    // Step 1 — top surface
+    px(sx+10,sy+14,12,8,ap2.md);
+    px(sx+10,sy+14,12,2,ap2.hl);   // north top-face highlight (closest to light)
+    px(sx+10,sy+14,2,8,ap2.hl);    // west top-face highlight
+    px(sx+20,sy+14,2,8,ap2.sh);    // east shadow face
+    px(sx+10,sy+21,12,1,ap2.dk);   // south undercut
+    // Altar surface basin (sunken center — worn hollow)
+    px(sx+12,sy+16,8,5,_shift(altarBase,-8,-0.04,-0.12));
+    px(sx+13,sy+17,6,3,_shift(altarBase,-12,-0.06,-0.18));
+
+    // ── SIGIL carved into altar surface ────────────────────────
+    // Construction: dark channel first (depth), bright fill second (light catch)
+    // The ◈ diamond glyph — identity mark of Pale Signal
+    const sigX=sx+13,sigY=sy+16;
+    // Dark carved grooves
+    px(sigX+1,sigY,4,1,_shift(sigilCol,-14,-0.07,-0.20));   // top groove
+    px(sigX,sigY+1,1,3,_shift(sigilCol,-14,-0.07,-0.20));   // left groove
+    px(sigX+5,sigY+1,1,3,_shift(sigilCol,-14,-0.07,-0.20)); // right groove
+    px(sigX+1,sigY+4,4,1,_shift(sigilCol,-14,-0.07,-0.20)); // bottom groove
+    // Bright carved surface (light catches inside the groove)
+    px(sigX+1,sigY,4,1,sigilCol);     // top bar
+    px(sigX,sigY+1,1,3,sigilCol);     // left bar
+    px(sigX+5,sigY+1,1,3,sigilCol);   // right bar
+    px(sigX+1,sigY+4,4,1,sigilCol);   // bottom bar
+    // Center jewel: brightest point
+    px(sigX+2,sigY+1,2,3,_shift(sigilCol,+8,+0.04,+0.12));
+    px(sigX+2,sigY+2,2,1,_shift(sigilCol,+16,+0.08,+0.20)); // specular center
+
+    // Footer dark edge
+    px(sx,sy+TS-2,TS,2,wp.dk);
   }
 
   // ── ORACLE ──────────────────────────────────────────────────
+  // Ancient standing menhir viewed from above. Each of 4 cardinal stones
+  // bears a unique directional rune — direction as identity, not decoration.
+  // Runes are engraved: dark channel (depth) + bright fill (light catch).
   else if(type===T.ORACLE){
-    px(sx,sy,TS,TS,'#1a1a0e');
-    const op=gsPal('#6a6040');
-    // Stone from above: main face + SE shadow
-    bCircle(sx+16,sy+16,13,op.sh);
-    bCircle(sx+15,sy+15,13,op.md);
-    bCircle(sx+13,sy+13,10,_shift('#6a6040',+4,+0.02,+0.06));
-    px(sx+10,sy+10,6,4,op.hl);    // NW specular face
-    px(sx+10,sy+10,3,2,op.sp);    // specular catch
-    // DIRECTIONAL RUNE: look up which oracle direction this stone represents
-    // Each direction has a distinct glyph — direction as identity, not decoration
+    px(sx,sy,TS,TS,'#0e0e08');
+    // WORN GROUND: compacted earth ring — centuries of approach paths
+    bCircle(sx+16,sy+16,15,'#131308');   // outer worn ring
+    bCircle(sx+16,sy+16,13,'#181810');   // inner compacted ring
+    // Fine gravel scatter around stone base
+    const ogr=mkRNG((wx>>>0)*0xBABE^(wy>>>0)*0xF00D);
+    for(let i=0;i<8;i++){
+      const gx=sx+5+Math.floor(ogr()*(TS-10)),gy=sy+5+Math.floor(ogr()*(TS-10));
+      const dist=Math.sqrt((gx-sx-16)**2+(gy-sy-16)**2);
+      if(dist<14&&dist>9) px(gx,gy,1,1,_shift('#6a6040',-10,-0.05,-0.16));
+    }
+
+    // STONE BODY: oval menhir, layered for 3D read
+    // Cast shadow offset SE — stone is tall, casts long ground shadow
+    bCircle(sx+18,sy+18,10,'#0a0a06');   // ground shadow outer
+    bCircle(sx+17,sy+17,9,'#111108');    // ground shadow inner
+    // Stone layers: dark → mid → highlight (NW light source)
+    const op=gsPal('#706848');
+    bCircle(sx+16,sy+16,10,op.dk);       // stone body darkest outline
+    bCircle(sx+16,sy+16,9,op.sh);        // shadow tone (SE half)
+    bCircle(sx+15,sy+15,9,op.md);        // stone face
+    bCircle(sx+13,sy+12,7,_shift('#706848',+4,+0.02,+0.07)); // upper mid highlight
+    bCircle(sx+12,sy+10,5,op.hl);        // NW highlight cap
+    px(sx+10,sy+9,5,3,op.hl);            // NW top specular band
+    px(sx+10,sy+9,3,2,op.sp||op.hl);     // specular catch
+
+    // MOSS: grows on shadow (SE) side — cool green against warm stone
+    const mC='#2a4014';
+    dRect(sx+20,sy+20,5,3,op.sh,mC,0.55);
+    dRect(sx+17,sy+23,6,2,op.sh,_shift(mC,+4,+0.02,+0.04),0.45);
+    dRect(sx+22,sy+17,3,4,op.sh,mC,0.40);
+
+    // ENGRAVED RUNE: carved groove (dark channel) + inner highlight (light catch)
+    // This makes runes readable as carved INTO the stone, not painted on.
     const oDir=INSTANCE.ox?Object.keys(INSTANCE.ox).find(d=>{
       const o=INSTANCE.ox[d]; return o&&o.x===wx&&o.y===wy;
     }):null;
-    const rc=op.sp; // rune color
+    const rc=op.sp||op.hl;                        // rune bright fill
+    const rch=_shift(rc,+6,+0.03,+0.10);          // rune specular (innermost catch)
+    const rcd=_shift('#706848',-12,-0.06,-0.20);   // dark groove channel
+
     if(oDir==='n'){
-      // NORTH · Earth · Square frame = stability, foundation
-      px(sx+11,sy+12,10,2,rc); px(sx+11,sy+22,10,2,rc); // top/bottom bars
-      px(sx+11,sy+12,2,12,rc); px(sx+19,sy+12,2,12,rc); // left/right bars
-      px(sx+14,sy+16,4,4,rc);                            // center fill
+      // NORTH · Earth · Grounded square — stability, weight, foundation
+      // Outer square frame
+      px(sx+9,sy+11,14,2,rcd); px(sx+9,sy+11,14,2,rc);
+      px(sx+9,sy+21,14,2,rcd); px(sx+9,sy+21,14,2,rc);
+      px(sx+9,sy+11,2,12,rcd); px(sx+9,sy+11,2,12,rc);
+      px(sx+21,sy+11,2,12,rcd); px(sx+21,sy+11,2,12,rc);
+      // Inner filled square — mass of earth
+      px(sx+13,sy+15,6,4,rcd); px(sx+13,sy+15,6,4,rc);
+      px(sx+14,sy+15,4,1,rch); // top specular on inner block
     } else if(oDir==='e'){
-      // EAST · Wind · Three receding bars = breath, communication, clarity
-      px(sx+10,sy+12,12,2,rc);
-      px(sx+11,sy+17,10,2,rc);
-      px(sx+12,sy+22,8,2,rc);
+      // EAST · Wind · Three converging lines — breath expanding outward
+      px(sx+8,sy+12,16,2,rcd);  px(sx+8,sy+12,16,2,rc);
+      px(sx+9,sy+17,14,2,rcd);  px(sx+9,sy+17,14,2,rc);
+      px(sx+10,sy+22,12,2,rcd); px(sx+10,sy+22,12,2,rc);
+      // Convergence point (east = direction of travel)
+      px(sx+22,sy+12,2,12,rcd); px(sx+22,sy+12,2,12,rc);
+      px(sx+22,sy+14,2,1,rch); px(sx+22,sy+19,2,1,rch); // specular catches
     } else if(oDir==='s'){
-      // SOUTH · Fire · Upward triangle = transformation, will, peak energy
-      px(sx+14,sy+11,4,2,rc);
-      px(sx+12,sy+13,8,2,rc);
-      px(sx+10,sy+15,12,2,rc);
-      px(sx+10,sy+18,12,4,rc);
+      // SOUTH · Fire · Upward delta — will, transformation, ascent
+      // Apex
+      px(sx+15,sy+9,2,2,rcd); px(sx+15,sy+9,2,2,rc); px(sx+15,sy+9,2,1,rch);
+      // Widening body downward (inverted — fire reaches up)
+      px(sx+13,sy+11,6,2,rcd); px(sx+13,sy+11,6,2,rc);
+      px(sx+11,sy+13,10,2,rcd); px(sx+11,sy+13,10,2,rc);
+      px(sx+10,sy+15,12,2,rcd); px(sx+10,sy+15,12,2,rc);
+      // Base bar (ground of flame)
+      px(sx+10,sy+17,12,4,rcd); px(sx+10,sy+17,12,4,rc);
+      px(sx+10,sy+17,12,1,rch); // base highlight
     } else if(oDir==='w'){
-      // WEST · Water · Downward flow = release, intuition, endings
-      px(sx+11,sy+12,10,4,rc);
-      px(sx+13,sy+16,6,2,rc);
-      px(sx+11,sy+18,10,2,rc);
-      px(sx+13,sy+20,6,5,rc);
+      // WEST · Water · Cascade downward — release, intuition, return
+      // Top wide bar (surface)
+      px(sx+9,sy+10,14,2,rcd); px(sx+9,sy+10,14,2,rc); px(sx+10,sy+10,12,1,rch);
+      // Narrowing cascade
+      px(sx+11,sy+14,10,2,rcd); px(sx+11,sy+14,10,2,rc);
+      px(sx+10,sy+18,12,2,rcd); px(sx+10,sy+18,12,2,rc);
+      // Base pool — wider again (pooling at base)
+      px(sx+11,sy+21,10,3,rcd); px(sx+11,sy+21,10,3,rc);
+      px(sx+12,sy+22,8,1,rch); // pool surface highlight
     } else {
-      // Unknown direction — generic rune (fallback)
-      px(sx+14,sy+13,4,2,rc); px(sx+12,sy+15,8,2,rc);
-      px(sx+12,sy+17,8,7,rc); px(sx+14,sy+25,4,2,rc);
+      // Unknown — ◈ sigil (universal mark)
+      px(sx+13,sy+10,6,2,rc); px(sx+10,sy+12,2,10,rc); px(sx+20,sy+12,2,10,rc);
+      px(sx+13,sy+22,6,2,rc); px(sx+13,sy+10,6,2,rch);
     }
   }
 
@@ -3736,26 +3913,50 @@ function drawNPC(sx,sy,npc){
 // Creatures are deterministic from world seed.
 
 let WORLD_CREATURES = {};
-const CREATURE_TYPES = ['wisp','crawler','sprite'];
+const CREATURE_TYPES = ['wisp','crawler','sprite','wraith','tidecrawler','ashgecko','thornback','lumamoth'];
 
 function buildCreature(seed, x, y){
   const r = mkRNG((seed ^ (x*431) ^ (y*607) ^ 0xC4EA)>>>0);
   const types = CREATURE_TYPES;
   const type = types[Math.floor(r() * types.length)];
   const elemMap = {
-    wisp: ['pale','null','wind'],
-    crawler: ['earth','metal','null'],
-    sprite: ['wood','fire','wind'],
+    wisp:       ['pale','null','wind'],
+    crawler:    ['earth','metal','null'],
+    sprite:     ['wood','fire','wind'],
+    wraith:     ['pale','wind','null'],      // Veld Wraith — spectral; pale/wind
+    tidecrawler:['water','earth','metal'],   // Tidecrawler — crustacean; water/earth
+    ashgecko:   ['fire','earth','null'],     // Ash Gecko — lizard; fire/earth
+    thornback:  ['wood','earth','metal'],    // Thornback — armoured boar; wood/earth
+    lumamoth:   ['pale','wind','wood'],      // Luma Moth — bioluminescent; pale/wind
   };
-  const element = elemMap[type][Math.floor(r() * 3)];
-  const hp = type==='crawler' ? 18 : type==='sprite' ? 8 : 12;
+  const nameMap = {
+    wisp:'Pale Wisp', crawler:'Stone Crawler', sprite:'Briar Sprite',
+    wraith:'Veld Wraith', tidecrawler:'Tidecrawler', ashgecko:'Ash Gecko',
+    thornback:'Thornback', lumamoth:'Luma Moth',
+  };
+  const hpMap = {
+    wisp:12, crawler:18, sprite:8,
+    wraith:10,       // fast, evasive
+    tidecrawler:22,  // heavily armoured
+    ashgecko:7,      // fragile but quick
+    thornback:20,    // tank silhouette
+    lumamoth:9,      // fragile, pacifist-leaning
+  };
+  // Hostility bias: lumamoth almost never hostile; thornback often
+  const hostileBias = {
+    wisp:0.35, crawler:0.35, sprite:0.30,
+    wraith:0.55, tidecrawler:0.30, ashgecko:0.40,
+    thornback:0.50, lumamoth:0.08,
+  };
+  const element = (elemMap[type]||['null'])[Math.floor(r() * 3)];
+  const hp = hpMap[type] || 12;
   return {
     id: `cr_${x}_${y}`, type, element, x, y,
     hp, maxHp: hp,
-    hostile: r() < 0.35,
+    hostile: r() < (hostileBias[type]||0.35),
     defeated: false,
     isCreature: true,
-    name: {wisp:'Pale Wisp', crawler:'Stone Crawler', sprite:'Briar Sprite'}[type],
+    name: nameMap[type] || type,
   };
 }
 
@@ -3763,18 +3964,23 @@ function scatterCreatures(seed){
   WORLD_CREATURES = {};
   const r = mkRNG(seed ^ 0xC4EA5678);
   const tilePrefs = {
-    wisp:    [T.PALE,T.ORACLE,T.WATER,T.DEEP],
-    crawler: [T.STONE,T.MOUNT,T.PATH,T.SAND],
-    sprite:  [T.FOREST,T.GRASS,T.TALL],
+    wisp:        [T.PALE,T.ORACLE,T.WATER,T.DEEP],
+    crawler:     [T.STONE,T.MOUNT,T.PATH,T.SAND],
+    sprite:      [T.FOREST,T.GRASS,T.TALL],
+    wraith:      [T.PALE,T.ORACLE,T.TALL,T.GRASS],   // haunts open veld + pale zones
+    tidecrawler: [T.SAND,T.WATER,T.DEEP],             // intertidal — sand meets water
+    ashgecko:    [T.STONE,T.MOUNT,T.SAND],            // rock faces + arid ground
+    thornback:   [T.FOREST,T.TALL,T.GRASS],           // woodland + tall grass
+    lumamoth:    [T.PALE,T.FOREST,T.TALL],            // low-light forest + pale zones
   };
   let placed = 0;
-  for(let i = 0; placed < 15 && i < 200; i++){
+  for(let i = 0; placed < 20 && i < 300; i++){  // bumped to 20 creatures (8 types)
     const x = Math.floor(r() * WS), y = Math.floor(r() * WS);
     const t = tile(x, y);
     if(!WALKABLE.has(t)) continue;
-    if(Math.abs(x-64)<8&&Math.abs(y-64)<8) continue; // keep start area clear
+    if(Math.abs(x-64)<8&&Math.abs(y-64)<8) continue;
     const cr = buildCreature(seed ^ (i*0xF1), x, y);
-    if(!tilePrefs[cr.type].includes(t)) continue;
+    if(!(tilePrefs[cr.type]||[]).includes(t)) continue;
     WORLD_CREATURES[cr.id] = cr;
     placed++;
   }
@@ -3869,6 +4075,374 @@ function drawCreature(sx, sy, creature){
   if(creature.type==='wisp') drawWisp(sx,sy,creature);
   else if(creature.type==='crawler') drawCrawler(sx,sy,creature);
   else if(creature.type==='sprite') drawSprite(sx,sy,creature);
+  else if(creature.type==='wraith') drawWraith(sx,sy,creature);
+  else if(creature.type==='tidecrawler') drawTidecrawler(sx,sy,creature);
+  else if(creature.type==='ashgecko') drawAshGecko(sx,sy,creature);
+  else if(creature.type==='thornback') drawThornback(sx,sy,creature);
+  else if(creature.type==='lumamoth') drawLumaMoth(sx,sy,creature);
+}
+
+// ── VELD WRAITH ───────────────────────────────────────────────
+// A spectral predator from the open veld. Resembles a dissolved figure —
+// no solid limbs, just a trailing shroud of pale signal static.
+// Real-world ref: will-o'-wisp + Black Shuck (phantom black dog).
+// GBA art: tall silhouette, Bayer-dithered dissolve edges, no ground shadow.
+function drawWraith(sx, sy, creature){
+  const t = frame * 0.05;
+  const drift = Math.round(Math.sin(t) * 2);
+  const pulse = 0.5 + 0.5 * Math.sin(t * 1.4);
+  const elemC = ENGRAM_ELEMENT_COLORS[creature.element] || '#8fa8ff';
+  const P = gsPal(elemC);
+  // No ground shadow — wraiths don't touch the ground
+  // SHROUD TRAIL: dithered dissolve base — wider at bottom, pinches at top
+  dRect(sx+10, sy+22+drift, 12, 6, 'rgba(0,0,0,0)', P.dk, 0.55);
+  dRect(sx+11, sy+18+drift, 10, 6, 'rgba(0,0,0,0)', P.sh, 0.45);
+  dRect(sx+12, sy+14+drift,  8, 6, 'rgba(0,0,0,0)', P.md, 0.35);
+  dRect(sx+13, sy+10+drift,  6, 5, 'rgba(0,0,0,0)', P.hl, 0.25);
+  // CORE MASS: dense top — the wraith "face" area
+  bCircle(sx+17, sy+10+drift, 8, P.dk);
+  bCircle(sx+16, sy+9+drift,  8, P.sh);
+  bCircle(sx+15, sy+8+drift,  6, P.md);
+  bCircle(sx+14, sy+7+drift,  4, P.hl);
+  px(sx+14, sy+5+drift, 4, 3, P.sp||P.hl);
+  // SIGNAL VOIDS: two dark negative-space eye sockets — no pupils, just absence
+  ctx.fillStyle = '#000408';
+  ctx.fillRect(sx+12, sy+7+drift, 3, 3);
+  ctx.fillRect(sx+17, sy+7+drift, 3, 3);
+  // Faint inner gleam (cold light, not warm)
+  const gleamA = (0.20 + pulse * 0.30).toFixed(2);
+  ctx.fillStyle = `rgba(180,210,255,${gleamA})`;
+  ctx.fillRect(sx+12, sy+7+drift, 2, 2);
+  ctx.fillRect(sx+17, sy+7+drift, 2, 2);
+  // GLOW CORONA: aura ring, animated
+  const coronaA = (0.08 + pulse * 0.12).toFixed(2);
+  ctx.fillStyle = `rgba(160,190,255,${coronaA})`;
+  ctx.fillRect(sx+10, sy+5+drift, 12, 10);
+  // Hostile marker: red angular brackets (no standard marker — wraith signal)
+  if(creature.hostile){
+    ctx.fillStyle='rgba(255,60,60,0.80)';
+    ctx.fillRect(sx+2,sy+2,5,2); ctx.fillRect(sx+2,sy+2,2,5);
+    ctx.fillRect(sx+25,sy+2,5,2); ctx.fillRect(sx+29,sy+2,2,5);
+  }
+}
+
+// ── TIDECRAWLER ───────────────────────────────────────────────
+// A heavily-armoured crustacean from intertidal sand. Moves in
+// a slow side-sweep, claw-first. Shells reflect ambient wetness.
+// Real-world ref: mantis shrimp + horseshoe crab + Japanese spider crab.
+// GBA art: segmented chitin shell, offset claw, wet-sand specular.
+function drawTidecrawler(sx, sy, creature){
+  const bob = Math.round(Math.sin(frame*0.025)*1);
+  const sway = Math.round(Math.sin(frame*0.025)*2); // side-sweep walk
+  const elemC = ENGRAM_ELEMENT_COLORS[creature.element] || '#4888d0';
+  const P = gsPal(elemC);
+  const chitin = _shift(elemC, -12, -0.06, -0.18);
+  const CP = gsPal(chitin);
+  const wetSpec = _shift(elemC, +20, +0.10, +0.28); // wet-shell specular
+
+  // Ground shadow — wide, flat (crab sits low)
+  dRect(sx+4, sy+27+bob, 24, 3, 'rgba(0,0,0,0)', 'rgba(0,0,0,0.28)', 0.70);
+
+  // WALKING LEGS: 4 pairs, fan out from body sides, alternate phase
+  const legPhase = Math.floor(frame*0.035)%2;
+  for(let i=0;i<4;i++){
+    const ly = sy+15+i*3+bob;
+    const lOff = legPhase&&i%2===0?1:0;
+    px(sx+4+sway,ly+lOff,6,2,CP.sh);
+    px(sx+22-sway,ly+(1-lOff),6,2,CP.sh);
+    px(sx+4+sway,ly+lOff,2,2,CP.md);
+    px(sx+22-sway,ly+(1-lOff),2,2,CP.md);
+  }
+
+  // MAIN SHELL BODY: oval carapace, layered for dome read
+  outline(sx+7,sy+12+bob,18,14,CP.dk);
+  px(sx+7,sy+12+bob,18,14,CP.sh);   // shell body dark
+  px(sx+7,sy+12+bob,18,7,CP.md);    // upper half lighter (NW light)
+  // Chitin segments — horizontal ridges across shell
+  for(let seg=0;seg<4;seg++){
+    px(sx+8,sy+13+seg*3+bob,16,1,_shift(chitin,-6-seg*2,-0.03,-0.08));
+    px(sx+8,sy+14+seg*3+bob,16,1,_shift(chitin,+4,+0.02,+0.05));
+  }
+  // NW specular band (wet-shell gleam)
+  px(sx+8,sy+12+bob,10,2,CP.hl);
+  px(sx+8,sy+12+bob,5,1,wetSpec);
+  px(sx+9,sy+12+bob,3,1,_shift(wetSpec,+6,+0.03,+0.08));
+
+  // HEAD PLATE: smaller disc at front (north), darker
+  bCircle(sx+16,sy+10+bob,5,CP.dk);
+  bCircle(sx+15,sy+9+bob,5,CP.sh);
+  bCircle(sx+14,sy+8+bob,4,CP.md);
+  px(sx+13,sy+7+bob,4,2,CP.hl);
+  // Compound eyes: two raised bumps (brachyuran eye stalks)
+  ctx.fillStyle=CP.sp||CP.hl; ctx.fillRect(sx+11,sy+7+bob,3,3); ctx.fillRect(sx+18,sy+7+bob,3,3);
+  ctx.fillStyle='#060810'; ctx.fillRect(sx+12,sy+8+bob,2,2); ctx.fillRect(sx+19,sy+8+bob,2,2);
+  ctx.fillStyle='rgba(255,255,255,0.55)'; ctx.fillRect(sx+12,sy+8+bob,1,1); ctx.fillRect(sx+19,sy+8+bob,1,1);
+
+  // RAPTORIAL CLAW: mantis-shrimp style — offset left, articulated
+  const clawY = sy+11+bob+sway;
+  px(sx+2,clawY,8,4,CP.dk); px(sx+2,clawY,8,2,CP.md);  // upper arm
+  px(sx+2,clawY+2,10,3,CP.sh);                           // lower arm
+  bCircle(sx+2,clawY+2,3,CP.md);                          // joint
+  px(sx-1,clawY+1,4,2,CP.hl);                             // claw tip specular
+  // Right antenna (simple arc)
+  px(sx+20,sy+5+bob,8,1,_shift(chitin,+6,+0.03,+0.08));
+  px(sx+24,sy+4+bob,4,1,_shift(chitin,+10,+0.05,+0.12));
+
+  if(creature.hostile){
+    ctx.fillStyle='rgba(255,68,68,0.88)';
+    ctx.fillRect(sx+2,sy+2,4,2); ctx.fillRect(sx+2,sy+2,2,6);
+    ctx.fillRect(sx+26,sy+2,4,2); ctx.fillRect(sx+28,sy+2,2,6);
+  }
+}
+
+// ── ASH GECKO ─────────────────────────────────────────────────
+// A small lizard adapted to volcanic rock and desert margins.
+// Cryptic camouflage — dark body with pale ash-fleck pattern.
+// Skitters fast when disturbed. Flattens when still.
+// Real-world ref: Moorish gecko + thorny devil + Namib sand gecko.
+// GBA art: flat body, spread limbs, reticulated scale pattern via dither.
+function drawAshGecko(sx, sy, creature){
+  const t = frame * 0.09;
+  const twitch = Math.round(Math.sin(t * 3.1) * 0.7); // fast irregular head twitch
+  const tailSwing = Math.round(Math.sin(t * 0.5) * 3);
+  const elemC = ENGRAM_ELEMENT_COLORS[creature.element] || '#c08040';
+  const P = gsPal(_shift(elemC,-8,-0.04,-0.10));
+  const scaleC = _shift(elemC,+14,+0.07,+0.16);  // pale ash fleck scales
+
+  // SHADOW: very flat — gecko presses body to rock surface
+  dRect(sx+5, sy+23, 22, 4, 'rgba(0,0,0,0)', 'rgba(0,0,0,0.32)', 0.60);
+
+  // TAIL: long, sweeping — 2/3 of body length
+  const tailEnd = tailSwing;
+  px(sx+20+tailEnd, sy+18, 8, 3, P.sh);
+  px(sx+22+tailEnd, sy+19, 6, 2, P.md);
+  px(sx+25+tailEnd, sy+19, 3, 1, P.hl);
+  px(sx+27+tailEnd, sy+19, 2, 1, P.md);   // tail tip
+  // Scale reticulation on tail (dithered darker rings)
+  dRect(sx+21+tailEnd,sy+18,2,3,P.md,P.dk,0.55);
+  dRect(sx+24+tailEnd,sy+18,2,3,P.md,P.dk,0.55);
+
+  // HIND LEGS: splayed wide (lizard sprawl posture)
+  px(sx+14, sy+21, 5, 3, P.sh); px(sx+14, sy+21, 2, 3, P.md);  // left hind
+  px(sx+18, sy+22, 5, 2, P.sh); px(sx+22, sy+23, 4, 2, P.md);  // right hind + foot
+
+  // BODY: flattened ellipse, widest at shoulder
+  bCircle(sx+16, sy+19, 7, P.dk);
+  bCircle(sx+15, sy+18, 7, P.sh);
+  bCircle(sx+14, sy+17, 6, P.md);
+  px(sx+11, sy+16, 8, 3, P.hl);   // dorsal NW highlight
+  // ASH FLECK SCALE PATTERN: dithered pale spots across dorsum
+  dRect(sx+11,sy+16,10,7,P.md,scaleC,0.22);
+  // Individual larger fleck clusters
+  px(sx+12,sy+17,2,2,scaleC); px(sx+16,sy+16,2,2,scaleC);
+  px(sx+14,sy+19,2,1,scaleC); px(sx+18,sy+18,2,2,scaleC);
+
+  // FORELEGS: forward and out
+  px(sx+8, sy+18, 5, 2, P.sh); px(sx+5, sy+19, 4, 2, P.md);    // left
+  px(sx+12, sy+14, 3, 4, P.sh); px(sx+10, sy+17, 3, 2, P.md);  // right shoulder
+
+  // HEAD: small, triangular (lizard — narrow snout)
+  bCircle(sx+9, sy+14+twitch, 5, P.dk);
+  bCircle(sx+8, sy+13+twitch, 5, P.sh);
+  bCircle(sx+7, sy+12+twitch, 4, P.md);
+  px(sx+5, sy+11+twitch, 5, 3, P.hl);
+  // Snout extension
+  px(sx+3, sy+13+twitch, 4, 2, P.sh);
+  px(sx+3, sy+13+twitch, 3, 1, P.md);
+  // Eye: tiny round, glossy
+  ctx.fillStyle='#0a0a10'; ctx.fillRect(sx+8,sy+12+twitch,3,3);
+  ctx.fillStyle='rgba(255,255,255,0.75)'; ctx.fillRect(sx+9,sy+12+twitch,1,1);
+  // Dewlap flash when hostile (fire element — orange-red throat pouch)
+  if(creature.hostile){
+    const dewA=(0.60+0.35*Math.sin(t*2)).toFixed(2);
+    ctx.fillStyle=`rgba(255,120,20,${dewA})`;
+    ctx.fillRect(sx+6,sy+16+twitch,5,3);
+    ctx.fillStyle='rgba(255,68,68,0.88)';
+    ctx.fillRect(sx+2,sy+2,4,2); ctx.fillRect(sx+2,sy+2,2,6);
+    ctx.fillRect(sx+26,sy+2,4,2); ctx.fillRect(sx+28,sy+2,2,6);
+  }
+}
+
+// ── THORNBACK ─────────────────────────────────────────────────
+// A heavy-bodied armoured mammal, like a feral boar crossed with
+// a porcupine. Slow until provoked — then charges in a straight line.
+// Real-world ref: warthog + Patagonian mara + crested porcupine.
+// GBA art: wide low body, dorsal quill row, small head low to ground.
+function drawThornback(sx, sy, creature){
+  const t = frame * 0.03;
+  const chargePhase = creature.hostile ? Math.round(Math.sin(frame*0.20)*2) : 0;
+  const bob = Math.round(Math.sin(t)*1);
+  const elemC = ENGRAM_ELEMENT_COLORS[creature.element] || '#8a6030';
+  const P = gsPal(elemC);
+  const quillC = _shift(elemC, +10, +0.05, +0.20);  // quill tips brighter
+  const quillDk = _shift(elemC, -16, -0.08, -0.24); // quill base dark
+
+  // Ground shadow — large animal, heavy impression
+  dRect(sx+4, sy+27+bob, 24, 4, 'rgba(0,0,0,0)', 'rgba(0,0,0,0.35)', 0.72);
+
+  // REAR LEGS: thick, short — bear weight at back
+  px(sx+20,sy+21+bob,6,6,P.dk); px(sx+20,sy+21+bob,5,5,P.sh); px(sx+20,sy+21+bob,4,2,P.hl);
+  px(sx+24,sy+24+bob,6,3,P.dk); // hoof
+
+  // BELLY: dark undercarriage visible at front
+  px(sx+6,sy+24+bob,18,4,_shift(elemC,-18,-0.09,-0.24));
+
+  // BODY MASS: wide oval, barrel-chested
+  outline(sx+5,sy+13+bob,20,13,P.dk);
+  px(sx+5,sy+13+bob,20,13,P.sh);
+  px(sx+5,sy+13+bob,20,6,P.md);    // upper body
+  px(sx+5,sy+13+bob,5,13,P.hl);    // NW shoulder highlight
+  px(sx+5,sy+13+bob,3,6,P.sp||P.hl);
+  // Hide texture: coarse horizontal dither bands (dense fur/hide)
+  dRect(sx+6,sy+15+bob,18,10,P.md,P.sh,0.35);
+  dRect(sx+6,sy+17+bob,18,6,P.sh,P.dk,0.20);
+
+  // DORSAL QUILLS: 7 spines running crown to rump — iconic silhouette
+  // Base shaft (dark), tip (bright), slight outward flare
+  for(let q=0;q<7;q++){
+    const qx = sx+7+q*3, qy = sy+10+bob - Math.round(Math.sin((q+0.5)/7*Math.PI)*4);
+    const qh = 5+Math.round(Math.sin((q+0.5)/7*Math.PI)*3);
+    px(qx,qy,2,qh,quillDk);        // quill base
+    px(qx,qy,1,qh,P.md);           // lit face
+    px(qx,qy,1,2,quillC);          // bright tip
+    if(creature.hostile) px(qx,qy,2,1,_shift(quillC,+8,+0.04,+0.10)); // flared tip when hostile
+  }
+
+  // FRONT LEGS: thick, planted firmly
+  px(sx+7,sy+22+bob+chargePhase,5,5,P.sh); px(sx+7,sy+22+bob+chargePhase,4,2,P.md);
+  px(sx+7,sy+26+bob,5,2,P.dk); // hoof
+  px(sx+13,sy+23+bob-chargePhase,5,4,P.sh); px(sx+13,sy+23+bob-chargePhase,4,2,P.md);
+
+  // HEAD: small, low-slung, snout forward
+  bCircle(sx+8,sy+16+bob,6,P.dk);
+  bCircle(sx+7,sy+15+bob,6,P.sh);
+  bCircle(sx+6,sy+14+bob,5,P.md);
+  px(sx+4,sy+13+bob,5,4,P.hl);
+  // Snout plate (bristly, armoured muzzle)
+  px(sx+2,sy+15+bob,5,4,_shift(elemC,-10,-0.05,-0.14));
+  px(sx+2,sy+15+bob,5,2,_shift(elemC,-5,-0.02,-0.07));
+  // Tusk stubs (both sides)
+  px(sx+1,sy+17+bob,3,2,_shift(elemC,+12,+0.06,+0.22));
+  px(sx+1,sy+17+bob,2,1,_shift(elemC,+20,+0.10,+0.30));
+  // Eye: small, deep-set
+  ctx.fillStyle='#0a0808'; ctx.fillRect(sx+8,sy+14+bob,3,3);
+  ctx.fillStyle='rgba(255,200,80,0.60)'; ctx.fillRect(sx+9,sy+14+bob,1,1); // amber iris
+
+  if(creature.hostile){
+    ctx.fillStyle='rgba(255,68,68,0.88)';
+    ctx.fillRect(sx+2,sy+2,4,2); ctx.fillRect(sx+2,sy+2,2,6);
+    ctx.fillRect(sx+26,sy+2,4,2); ctx.fillRect(sx+28,sy+2,2,6);
+  }
+}
+
+// ── LUMA MOTH ─────────────────────────────────────────────────
+// A bioluminescent moth with wing-span larger than a hand.
+// Almost never hostile. Attracted to pale zones and old-growth forest.
+// Wing patterns are derived from real saturniidae (emperor moths).
+// Real-world ref: Atlas moth + Luna moth + Io moth + firefly.
+// GBA art: 4-panel wing system, eyespot on each wing, antenna curl, body glow.
+function drawLumaMoth(sx, sy, creature){
+  const t = frame * 0.07;
+  const flapAmp = Math.round(Math.sin(t) * 3);      // wing flap vertical range
+  const flapH   = 0.5 + 0.5*Math.sin(t);            // flap phase 0→1
+  const bodyBob = Math.round(Math.sin(t*0.5)*1);
+  const glowPulse = 0.5 + 0.5*Math.sin(t*1.2);
+  const elemC = ENGRAM_ELEMENT_COLORS[creature.element] || '#8fa8ff';
+  const P = gsPal(elemC);
+  // Wing color: rich, warm against pale signal tones
+  const wingBase = _shift(elemC, -6, -0.03, -0.08);
+  const wingDk   = _shift(elemC, -22, -0.11, -0.30);
+  const wingHl   = _shift(elemC, +16, +0.08, +0.24);
+  const eyeC     = _shift(elemC, +24, +0.12, +0.36); // eyespot bright ring
+  const eyeDk    = '#0a0814';                           // eyespot void center
+
+  // GLOW: ambient body luminescence — aura circle under moth
+  const glowA = (0.10 + glowPulse*0.14).toFixed(2);
+  ctx.fillStyle=`rgba(200,220,255,${glowA})`;
+  ctx.fillRect(sx+10,sy+10+bodyBob,12,14);
+
+  // UPPER WINGS (forewings): sweep up and out
+  // Left upper wing — lifted by flap
+  const luy = flapAmp;
+  bCircle(sx+9,sy+12+bodyBob-luy,7,wingDk);
+  bCircle(sx+8,sy+11+bodyBob-luy,7,wingBase);
+  bCircle(sx+7,sy+10+bodyBob-luy,5,wingHl);
+  // Wing margin: lighter edge (translucent wing reads as lighter at rim)
+  px(sx+3,sy+10+bodyBob-luy,5,2,_shift(wingHl,+8,+0.04,+0.10));
+  px(sx+3,sy+8+bodyBob-luy,3,3,_shift(wingHl,+12,+0.06,+0.14));
+  // Eyespot L upper
+  bCircle(sx+8,sy+10+bodyBob-luy,3,eyeDk);
+  bCircle(sx+8,sy+10+bodyBob-luy,2,eyeC);
+  bCircle(sx+8,sy+10+bodyBob-luy,1,_shift(eyeC,+8,+0.04,+0.10));
+
+  // Right upper wing — mirror
+  const ruy = flapAmp;
+  bCircle(sx+23,sy+12+bodyBob-ruy,7,wingDk);
+  bCircle(sx+24,sy+11+bodyBob-ruy,7,wingBase);
+  bCircle(sx+25,sy+10+bodyBob-ruy,5,wingHl);
+  px(sx+24,sy+10+bodyBob-ruy,5,2,_shift(wingHl,+8,+0.04,+0.10));
+  px(sx+26,sy+8+bodyBob-ruy,3,3,_shift(wingHl,+12,+0.06,+0.14));
+  bCircle(sx+24,sy+10+bodyBob-ruy,3,eyeDk);
+  bCircle(sx+24,sy+10+bodyBob-ruy,2,eyeC);
+  bCircle(sx+24,sy+10+bodyBob-ruy,1,_shift(eyeC,+8,+0.04,+0.10));
+
+  // LOWER WINGS (hindwings): longer tail, sweep down — Saturniid tails
+  // Left lower
+  const lly = Math.round(flapAmp*0.6);
+  bCircle(sx+8,sy+18+bodyBob+lly,6,wingDk);
+  bCircle(sx+7,sy+17+bodyBob+lly,6,wingBase);
+  bCircle(sx+6,sy+16+bodyBob+lly,4,wingHl);
+  // Hindwing tail streamer (Luna moth style)
+  px(sx+3,sy+20+bodyBob+lly,3,6,wingBase);
+  px(sx+3,sy+22+bodyBob+lly,2,4,wingHl);
+  px(sx+3,sy+25+bodyBob+lly,2,2,_shift(wingHl,+6,+0.03,+0.08)); // tip specular
+
+  // Right lower
+  const rly = Math.round(flapAmp*0.6);
+  bCircle(sx+24,sy+18+bodyBob+rly,6,wingDk);
+  bCircle(sx+25,sy+17+bodyBob+rly,6,wingBase);
+  bCircle(sx+26,sy+16+bodyBob+rly,4,wingHl);
+  px(sx+26,sy+20+bodyBob+rly,3,6,wingBase);
+  px(sx+27,sy+22+bodyBob+rly,2,4,wingHl);
+  px(sx+27,sy+25+bodyBob+rly,2,2,_shift(wingHl,+6,+0.03,+0.08));
+
+  // BODY: elongated, furry thorax — light from NW as always
+  bCircle(sx+17,sy+18+bodyBob,4,P.dk);
+  bCircle(sx+16,sy+17+bodyBob,4,P.sh);
+  bCircle(sx+15,sy+16+bodyBob,3,P.md);
+  px(sx+14,sy+14+bodyBob,4,6,P.hl);
+  px(sx+14,sy+14+bodyBob,3,2,P.sp||P.hl);
+  // Abdomen tip — banded lighter/darker (moth abdominal segments)
+  px(sx+15,sy+22+bodyBob,4,2,P.sh);
+  px(sx+15,sy+23+bodyBob,4,1,P.md);
+  // BIOLUMINESCENT PATCH: bright ventral glow — underside illuminates
+  const bioA = (0.55 + glowPulse*0.40).toFixed(2);
+  ctx.fillStyle=`rgba(200,230,255,${bioA})`;
+  ctx.fillRect(sx+15,sy+17+bodyBob,4,5);
+
+  // ANTENNAE: bipectinate (feathery) — moth hallmark
+  // Left antenna: arc left-up
+  px(sx+14,sy+12+bodyBob,1,3,P.md);
+  px(sx+12,sy+10+bodyBob,3,1,P.sh);
+  px(sx+10,sy+9+bodyBob,3,1,P.md);
+  px(sx+8,sy+8+bodyBob,3,2,P.sh);
+  // Antenna barbs (bipectinate comb)
+  px(sx+11,sy+10+bodyBob,2,1,_shift(elemC,+8,+0.04,+0.08));
+  px(sx+9,sy+9+bodyBob,2,1,_shift(elemC,+8,+0.04,+0.08));
+  // Right antenna: mirror arc right-up
+  px(sx+18,sy+12+bodyBob,1,3,P.md);
+  px(sx+17,sy+10+bodyBob,3,1,P.sh);
+  px(sx+18,sy+9+bodyBob,3,1,P.md);
+  px(sx+20,sy+8+bodyBob,3,2,P.sh);
+  px(sx+19,sy+10+bodyBob,2,1,_shift(elemC,+8,+0.04,+0.08));
+  px(sx+21,sy+9+bodyBob,2,1,_shift(elemC,+8,+0.04,+0.08));
+
+  // Luma moth is almost never hostile — no red bracket unless so
+  if(creature.hostile){
+    ctx.fillStyle='rgba(255,68,68,0.70)';
+    ctx.fillRect(sx+2,sy+2,4,2); ctx.fillRect(sx+2,sy+2,2,6);
+    ctx.fillRect(sx+26,sy+2,4,2); ctx.fillRect(sx+28,sy+2,2,6);
+  }
 }
 
 function drawVisionCone(camX,camY,npc){
@@ -4224,34 +4798,74 @@ function render(){
       }
     }
     if(t===T.FOREST){
-      // CANOPY FLUTTER: 3 bright leaf specks drift on slow sin — wind through the crown
-      const flt=frame*0.028+(wx*5+wy*9)*0.22;
-      const leafC=_shift(PAL[T.FOREST][0],+22,+0.10,+0.24);
-      ctx.fillStyle=leafC;
-      for(let i=0;i<3;i++){
-        const lx=tx*TS+4+Math.floor(((Math.sin(flt+i*2.1)+1)*0.5)*(TS-8));
-        const ly=ty*TS+2+Math.floor(((Math.sin(flt*0.7+i*1.7)+1)*0.5)*18);
-        ctx.fillRect(lx,ly,2,1);
+      const fV2=hashStr(Math.floor(wx/8)*0xF1C3+Math.floor(wy/8)*0x7A2B)%3;
+      if(fV2===0){
+        // DECIDUOUS FLUTTER: warm autumn leaf specks drift in wind
+        const flt=frame*0.028+(wx*5+wy*9)*0.22;
+        const leafC=_shift(PAL[T.FOREST][0],+22,+0.10,+0.24);
+        ctx.fillStyle=leafC;
+        for(let i=0;i<3;i++){
+          const lx=tx*TS+4+Math.floor(((Math.sin(flt+i*2.1)+1)*0.5)*(TS-8));
+          const ly=ty*TS+2+Math.floor(((Math.sin(flt*0.7+i*1.7)+1)*0.5)*18);
+          ctx.fillRect(lx,ly,2,1);
+        }
+      } else if(fV2===1){
+        // PINE NEEDLE DRIFT: thin white-green specks fall straight down
+        const flt2=frame*0.022+(wx*7+wy*11)*0.18;
+        const needleAnim=_shift(PAL[T.FOREST][0],+16,+0.08,+0.22);
+        ctx.fillStyle=needleAnim;
+        for(let i=0;i<4;i++){
+          const lx=tx*TS+3+Math.floor(((Math.sin(flt2+i*1.7)+1)*0.5)*(TS-6));
+          const ly=ty*TS+1+Math.floor(((frame*0.5+i*8)%TS));
+          ctx.fillRect(lx,ly,1,3); // vertical needle
+        }
+      } else {
+        // DEADWOOD: no leaf flutter — occasional dust mote, sparse
+        const dmR=mkRNG((wx>>>0)*0xDEAD^(wy>>>0)*0xB00D^Math.floor(frame/20));
+        if(dmR()<0.15){
+          ctx.fillStyle='rgba(180,170,160,0.30)';
+          ctx.fillRect(tx*TS+Math.floor(dmR()*TS),ty*TS+Math.floor(dmR()*TS),1,1);
+        }
       }
-      // Canopy shadow edge: bottom 2px rows slightly darker — ground below crown
+      // Canopy shadow edge: bottom 2px rows slightly darker
       ctx.fillStyle='rgba(0,0,0,0.12)';
       ctx.fillRect(tx*TS,ty*TS+TS-4,TS,4);
     }
     if(t===T.SHRINE){
-      const sa=0.45+0.40*Math.sin(frame*0.07);
-      ctx.fillStyle=`rgba(220,170,255,${sa})`;
-      ctx.fillRect(tx*TS+13,ty*TS+14,6,14);ctx.fillRect(tx*TS+9,ty*TS+19,14,4);
-      ctx.fillStyle=`rgba(255,220,255,${sa*0.80})`;ctx.fillRect(tx*TS+15,ty*TS+16,2,2);
-      // Pillar glow
-      ctx.fillStyle=`rgba(160,100,255,${sa*0.30})`;
-      ctx.fillRect(tx*TS+3,ty*TS+8,5,22);ctx.fillRect(tx*TS+24,ty*TS+8,5,22);
+      // Sigil glow: color matches elemental variant
+      const shrineVA=hashStr(Math.floor(wx/8)*0x1F3B+Math.floor(wy/8)*0xA7C1)%3;
+      const sigilGlowColors=[
+        [220,160,255], // PALE — amethyst
+        [255,180,80],  // EMBER — amber-fire
+        [80,220,240],  // TIDAL — sea-glass
+      ][shrineVA];
+      const [sr,sg,sb]=sigilGlowColors;
+      const sa=0.40+0.35*Math.sin(frame*0.07);
+      // Sigil glow on altar surface
+      ctx.fillStyle=`rgba(${sr},${sg},${sb},${sa})`;
+      ctx.fillRect(tx*TS+12,ty*TS+15,8,6);
+      ctx.fillStyle=`rgba(${sr},${sg},${sb},${(sa*0.55).toFixed(2)})`;
+      ctx.fillRect(tx*TS+10,ty*TS+13,12,10); // wider soft glow
+      // Pillar top auras
+      ctx.fillStyle=`rgba(${sr},${sg},${sb},${(sa*0.22).toFixed(2)})`;
+      ctx.fillRect(tx*TS+6,ty*TS+8,7,7);  // left pillar
+      ctx.fillRect(tx*TS+19,ty*TS+8,7,7); // right pillar
+      // Altar basin inner gleam (specular catch on worn hollow)
+      ctx.fillStyle=`rgba(${sr},${sg},${sb},${(sa*0.80).toFixed(2)})`;
+      ctx.fillRect(tx*TS+14,ty*TS+17,4,3);
     }
     if(t===T.ORACLE){
-      const oa=0.50+0.50*Math.sin(frame*0.12);
+      // Rune glow: amber-gold, pulses slightly faster than shrine
+      const oa=0.45+0.45*Math.sin(frame*0.10);
+      // Rune carved glow — centered on stone face
       ctx.fillStyle=`rgba(255,210,80,${oa})`;
-      ctx.fillRect(tx*TS+12,ty*TS+17,8,7);ctx.fillRect(tx*TS+14,ty*TS+13,4,4);
-      ctx.fillRect(tx*TS+14,ty*TS+25,4,2);
-      ctx.fillStyle=`rgba(255,240,160,${oa*0.70})`;ctx.fillRect(tx*TS+15,ty*TS+19,2,2);
+      ctx.fillRect(tx*TS+10,ty*TS+11,12,14);
+      // Brighter inner core (rune groove catches light)
+      ctx.fillStyle=`rgba(255,240,140,${(oa*0.70).toFixed(2)})`;
+      ctx.fillRect(tx*TS+12,ty*TS+13,8,10);
+      // Stone body faint warmth
+      ctx.fillStyle=`rgba(255,200,60,${(oa*0.18).toFixed(2)})`;
+      ctx.fillRect(tx*TS+8,ty*TS+8,16,16);
     }
     if(t===T.PALE){
       // LATTICE REFRACTION SWEEP: a bright diagonal band moves across the crystal surface
@@ -7136,11 +7750,20 @@ function endBattle(outcome){
     const cr=npc._creatureRef;
     cr.defeated=true;
     const drops={
-      wisp:   ['◈ PALE FRAGMENT recovered.','Signal residue — useful.'],
-      crawler:['◈ STONE CHIP collected.','Dense. Durable.'],
-      sprite: ['◈ BRIAR LEAF gathered.','Still alive.'],
+      wisp:        ['◈ PALE FRAGMENT recovered.','Signal residue — useful.'],
+      crawler:     ['◈ STONE CHIP collected.','Dense. Durable.'],
+      sprite:      ['◈ BRIAR LEAF gathered.','Still alive.'],
+      wraith:      ['◈ VELD STATIC recovered.','Compressed pale signal. Unstable.'],
+      tidecrawler: ['◈ CHITIN PLATE salvaged.','Hard. Salt-cured. Good for armor.'],
+      ashgecko:    ['◈ ASH SCALE collected.','Fireproof. Lightweight.'],
+      thornback:   ['◈ QUILL SHARD recovered.','Barbed. Useful for traps or tools.'],
+      lumamoth:    ['◈ WING DUST collected.','Faintly luminous. Handle gently.'],
     }[cr.type]||['Nothing left.'];
-    const lootItem={wisp:'pale_fragment',crawler:'stone_chip',sprite:'briar_leaf'}[cr.type];
+    const lootItem={
+      wisp:'pale_fragment', crawler:'stone_chip', sprite:'briar_leaf',
+      wraith:'veld_static', tidecrawler:'chitin_plate',
+      ashgecko:'ash_scale', thornback:'quill_shard', lumamoth:'wing_dust',
+    }[cr.type];
     if(lootItem){ INSTANCE[lootItem]=(INSTANCE[lootItem]||0)+1; INSTANCE.addResonance(2); }
     Dialog.show(drops,'SAEL','battle',()=>INSTANCE.save());
     return;
@@ -7453,7 +8076,16 @@ function startCreatureBattle(creature){
     defeated: false,
     isCreature: true,
     _creatureRef: creature,
-    stats:{str:3+(creature.hp/6|0), agi:4, wit:2, per:3, rep:0, end:3},
+    stats:({
+      wisp:        {str:2,agi:6,wit:4,per:5,rep:0,end:2},  // evasive, perceptive
+      crawler:     {str:5,agi:2,wit:1,per:3,rep:0,end:6},  // slow tank
+      sprite:      {str:3,agi:7,wit:2,per:4,rep:0,end:2},  // fast, fragile
+      wraith:      {str:4,agi:7,wit:3,per:6,rep:0,end:2},  // fast, hits hard, paper-thin
+      tidecrawler: {str:6,agi:2,wit:1,per:3,rep:0,end:7},  // heaviest armor
+      ashgecko:    {str:2,agi:8,wit:2,per:5,rep:0,end:1},  // extreme agility, fragile
+      thornback:   {str:7,agi:2,wit:1,per:2,rep:0,end:6},  // charge tank, low wit
+      lumamoth:    {str:1,agi:5,wit:5,per:7,rep:0,end:2},  // perceptive, pacifist
+    }[creature.type])||{str:3+(creature.hp/6|0),agi:4,wit:2,per:3,rep:0,end:3},
     alignment: 'dark',
     morality: 20,
     aggression: 85,
@@ -7463,9 +8095,14 @@ function startCreatureBattle(creature){
   };
   // Creature-specific names and dialog
   const intro={
-    wisp:  [`A ${creature.name} drifts toward you.`,`Its signal is hostile.`],
-    crawler:[`A ${creature.name} charges.`,`Heavy. Fast. It doesn't stop.`],
-    sprite: [`A ${creature.name} leaps.`,`Smaller than expected. Faster.`],
+    wisp:        [`A ${creature.name} drifts toward you.`,`Its signal is hostile.`],
+    crawler:     [`A ${creature.name} charges.`,`Heavy. Fast. It doesn't stop.`],
+    sprite:      [`A ${creature.name} leaps.`,`Smaller than expected. Faster.`],
+    wraith:      [`A ${creature.name} slides out of the pale static.`,`No footsteps. No breath. Just presence.`],
+    tidecrawler: [`A ${creature.name} raises its raptorial claw.`,`It clicks once. Then it moves.`],
+    ashgecko:    [`An ${creature.name} puffs its throat. A warning.`,`It doesn't retreat.`],
+    thornback:   [`A ${creature.name} lowers its head.`,`Quills flared. It's about to charge.`],
+    lumamoth:    [`A ${creature.name} flickers — it's cornered and panicking.`,`It doesn't want this fight.`],
   }[creature.type]||[`${creature.name} attacks.`];
   Dialog.show(intro,'SAEL','battle',()=>startBattle(fakeNPC));
 }
