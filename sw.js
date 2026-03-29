@@ -1,12 +1,12 @@
-// PALE SIGNAL · Service Worker v2.14
+// PALE SIGNAL · Service Worker v2.15
 // Cache-first. Full offline. Single repo.
-// v2.14 — chemistry launchChem filename fix (v1_2→v1_1), TCG EchoArt window.PalePixel guard fix.
-const CACHE = 'pale-signal-v2.14';
+// v2.15 — creature collision, NPC wander AI, canvas fill scaling, dialog tone, goals fix, calculator numpad, chemistry mobile fix, pixel engine touch.
+const CACHE = 'pale-signal-v2.15';
 const VERSION = '2.14';
 
 const CORE = [
   './index.html',
-  './PaleSignalRPG-v3_12.html',
+  './PaleSignalRPG-v3_13.html',
   './PaleSignalTCG-v1_2.html',
   './pixel-engine-v1_2.html',
   './chemistry-v1_1.html',

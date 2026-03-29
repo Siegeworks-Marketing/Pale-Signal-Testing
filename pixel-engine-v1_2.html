@@ -103,7 +103,8 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
 #canvasholder{position:relative}
 #canvasholder canvas{
   position:absolute;top:0;left:0;
-  image-rendering:pixelated;image-rendering:crisp-edges
+  image-rendering:pixelated;image-rendering:crisp-edges;
+  touch-action:none;
 }
 #hintbox{
   position:absolute;top:8px;left:50%;transform:translateX(-50%);
@@ -1276,6 +1277,47 @@ function mkCanvases(){
   cPrev.addEventListener('mouseleave',onLeave);
   cPrev.addEventListener('wheel',onWheel,{passive:false});
   cPrev.addEventListener('contextmenu',e=>e.preventDefault());
+  // ── Touch support ──────────────────────────────────────────
+  // Map single-touch to mouse events so all tools work on mobile.
+  // Multi-touch (2 fingers) becomes pinch-zoom.
+  let _lastTouchDist=0;
+  function _touchXY(touch){
+    // Returns a fake mouse-event-like object from a Touch
+    const r=cPrev.getBoundingClientRect();
+    return{clientX:touch.clientX,clientY:touch.clientY,
+      button:0,buttons:1,
+      getBoundingClientRect:()=>r,
+      preventDefault:()=>{}};
+  }
+  cPrev.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    if(e.touches.length===2){
+      _lastTouchDist=Math.hypot(
+        e.touches[0].clientX-e.touches[1].clientX,
+        e.touches[0].clientY-e.touches[1].clientY);
+      return;
+    }
+    onDown(_touchXY(e.touches[0]));
+  },{passive:false});
+  cPrev.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    if(e.touches.length===2){
+      const d=Math.hypot(
+        e.touches[0].clientX-e.touches[1].clientX,
+        e.touches[0].clientY-e.touches[1].clientY);
+      if(Math.abs(d-_lastTouchDist)>8){
+        if(d>_lastTouchDist)E.zoomIn();else E.zoomOut();
+        _lastTouchDist=d;
+      }
+      return;
+    }
+    onMove(_touchXY(e.touches[0]));
+  },{passive:false});
+  cPrev.addEventListener('touchend',e=>{
+    e.preventDefault();
+    if(e.changedTouches.length){onUp(_touchXY(e.changedTouches[0]));}
+    else{S.drawing=false;prevPx=null;renderPrev();}
+  },{passive:false});
 }
 
 // ══════════════════════════════════════════════════════════════════

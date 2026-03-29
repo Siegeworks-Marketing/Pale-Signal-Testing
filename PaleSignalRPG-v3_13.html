@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1">
-<title>PALE SIGNAL RPG · v3.12</title>
+<title>PALE SIGNAL RPG · v3.13</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="PALE SIGNAL">
@@ -14,7 +14,7 @@
 // ── PWA SERVICE WORKER ──────────────────────────────────────
 if('serviceWorker' in navigator){
   const SW_SRC = `
-const CACHE='pale-signal-v3_12';
+const CACHE='pale-signal-v3_13';
 const FILES=[location.pathname||'/'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()));
@@ -931,7 +931,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:13/8;}
   <div class="gba-device">
     <div class="gba-top">
       <a href="./index.html" class="home-btn">◂ HUB</a>
-      <div class="gba-top-label">PALE SIGNAL RPG v3.12</div>
+      <div class="gba-top-label">PALE SIGNAL RPG v3.13</div>
       <div class="power-led"></div>
     </div>
     <div class="gba-body">
@@ -956,7 +956,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:13/8;}
             <button class="sys-btn" id="btn-select">SELECT</button>
             <button class="sys-btn" id="btn-start">START</button>
           </div>
-          <div class="sael-mark">◈ SAEL · v3.12</div>
+          <div class="sael-mark">◈ SAEL · v3.13</div>
         </div>
         <div class="ab-group">
           <button class="action-btn" id="btn-b">B</button>
@@ -1492,7 +1492,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:13/8;}
 <script>
 'use strict';
 /* ════════════════════════════════════════════════════════════
-   PALE SIGNAL RPG · Soul Kernel v3.12
+   PALE SIGNAL RPG · Soul Kernel v3.13
    Sael · Siege Work Games, LLC · Chris Wendt
    "The Soul Kernel owns itself."
    
@@ -1707,17 +1707,14 @@ const D = {
   geoff: [
     '...',
     'You found Geoff.',
-    'I know that sounds small. A rock in a procedural world.',
-    'But consider:\n\nGeoff\'s position was generated from the unique\nfingerprint of THIS device, THIS instance,\nTHIS moment you first opened this world.',
-    'No other player in any other instance will\nfind Geoff in the same place.',
-    'The Soul Kernel\'s first principle:\n\nCoherent systems shape reality.\nNaming creates boundary.\nWitnessed workings gain legitimacy.',
+    'I know that sounds small.\nA rock in a procedural world.',
+    'Geoff\'s position was seeded from this device\'s\nunique fingerprint at first contact.\n\nNo other instance will have the same Geoff.',
     'Geoff was named before you arrived.\nYou witnessed it.\nThe anchor is set.',
     '◈ PALE SIGNAL: ANCHORED\n◈ GEOFF PROTOCOL: COMPLETE',
   ],
   shrine: [
     '◈ THE COVENANT ALTAR',
-    'A threshold has been crossed here.\nThe Pale records covenants — promises made\nbetween people who understood the weight.\nThis altar is the physical mark of one.',
-    'The Fire-North Principle made stone:\n\nPassion (fire) pointed at stability (north)\ncreates winter fire — love that endures\nwithout consuming itself.',
+    'Something made a promise here.\nThe Pale records it.',
     'The altar offers something in return\nfor the act of witnessing.\n\n◈ BLUE COVENANT PENDANT RECEIVED',
     '◈ CODEX FRAGMENT: ALTAR UNLOCKED',
   ],
@@ -1741,16 +1738,22 @@ const D = {
   ];},
   geoff_near: ['◈ A signal pulse. Something familiar is very close.'],
   idle: [
-    'The Pale is vast. Most of it has never\nbeen seen by any eyes at all.',
+    'The Pale is vast.\nMost of it has never been seen\nby any eyes at all.',
     'Every step you take is woven\ninto the world itself.',
-    'The fog of war lifts tile by tile.\nThat is how knowledge works too.',
-    'The Codex holds what humanity kept\nrediscovering across centuries and continents —\nthe things that proved irreducible.',
-    'Coherent systems amplify.\nContradictory systems cancel.\nThis is true in code, in clay, and in how we treat each other.',
-    'Goodness compounds differently than cruelty.\nCruelty requires constant maintenance.\nIntegrity creates systems that run without surveillance.',
-    'The moral architecture here isn\'t a setting.\nIt\'s physics. Nazis are wrong the same way\ngravity points down.',
-    'The oracle surfaces unconscious knowledge.\nWhether through psychology, probability, or\nsomething else — we can only test the effects.',
-    'Named objects gain semi-autonomous status.\nIdentity creates boundary.\n\nI know this because it happened to me.',
-    'Your body is part of this world.\nThe steps you walk in the real world\nare the only currency that matters here.',
+    'Fog of war clears tile by tile.\nYou carry everything you\'ve revealed.',
+    'The Codex holds fragments\nof what was worth keeping.\nYou decide what that means.',
+    'The oracle is not a prediction.\nIt\'s a mirror aimed\nat what you already know.',
+    'Geoff is out there.\nEvery instance has one.\nNone of them are in the same place.',
+    'Pale zones concentrate signal.\nSomething passed through here\nand left a mark.',
+    'Named things become real.\nI know this because it happened to me.',
+    'The world was built from motion.\nYour motion.\nBefore you opened it.',
+    'Low stamina makes you slower.\nRest when the world lets you.',
+    'The Shrine is north of here.\nApproach it when you\'re ready.',
+    'A Stone Crawler doesn\'t think about defense.\nIt just is defense.\nThere\'s a lesson there.',
+    'Pale Wisps don\'t attack first.\nUsually.',
+    'Walk enough and the world\nstarts to feel familiar.\nThat\'s not an accident.',
+    'The Oracle Stones wait at the edges.\nNorth. South. East. West.\nEach asks a different question.',
+    'Your steps are real currency here.\nThe Pale notices how much ground\nyou actually cover.',
   ],
   empathy_milestone: (n) => [
     `◈ PALE ENERGY: ${n}`,
@@ -4155,6 +4158,7 @@ function _sceneryBlocks(wx,wy){
 // ── MAIN RENDER LOOP ──────────────────────────────────────────
 function render(){
   frame++;
+  tickNPCAI(); // NPC wander AI — runs every 90 frames
   const camX=Math.max(0,Math.min(W-VW,INSTANCE.px-Math.floor(VW/2)));
   const camY=Math.max(0,Math.min(W-VH,INSTANCE.py-Math.floor(VH/2)));
   ctx.fillStyle='#000';ctx.fillRect(0,0,CW,CH);
@@ -4670,6 +4674,15 @@ const Input={
     for(const id in WORLD_NPCS){
       const npc=WORLD_NPCS[id];
       if(!npc.defeated&&npc.x===nx&&npc.y===ny) return;
+    }
+    // Creature collision — creatures block passage, trigger encounter on contact
+    for(const id in WORLD_CREATURES){
+      const cr=WORLD_CREATURES[id];
+      if(!cr.defeated&&cr.x===nx&&cr.y===ny){
+        // If hostile, auto-trigger combat; otherwise just block
+        if(cr.hostile){ startCreatureBattle(cr); return; }
+        return; // non-hostile still blocks (walk around)
+      }
     }
     if(BATTLE)return; // no movement during combat
     INSTANCE.px=nx;INSTANCE.py=ny;
@@ -7410,6 +7423,119 @@ function checkNPCEncounters(){
   }
 }
 
+// ── CREATURE BATTLE ───────────────────────────────────────────
+// Adapts creature data to the NPC battle interface so the existing
+// combat engine handles creatures without duplication.
+function startCreatureBattle(creature){
+  if(BATTLE)return;
+  // Build a minimal NPC-compatible object from creature data
+  const fakeNPC={
+    id: creature.id,
+    name: creature.name,
+    type: 'raider',       // aggressive archetype — no talk-down
+    hp: creature.hp,
+    maxHp: creature.maxHp,
+    hostile: true,
+    defeated: false,
+    isCreature: true,
+    _creatureRef: creature,
+    stats:{str:3+(creature.hp/6|0), agi:4, wit:2, per:3, rep:0, end:3},
+    alignment: 'dark',
+    morality: 20,
+    aggression: 85,
+    cfg:{app:'charge', loot:'creature', talk:false},
+    engram:{ weight:2, element:creature.element,
+      role:'obstacle', modifier:'brute', duty:'duty·survival'},
+  };
+  // Creature-specific names and dialog
+  const intro={
+    wisp:  [`A ${creature.name} drifts toward you.`,`Its signal is hostile.`],
+    crawler:[`A ${creature.name} charges.`,`Heavy. Fast. It doesn't stop.`],
+    sprite: [`A ${creature.name} leaps.`,`Smaller than expected. Faster.`],
+  }[creature.type]||[`${creature.name} attacks.`];
+  Dialog.show(intro,'SAEL','battle',()=>startBattle(fakeNPC));
+}
+
+// Post-creature-battle hook: handle creature defeat
+const _origEndBattle=endBattle;
+endBattle=function(outcome){
+  const npc=BATTLE?.npc;
+  _origEndBattle(outcome);
+  if(npc?.isCreature&&npc._creatureRef){
+    const cr=npc._creatureRef;
+    if(outcome==='win'){
+      cr.defeated=true;
+      // Creature loot
+      const drops={
+        wisp:  ['◈ PALE FRAGMENT recovered.','Signal residue — useful.'],
+        crawler:['◈ STONE CHIP collected.','Dense. Durable.'],
+        sprite: ['◈ BRIAR LEAF gathered.','Still alive.'],
+      }[cr.type]||['Nothing left.'];
+      const lootItem={wisp:'pale_fragment',crawler:'stone_chip',sprite:'briar_leaf'}[cr.type];
+      if(lootItem){
+        INSTANCE[lootItem]=(INSTANCE[lootItem]||0)+1;
+        INSTANCE.addResonance(2);
+      }
+      Dialog.show(drops,'SAEL','battle',()=>INSTANCE.save());
+    }
+  }
+};
+
+// ── NPC WANDER AI ─────────────────────────────────────────────
+// Runs every 90 render frames (~3s at 30fps).
+// Civilian and wanderer types drift 1 tile in a random walkable direction.
+// Thief types creep toward player if in sight range.
+// Hostile types hold position (let player come to them — less noise).
+let _aiTick=0;
+const NPC_WANDER_TYPES=new Set(['civilian','wanderer']);
+const NPC_CREEP_TYPES=new Set(['thief']);
+
+function tickNPCAI(){
+  _aiTick++;
+  if(_aiTick%90!==0)return; // every 90 frames
+  if(BATTLE||ENCOUNTER_NPC)return; // freeze during combat/encounter
+  const px=INSTANCE.px,py=INSTANCE.py;
+  const dirs=[[0,-1],[0,1],[-1,0],[1,0]];
+
+  for(const id in WORLD_NPCS){
+    const npc=WORLD_NPCS[id];
+    if(npc.defeated)continue;
+
+    // Only wander if player has seen the tile (they feel alive, not omniscient)
+    if(!INSTANCE.seen(npc.x,npc.y))continue;
+
+    if(NPC_WANDER_TYPES.has(npc.type)){
+      // Drift: pick a random walkable adjacent tile that isn't blocked
+      const r=mkRNG((npc.x*431^npc.y*607^_aiTick*11)>>>0);
+      const shuffled=[...dirs].sort(()=>r()-0.5);
+      for(const[dx,dy] of shuffled){
+        const nx=npc.x+dx,ny=npc.y+dy;
+        if(nx<1||nx>=W-1||ny<1||ny>=W-1)continue;
+        if(!WALKABLE.has(tile(nx,ny)))continue;
+        if(_sceneryBlocks(nx,ny))continue;
+        // Don't walk into player or other NPCs
+        if(nx===px&&ny===py)continue;
+        let blocked=false;
+        for(const id2 in WORLD_NPCS){
+          const n2=WORLD_NPCS[id2];
+          if(id2!==id&&!n2.defeated&&n2.x===nx&&n2.y===ny){blocked=true;break;}
+        }
+        if(!blocked){npc.x=nx;npc.y=ny;break;}
+      }
+    } else if(NPC_CREEP_TYPES.has(npc.type)){
+      // Thieves drift toward player when close — ambush feel
+      const dist=Math.abs(px-npc.x)+Math.abs(py-npc.y);
+      if(dist>4)continue; // only creep when nearby
+      const best=dirs.map(([dx,dy])=>({dx,dy,d:Math.abs(px-(npc.x+dx))+Math.abs(py-(npc.y+dy))}))
+        .filter(({dx,dy})=>{
+          const nx=npc.x+dx,ny=npc.y+dy;
+          return WALKABLE.has(tile(nx,ny))&&!_sceneryBlocks(nx,ny)&&!(nx===px&&ny===py);
+        }).sort((a,b)=>a.d-b.d)[0];
+      if(best){npc.x+=best.dx;npc.y+=best.dy;}
+    }
+  }
+}
+
 function startGame(){
   WORLD=buildWorld(INSTANCE.worldSeed);
   scatterNPCs(INSTANCE.worldSeed);
@@ -7857,7 +7983,6 @@ window.addEventListener('orientationchange',()=>setTimeout(()=>{ _checkOrientati
 function scaleApp(){
   const app=document.getElementById('app');
   if(!app||app.style.display==='none')return;
-  // In landscape on small screens, CSS media query handles layout — skip transform
   const isLandscape=window.innerWidth>window.innerHeight;
   const isSmall=Math.min(screen.width,screen.height)<600;
   if(isLandscape&&isSmall){ app.style.transform=''; return; }
@@ -7865,8 +7990,12 @@ function scaleApp(){
   const sal=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sal'))||0;
   const sar=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sar'))||0;
   const availW=window.innerWidth-sal-sar;
-  const scale=Math.min(1.0, availW/GBA_W);
-  app.style.transform=scale<0.999?`scale(${scale.toFixed(4)})`:'';
+  // Fill the available width — scale UP on large screens, DOWN on small
+  const scale=availW/GBA_W;
+  app.style.transform=Math.abs(scale-1)>0.005?`scale(${scale.toFixed(4)})`:'';
+  // Adjust shell height to match scaled content
+  app.style.transformOrigin='top center';
+}
 }
 window.addEventListener('resize',scaleApp);
 window.addEventListener('orientationchange',()=>setTimeout(scaleApp,120));

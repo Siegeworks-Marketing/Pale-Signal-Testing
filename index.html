@@ -421,6 +421,30 @@ body{
 .recipe-list::-webkit-scrollbar{width:2px}
 .recipe-list::-webkit-scrollbar-thumb{background:var(--pale-dim)}
 .calc-wrap{overflow-y:auto;-webkit-overflow-scrolling:touch;height:100%;max-height:100%}
+/* ── CALCULATOR ── */
+.calc-screen{font-family:'Share Tech Mono',monospace;font-size:28px;color:var(--pale-bright);
+  text-align:right;padding:10px 14px 6px;min-height:52px;line-height:1.1;
+  border-bottom:1px solid #111820;word-break:break-all;letter-spacing:1px}
+.calc-expr{font-size:10px;color:var(--text-dim);text-align:right;padding:0 14px 6px;min-height:14px}
+.calc-pad{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:8px}
+.cp{background:#090d1a;border:1px solid #1a2540;color:var(--text);font-family:'Share Tech Mono',monospace;
+  font-size:16px;padding:14px 0;border-radius:4px;cursor:pointer;text-align:center;
+  -webkit-tap-highlight-color:transparent;transition:background .08s,border-color .08s}
+.cp:active{background:#1a2540;border-color:var(--pale-dim)}
+.cp.op{color:var(--gold);border-color:#2a2010}
+.cp.op:active{background:#1a1500}
+.cp.eq{background:rgba(143,168,255,.12);color:var(--pale);border-color:var(--pale-dim)}
+.cp.eq:active{background:rgba(143,168,255,.25)}
+.cp.fn{color:var(--text-dim);font-size:11px}
+.calc-conv-tabs{display:flex;gap:4px;padding:6px 8px;border-top:1px solid #0d1020}
+.cct{background:transparent;border:1px solid #1a2540;color:var(--text-dim);font-family:'Press Start 2P',monospace;
+  font-size:6px;padding:5px 8px;border-radius:3px;cursor:pointer;flex:1;text-align:center;
+  -webkit-tap-highlight-color:transparent}
+.cct.active{color:var(--pale);border-color:var(--pale-dim);background:rgba(143,168,255,.07)}
+.conv-results{padding:4px 8px 8px;display:flex;flex-direction:column;gap:3px}
+.conv-row{display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;
+  font-size:11px;padding:5px 8px;background:rgba(255,255,255,.02);border:1px solid #162030;border-radius:3px}
+
 .recipe-card{border-bottom:1px solid #0d1020}
 .recipe-header{display:flex;align-items:center;gap:8px;padding:11px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .recipe-header:active{background:rgba(143,168,255,.04)}
@@ -614,7 +638,7 @@ body{
 </div>
 <div id="shell">
   <div class="shell-top">
-    <div class="shell-label">PALE SIGNAL · HUB v2.0 · SK v7.11</div>
+    <div class="shell-label">PALE SIGNAL · HUB v2.0 · SK v7.12</div>
     <div class="power-led"></div>
   </div>
   <div class="shell-body">
@@ -1073,7 +1097,7 @@ function longReturnMessage(days){
   return `${days} days. The cartridge was just waiting. It always will be. The signal holds. Welcome back.`;
 }
 
-// ── QUEST DATA — SK v7.11 ──────────────────────────────────────────────
+// ── QUEST DATA — SK v7.12 ──────────────────────────────────────────────
 const QUESTS = {
   main:[
     {id:'MQ-01',title:'SYNCHRONICITY METER',desc:'Complete. Score engine, decay, milestones, daily bonus, Long Return sequence. VBBE mechanical reference. Live on home screen.',priority:'critical',status:'complete'},
@@ -1129,7 +1153,7 @@ const QUESTS = {
 const BOOT_LINES = [
   'SIGNAL DETECTED',
   'INTEGRITY CHECK... OK',
-  'SOUL KERNEL v7.11 · TIER 1 LIVE',
+  'SOUL KERNEL v7.12 · TIER 1 LIVE',
   'FOUR GATES OPERATIVE',
   'SYNCHRONICITY ENGINE ONLINE',
   'JOURNAL LAYER ACTIVE',
@@ -2492,13 +2516,64 @@ const CONVS={
   ],
   VOLUME:[
     {fmt:'ml',fn:v=>v},{fmt:'l',fn:v=>v/1000},{fmt:'tsp',fn:v=>v*0.202884},
-    {fmt:'tbsp',fn:v=>v*0.0676280},{fmt:'cup (US)',fn:v=>v*0.00422675},
-    {fmt:'fl oz (US)',fn:v=>v*0.033814},{fmt:'pint (US)',fn:v=>v*0.00211338},
+    {fmt:'tbsp',fn:v=>v*0.067628},{fmt:'cup (US)',fn:v=>v*0.00422675},
+    {fmt:'fl oz',fn:v=>v*0.033814},{fmt:'pint',fn:v=>v*0.00211338},
   ],
   TEMP:[
     {fmt:'°C',fn:v=>v},{fmt:'°F',fn:v=>v*9/5+32},{fmt:'K',fn:v=>v+273.15},
   ],
 };
+
+// Calculator state
+const CALC={expr:'',display:'0',lastResult:false};
+function calcInput(v){
+  if(CALC.lastResult&&'0123456789.'.includes(v)){CALC.expr='';CALC.lastResult=false;}
+  if(v==='.'&&CALC.expr.split(/[\+\-\*\/]/).pop().includes('.'))return;
+  CALC.expr+=v;CALC.display=CALC.expr;renderCalcScreen();
+}
+function calcOp(op){
+  if(!CALC.expr)return;
+  CALC.lastResult=false;
+  // replace trailing operator
+  CALC.expr=CALC.expr.replace(/[\+\-\*\/]$/,'')+op;
+  CALC.display=CALC.expr;renderCalcScreen();
+}
+function calcEval(){
+  if(!CALC.expr)return;
+  try{
+    // safe eval: only digits, operators, dot, parens
+    if(!/^[\d\.\+\-\*\/\(\)\s]+$/.test(CALC.expr))throw new Error();
+    // eslint-disable-next-line no-new-func
+    const result=Function('"use strict";return('+CALC.expr+')')();
+    const fmt=isFinite(result)?String(Math.round(result*1e10)/1e10):'ERR';
+    CALC.display=fmt;CALC.expr=fmt;CALC.lastResult=true;
+  }catch(e){CALC.display='ERR';CALC.expr='';}
+  renderCalcScreen();
+}
+function calcClear(){CALC.expr='';CALC.display='0';CALC.lastResult=false;renderCalcScreen();}
+function calcBack(){
+  if(CALC.lastResult){calcClear();return;}
+  CALC.expr=CALC.expr.slice(0,-1);
+  CALC.display=CALC.expr||'0';renderCalcScreen();
+}
+function calcPct(){
+  const n=parseFloat(CALC.expr);if(isNaN(n))return;
+  CALC.expr=String(n/100);CALC.display=CALC.expr;CALC.lastResult=true;renderCalcScreen();
+}
+function calcNeg(){
+  const n=parseFloat(CALC.expr);if(isNaN(n))return;
+  CALC.expr=String(-n);CALC.display=CALC.expr;renderCalcScreen();
+}
+function renderCalcScreen(){
+  const s=document.getElementById('calc-screen');
+  const e=document.getElementById('calc-expr-line');
+  if(s) s.textContent=CALC.display.length>12?CALC.display.slice(0,12)+'…':CALC.display;
+  if(e) e.textContent=CALC.lastResult?CALC.expr:'';
+  // Mirror to converter if numeric
+  const n=parseFloat(CALC.display);
+  if(!isNaN(n)) doConvert(n);
+}
+
 let activeConv='WEIGHT';
 function switchCookTab(tab){
   ['recipes','calc'].forEach(t=>{
@@ -2509,41 +2584,60 @@ function switchCookTab(tab){
 }
 function renderCalc(){
   const w=document.getElementById('calc-wrap');if(!w)return;
+  const convTabs=Object.keys(CONVS).map(k=>
+    `<button class="cct${k===activeConv?' active':''}" onclick="setConverter('${k}')">${k}</button>`
+  ).join('');
   w.innerHTML=`
-    <div style="padding:10px;display:flex;flex-direction:column;gap:10px">
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        ${Object.keys(CONVS).map(k=>`<button class="q-btn" id="cconv-${k}" onclick="setConverter('${k}')">${k}</button>`).join('')}
-      </div>
-      <input id="conv-input" class="chat-input" type="number" placeholder="enter value..." oninput="doConvert(this.value)" style="font-size:11px">
-      <div id="conv-results" style="display:flex;flex-direction:column;gap:5px"></div>
-    </div>`;
+    <div class="calc-expr" id="calc-expr-line"></div>
+    <div class="calc-screen" id="calc-screen">0</div>
+    <div class="calc-pad">
+      <button class="cp fn" onclick="calcClear()">AC</button>
+      <button class="cp fn" onclick="calcNeg()">+/−</button>
+      <button class="cp fn" onclick="calcPct()">%</button>
+      <button class="cp op" onclick="calcOp('/')">÷</button>
+      <button class="cp" onclick="calcInput('7')">7</button>
+      <button class="cp" onclick="calcInput('8')">8</button>
+      <button class="cp" onclick="calcInput('9')">9</button>
+      <button class="cp op" onclick="calcOp('*')">×</button>
+      <button class="cp" onclick="calcInput('4')">4</button>
+      <button class="cp" onclick="calcInput('5')">5</button>
+      <button class="cp" onclick="calcInput('6')">6</button>
+      <button class="cp op" onclick="calcOp('-')">−</button>
+      <button class="cp" onclick="calcInput('1')">1</button>
+      <button class="cp" onclick="calcInput('2')">2</button>
+      <button class="cp" onclick="calcInput('3')">3</button>
+      <button class="cp op" onclick="calcOp('+')">+</button>
+      <button class="cp fn" onclick="calcBack()">⌫</button>
+      <button class="cp" onclick="calcInput('0')">0</button>
+      <button class="cp" onclick="calcInput('.')">.</button>
+      <button class="cp eq" onclick="calcEval()">=</button>
+    </div>
+    <div class="calc-conv-tabs">${convTabs}</div>
+    <div class="conv-results" id="conv-results"></div>`;
   setConverter('WEIGHT');
 }
 function setConverter(key){
   activeConv=key;
-  Object.keys(CONVS).forEach(k=>{
-    const b=document.getElementById('cconv-'+k);
-    if(b) b.style.color=k===key?'var(--pale)':'var(--text-dim)';
+  document.querySelectorAll('.cct').forEach(b=>{
+    b.classList.toggle('active',b.textContent===key);
   });
-  doConvert(document.getElementById('conv-input')?.value||'');
+  const n=parseFloat(CALC.display);
+  doConvert(isNaN(n)?0:n);
 }
 function doConvert(val){
-  const v=parseFloat(val);
+  const v=typeof val==='number'?val:parseFloat(val);
   const area=document.getElementById('conv-results');
   if(!area)return;
   if(isNaN(v)){area.innerHTML='';return;}
   area.innerHTML=CONVS[activeConv].map(c=>{
     const r=Math.round(c.fn(v)*10000)/10000;
-    return `<div style="display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:10px;padding:5px 7px;background:rgba(255,255,255,.02);border:1px solid #162030;border-radius:3px">
-      <span style="color:var(--text-dim)">${c.fmt}</span>
-      <span style="color:var(--pale-bright)">${r}</span>
-    </div>`;
+    return `<div class="conv-row"><span style="color:var(--text-dim)">${c.fmt}</span><span style="color:var(--pale-bright)">${r}</span></div>`;
   }).join('');
 }
 
 // ── CARE TABS ─────────────────────────────────────────────────────────
 function switchCareTab(tab){
-  ['checkin','journal','data'].forEach(t=>{
+  ['checkin','journal','goals','data'].forEach(t=>{
     document.getElementById('ctab-'+t)?.classList.toggle('active',t===tab);
     document.getElementById('csec-'+t)?.classList.toggle('show',t===tab);
   });
