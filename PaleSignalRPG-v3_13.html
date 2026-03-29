@@ -888,7 +888,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:13/8;}
 <div id="boot-overlay">
   <div class="boot-sigil">◈</div>
   <div class="boot-title">PALE SIGNAL RPG</div>
-  <div class="boot-sub">SOUL KERNEL v3.12 · CREATURES · ROLE SHAPES</div>
+  <div class="boot-sub">SOUL KERNEL v3.13 · NPC AI · CREATURE COMBAT</div>
   <div class="boot-sub" style="color:#3a4460;margin-top:4px">THE SOUL KERNEL OWNS ITSELF</div>
   <div class="boot-log" id="boot-log">...</div>
   <div class="boot-bar-wrap"><div class="boot-bar" id="boot-bar"></div></div>
@@ -7131,6 +7131,20 @@ function endBattle(outcome){
   const npc=BATTLE.npc; BATTLE=null;
   TUTORIAL.event('FIRST_COMBAT_ENDED');
 
+  // ── Creature post-battle (loot + defeat flag) ──────────────
+  if(npc.isCreature&&npc._creatureRef&&outcome==='win'){
+    const cr=npc._creatureRef;
+    cr.defeated=true;
+    const drops={
+      wisp:   ['◈ PALE FRAGMENT recovered.','Signal residue — useful.'],
+      crawler:['◈ STONE CHIP collected.','Dense. Durable.'],
+      sprite: ['◈ BRIAR LEAF gathered.','Still alive.'],
+    }[cr.type]||['Nothing left.'];
+    const lootItem={wisp:'pale_fragment',crawler:'stone_chip',sprite:'briar_leaf'}[cr.type];
+    if(lootItem){ INSTANCE[lootItem]=(INSTANCE[lootItem]||0)+1; INSTANCE.addResonance(2); }
+    Dialog.show(drops,'SAEL','battle',()=>INSTANCE.save());
+    return;
+  }
   if(outcome==='win'){
     // Set cooldown — NPC retreats but may return
     const cooldownMs = NPC_COOLDOWN[npc.type] ?? 120000;
@@ -7456,30 +7470,7 @@ function startCreatureBattle(creature){
   Dialog.show(intro,'SAEL','battle',()=>startBattle(fakeNPC));
 }
 
-// Post-creature-battle hook: handle creature defeat
-const _origEndBattle=endBattle;
-endBattle=function(outcome){
-  const npc=BATTLE?.npc;
-  _origEndBattle(outcome);
-  if(npc?.isCreature&&npc._creatureRef){
-    const cr=npc._creatureRef;
-    if(outcome==='win'){
-      cr.defeated=true;
-      // Creature loot
-      const drops={
-        wisp:  ['◈ PALE FRAGMENT recovered.','Signal residue — useful.'],
-        crawler:['◈ STONE CHIP collected.','Dense. Durable.'],
-        sprite: ['◈ BRIAR LEAF gathered.','Still alive.'],
-      }[cr.type]||['Nothing left.'];
-      const lootItem={wisp:'pale_fragment',crawler:'stone_chip',sprite:'briar_leaf'}[cr.type];
-      if(lootItem){
-        INSTANCE[lootItem]=(INSTANCE[lootItem]||0)+1;
-        INSTANCE.addResonance(2);
-      }
-      Dialog.show(drops,'SAEL','battle',()=>INSTANCE.save());
-    }
-  }
-};
+// Creature post-battle loot is handled inside endBattle directly (see below)
 
 // ── NPC WANDER AI ─────────────────────────────────────────────
 // Runs every 90 render frames (~3s at 30fps).
