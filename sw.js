@@ -1,12 +1,12 @@
-// PALE SIGNAL · Service Worker v2.16
+// PALE SIGNAL · Service Worker v2.17
 // Cache-first. Full offline. Single repo.
-// v2.16 — 3 forest biome variants, shrine 3-way elemental, oracle menhir redesign, 5 new creatures (Veld Wraith, Tidecrawler, Ash Gecko, Thornback, Luma Moth).
-const CACHE = 'pale-signal-v2.16';
-const VERSION = '2.16';
+// v2.17 — v3.15: beard fix, 480×320 canvas, buildings, battle transitions, echo capture, 13 creatures.
+const CACHE = 'pale-signal-v2.17';
+const VERSION = '2.17';
 
 const CORE = [
   './index.html',
-  './PaleSignalRPG-v3_14.html',
+  './PaleSignalRPG-v3_15.html',
   './PaleSignalTCG-v1_2.html',
   './pixel-engine-v1_2.html',
   './chemistry-v1_1.html',

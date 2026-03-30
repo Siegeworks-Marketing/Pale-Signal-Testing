@@ -3,6 +3,44 @@
 
 ---
 
+## v3.15 · Session 12 · 2026-03-29
+
+**Bug fixes:**
+- Beard phantom: validator now checks against valid list; jaw highlight conditional on non-north facing
+
+**Canvas expanded:** 416×256 → 480×320 (VW=15, VH=10 — 44% more visible area)
+- Shell breaks container: GBA_W=520, scales to fill viewport on all screens
+
+**New tile types: T.HOUSE / T.DOOR / T.FLOOR**
+- HOUSE: 3 roof variants (terracotta/thatch/slate) per world chunk; wall stone block texture; chunk-stable windows with glass reflections + cross muntins; chimney on ~30% of tiles
+- DOOR: wood-grain panels, recessed door panels, gold knocker/handle, stone frame surround; walkable; ▲A prompt; interior dialog on entry
+- FLOOR: horizontal plank boards with wood grain marks, worn foot-traffic path, warm candlelight tint
+- Buildings scattered in world gen: 4–8 per world, 4×3 footprint, path leading to door
+
+**Battle system:**
+- Flash transition on battle start (pale blue for creatures, orange-red for NPCs)
+- Biome background scenes behind battle UI: 8 themes (forest silhouettes, rock formations, crystal spires, dunes, interior torchlight + brickwork)
+
+**Echo Capture mechanic:**
+- ◈ ECHO CARD button appears in battle vs creatures when cards in inventory
+- Capture probability scales with HP damage dealt (40% base → up to 92% near-defeated)
+- Captured echoes stored with rarity/stats/element for TCG sync
+- Echo Card schematic added; 3 starting cards in inventory
+
+**13 total creatures** (8 from v3.14 + 5 new):
+- SALTMIRE EEL (water/pale): S-curve sinuous body, bioluminescent lure filament, frilled dorsal, cold iris. Ambush predator. Drops: EEL SPINE.
+- DUSK HERON (water/wind): dagger bill, folded wing planes, stilt legs, lightning neck-strike, crown crest plumes. Cautious wader. Drops: HERON FEATHER.
+- IRONSHELL TORTOISE (earth/metal): scute plate pattern (suture lines + hex plates), lichen growth, geological crack fractures, maximum armor (END:10). Nearly impassable. Drops: SHELL PLATE.
+- FENWICK (wood/earth): oversized digging claws, giant fennec ears, bushy tail with white tip, cream underside, green nocturnal eyes. Fastest creature (AGI:9). Drops: FENWICK PELT.
+- PALE DEER (pale/wind): branching antlers with pale glow at tine tips, pale flank brand, luminous amber eyes, winter coat dither, almost never hostile. Drops: PALE ANTLER SHARD.
+
+**Infrastructure:**
+- sw.js → v2.17
+- index.html → launchRPG points to v3.15
+- Dependency audit: zero external deps except Google Fonts (SW-cached); zero /home/claude/ paths in output
+
+---
+
 ## Session 10 · 2026-03-27 (Today)
 
 **Hub:**

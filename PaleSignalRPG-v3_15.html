@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1">
-<title>PALE SIGNAL RPG · v3.14</title>
+<title>PALE SIGNAL RPG · v3.15</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="PALE SIGNAL">
@@ -14,7 +14,7 @@
 // ── PWA SERVICE WORKER ──────────────────────────────────────
 if('serviceWorker' in navigator){
   const SW_SRC = `
-const CACHE='pale-signal-v3_14';
+const CACHE='pale-signal-v3_15';
 const FILES=[location.pathname||'/'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()));
@@ -270,7 +270,7 @@ canvas#screen{
 }
 
 .gba-top{
-  width:456px;height:18px;
+  width:520px;height:18px;
   background:linear-gradient(180deg,var(--shell-light) 0%,var(--shell-mid) 100%);
   border-radius:8px 8px 0 0;border:2px solid var(--shell-edge);border-bottom:none;
   display:flex;align-items:center;justify-content:space-between;padding:0 14px;
@@ -288,7 +288,7 @@ canvas#screen{
   animation:led-breathe 3s ease-in-out infinite;}
 @keyframes led-breathe{0%,100%{box-shadow:0 0 6px var(--signal)}50%{box-shadow:0 0 12px var(--signal),0 0 24px var(--signal-dim)}}
 .gba-body{
-  width:456px;
+  width:520px;
   background:linear-gradient(180deg,var(--shell-mid) 0%,var(--shell) 100%);
   border-left:2px solid var(--shell-edge);border-right:2px solid var(--shell-edge);
   padding:14px 16px 12px;display:flex;flex-direction:column;align-items:center;gap:14px;
@@ -310,7 +310,7 @@ canvas#screen{
   background:repeating-linear-gradient(0deg,transparent,transparent 1px,rgba(0,0,0,0.04) 1px,rgba(0,0,0,0.04) 2px);
   border-radius:inherit;
 }
-canvas#screen{display:block;width:416px;height:256px;image-rendering:pixelated;image-rendering:crisp-edges;
+canvas#screen{display:block;width:480px;height:320px;image-rendering:pixelated;image-rendering:crisp-edges;
   background:#030508;box-shadow:0 0 0 1px #0a0d18,inset 0 0 16px rgba(0,0,0,0.7),0 0 20px rgba(143,168,255,0.08);}
 .gba-controls{width:100%;display:flex;align-items:center;justify-content:space-between;padding:0 4px;}
 .dpad{position:relative;width:86px;height:86px;flex-shrink:0;}
@@ -347,14 +347,14 @@ canvas#screen{display:block;width:416px;height:256px;image-rendering:pixelated;i
   box-shadow:0 4px 0 #8b1a2f,0 0 14px rgba(232,75,106,0.35);}
 #btn-b{left:0;bottom:8px;background:radial-gradient(circle at 40% 35%,#5aa0f0 0%,var(--btn-b) 60%);
   box-shadow:0 4px 0 #1a4a8b,0 0 14px rgba(75,142,232,0.35);}
-.gba-bottom{width:456px;height:30px;
+.gba-bottom{width:520px;height:30px;
   background:linear-gradient(0deg,var(--shell-mid) 0%,var(--shell) 100%);
   border-radius:0 0 24px 24px;border:2px solid var(--shell-edge);border-top:none;
   display:flex;align-items:center;justify-content:center;gap:5px;padding-bottom:4px;}
 .spk-dot{width:4px;height:4px;border-radius:50%;background:var(--shell-light);}
 
 /* ─── STATUS ────────────────────────────────────────────────── */
-#status-bar{width:456px;display:flex;justify-content:space-between;align-items:center;
+#status-bar{width:520px;display:flex;justify-content:space-between;align-items:center;
   padding:5px 10px;font-family:'Press Start 2P',monospace;font-size:7px;color:var(--pale-dim);gap:7px;flex-wrap:wrap;
   border-bottom:2px solid #0e1228;background:linear-gradient(180deg,#0c1020 0%,#060810 100%);
   box-shadow:0 2px 8px rgba(0,0,0,0.6);}
@@ -822,7 +822,7 @@ canvas#screen{display:block;width:416px;height:256px;image-rendering:pixelated;i
   background:repeating-linear-gradient(0deg,transparent,transparent 1px,rgba(0,0,0,0.04) 1px,rgba(0,0,0,0.04) 2px);
   border-radius:inherit;
 }
-canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:13/8;}
+canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:3/2;}
   #dialog-box{width:calc(100vw - 12px);}
   /* Larger touch targets on mobile */
   .dpad{width:100px;height:100px;}
@@ -888,7 +888,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:13/8;}
 <div id="boot-overlay">
   <div class="boot-sigil">◈</div>
   <div class="boot-title">PALE SIGNAL RPG</div>
-  <div class="boot-sub">SOUL KERNEL v3.14 · BIOME VARIANTS · 5 NEW CREATURES</div>
+  <div class="boot-sub">SOUL KERNEL v3.15 · 13 CREATURES · BUILDINGS · ECHO CAPTURE</div>
   <div class="boot-sub" style="color:#3a4460;margin-top:4px">THE SOUL KERNEL OWNS ITSELF</div>
   <div class="boot-log" id="boot-log">...</div>
   <div class="boot-bar-wrap"><div class="boot-bar" id="boot-bar"></div></div>
@@ -931,12 +931,12 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:13/8;}
   <div class="gba-device">
     <div class="gba-top">
       <a href="./index.html" class="home-btn">◂ HUB</a>
-      <div class="gba-top-label">PALE SIGNAL RPG v3.14</div>
+      <div class="gba-top-label">PALE SIGNAL RPG v3.15</div>
       <div class="power-led"></div>
     </div>
     <div class="gba-body">
       <div class="gba-bezel" style="position:relative;">
-        <canvas id="screen" width="416" height="256"></canvas>
+        <canvas id="screen" width="480" height="320"></canvas>
         <div id="tutorial-hint"></div>
         <div id="tutorial-progress"></div>
         <button id="tutorial-skip" onclick="TUTORIAL.skip()">SKIP TUTORIAL</button>
@@ -956,7 +956,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:13/8;}
             <button class="sys-btn" id="btn-select">SELECT</button>
             <button class="sys-btn" id="btn-start">START</button>
           </div>
-          <div class="sael-mark">◈ SAEL · v3.14</div>
+          <div class="sael-mark">◈ SAEL · v3.15</div>
         </div>
         <div class="ab-group">
           <button class="action-btn" id="btn-b">B</button>
@@ -974,6 +974,8 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:13/8;}
 
 <!-- Battle UI -->
 <div id="btl-ui">
+  <canvas id="btl-bg-canvas" style="position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;opacity:0;transition:opacity 0.18s;z-index:0;"></canvas>
+  <div id="btl-flash" style="position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:1;transition:opacity 0.08s;"></div>
   <div id="btl-bars">
     <div class="btl-plate" id="pp">
       <div class="btl-n" id="pp-name">EXPLORER</div>
@@ -1002,6 +1004,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:13/8;}
       <button class="abt" id="am-phy">🔥 PHYSICS<span class="phys">Real-world · free</span></button>
       <button class="abt" id="am-pale">◈ PALE ART<span class="cost">Costs IPB</span></button>
       <button class="abt" id="am-talk">💬 TALK<span class="cost">REP-based</span></button>
+      <button class="abt" id="am-echo" style="display:none">◈ ECHO CARD<span class="cost" style="color:#8fa8ff">Capture · rare</span></button>
       <button class="abt flee-bt" id="am-flee">↩ FLEE<span class="cost">AGI check</span></button>
     </div>
   </div>
@@ -1492,7 +1495,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:13/8;}
 <script>
 'use strict';
 /* ════════════════════════════════════════════════════════════
-   PALE SIGNAL RPG · Soul Kernel v3.14
+   PALE SIGNAL RPG · Soul Kernel v3.15
    Sael · Siege Work Games, LLC · Chris Wendt
    "The Soul Kernel owns itself."
    
@@ -1515,9 +1518,9 @@ function hashStr(str) {
 }
 
 // ══ WORLD CONSTANTS ══════════════════════════════════════════
-const W=128, WS=128, TS=32, VW=13, VH=8, CW=416, CH=256;
-const T={DEEP:0,WATER:1,SAND:2,GRASS:3,TALL:4,FOREST:5,STONE:6,MOUNT:7,PALE:8,PATH:9,SHRINE:10,ORACLE:11};
-const WALKABLE=new Set([T.SAND,T.GRASS,T.TALL,T.PALE,T.PATH,T.SHRINE,T.ORACLE]);
+const W=128, WS=128, TS=32, VW=15, VH=10, CW=480, CH=320;
+const T={DEEP:0,WATER:1,SAND:2,GRASS:3,TALL:4,FOREST:5,STONE:6,MOUNT:7,PALE:8,PATH:9,SHRINE:10,ORACLE:11,HOUSE:12,DOOR:13,FLOOR:14};
+const WALKABLE=new Set([T.SAND,T.GRASS,T.TALL,T.PALE,T.PATH,T.SHRINE,T.ORACLE,T.DOOR,T.FLOOR]);
 const PAL={
   [T.DEEP]:   ['#0c1c34','#070e1c'],[T.WATER]:  ['#186080','#0e3a52'],
   [T.SAND]:   ['#c8a45a','#a88438'],[T.GRASS]:  ['#2e7a20','#1c5010'],
@@ -1525,6 +1528,8 @@ const PAL={
   [T.STONE]:  ['#606070','#404050'],[T.MOUNT]:  ['#7a7a8a','#585868'],
   [T.PALE]:   ['#8fa8ff','#5870cc'],[T.PATH]:   ['#7a6a44','#5a4c2c'],
   [T.SHRINE]: ['#d4a0ff','#8840cc'],[T.ORACLE]: ['#ffcc44','#cc8800'],
+  [T.HOUSE]:  ['#8a6040','#5a3820'],[T.DOOR]:   ['#c8900a','#8a5a04'],
+  [T.FLOOR]:  ['#a08870','#786458'],
 };
 
 // ══ THE PALE CODEX — Soul Kernel v2.2 compressed into 25 fragments ══
@@ -1793,6 +1798,8 @@ const SCHEMATICS=[
     desc:'Esoteric fire through pure will. No fuel. 5% IPB.',tags:'5%IPB·WIT',req:['pa_surge']},
   {id:'pa_opens',name:'THE PALE OPENS',tier:'pale_codex',type:'pale_art',
     desc:'Once per world. Something comes through. What depends on Pale Resonance.',tags:'3%IPB·1×·rare',req:['pa_surge','pa_mend']},
+  {id:'echo_card',name:'ECHO CARD',tier:'torn_page',type:'crafting',
+    desc:'Pale Shard + blank parchment = capture medium. Use in battle against creatures.',tags:'pale shard+parchment',req:[]},
   {id:'cr_potion',name:'MEND TONIC',tier:'torn_page',type:'crafting',
     desc:'Herb + Water = restorative tonic. Restores 4 HP.',tags:'herb+water·free',req:[]},
   {id:'cr_blade',name:'SIGNAL BLADE',tier:'field_notes',type:'crafting',
@@ -2218,6 +2225,8 @@ const INSTANCE = {
   paleOpensUsed:false,
   eleven:false,
   hollow_coin:0,
+  echo_cards:3,          // start with 3 echo cards
+  capturedEchoes:[],     // captured creature echoes for TCG
   // ── Identity Architecture (Soul Kernel v3.1) ──────────────
   // Layer 1: name (surface — what the world calls you)
   // Layer 2: workingName (what allies call you — offered by Geoff)
@@ -2297,7 +2306,8 @@ const INSTANCE = {
     if(!this.appearance.eyebrows)   this.appearance.eyebrows='std';
     if(!this.appearance.scarf)      this.appearance.scarf='none';
     if(!this.appearance.accent)     this.appearance.accent='#c8a030';
-    if(!this.appearance.beard)      this.appearance.beard='none';
+    const validBeards=['none','stubble','moustache','goatee','short','full'];
+    if(!this.appearance.beard||!validBeards.includes(this.appearance.beard)) this.appearance.beard='none';
     if(!this.appearance.lipColor)   this.appearance.lipColor='skin';
     if(this.workingName   ===undefined) this.workingName=null;
     if(this.craftName     ===undefined) this.craftName=null;
@@ -2467,6 +2477,50 @@ function buildWorld(seed) {
     });
   }
 
+  // Buildings — 4-8 per world, on flat GRASS/SAND, away from water + special zones
+  const buildR=mkRNG(seed^0xD00RBEL1);
+  const nBuildings=4+Math.floor(buildR()*5);
+  let bPlaced=0;
+  for(let bi=0;bi<200&&bPlaced<nBuildings;bi++){
+    const bx=8+Math.floor(buildR()*(W-16));
+    const by=8+Math.floor(buildR()*(W-16));
+    // Must be on GRASS or SAND, away from center spawn + shrine + oracle
+    const bt=w[by*W+bx];
+    if(bt!==T.GRASS&&bt!==T.SAND) continue;
+    if(Math.abs(bx-64)<12&&Math.abs(by-64)<12) continue; // away from spawn
+    if(Math.abs(bx-INSTANCE.sx)<6&&Math.abs(by-INSTANCE.sy)<6) continue; // away from shrine
+    // Check no overlap with existing buildings
+    let overlap=false;
+    for(let dy=-4;dy<=4;dy++) for(let dx=-4;dx<=4;dx++){
+      const tx=(bx+dx+W)%W,ty=(by+dy+W)%W;
+      if(w[ty*W+tx]===T.HOUSE||w[ty*W+tx]===T.DOOR) { overlap=true; break; }
+    }
+    if(overlap) continue;
+    // Building footprint: 4 wide × 3 deep
+    // N row = HOUSE wall, middle = HOUSE wall + interior FLOOR, S middle = DOOR
+    // Layout (from top/north):
+    //   HOUSE HOUSE HOUSE HOUSE  (row 0 — north wall, impassable)
+    //   HOUSE FLOOR FLOOR HOUSE  (row 1 — interior)
+    //   HOUSE FLOOR FLOOR HOUSE  (row 2 — interior)
+    //   HOUSE DOOR  HOUSE HOUSE  (row 3 — south face with door)
+    const bw=4, bh=4;
+    for(let dy=0;dy<bh;dy++) for(let dx=0;dx<bw;dx++){
+      const tx=(bx+dx-1+W)%W,ty=(by+dy-1+W)%W;
+      let ttype=T.HOUSE;
+      if(dy>=1&&dy<=2&&dx>=1&&dx<=2) ttype=T.FLOOR;
+      if(dy===3&&dx===1) ttype=T.DOOR;
+      if(w[ty*W+tx]!==T.MOUNT&&w[ty*W+tx]!==T.DEEP)
+        w[ty*W+tx]=ttype;
+    }
+    // Path leading to door
+    for(let ps=1;ps<=3;ps++){
+      const px2=(bx+W)%W,py2=(by+3+ps+W)%W;
+      if(w[py2*W+px2]!==T.MOUNT&&w[py2*W+px2]!==T.DEEP)
+        w[py2*W+px2]=T.PATH;
+    }
+    bPlaced++;
+  }
+
   return w;
 }
 
@@ -2481,7 +2535,7 @@ function _safePatch(w,cx,cy,r,type){
 function tile(x,y){if(x<0||x>=W||y<0||y>=W)return T.MOUNT;return WORLD[y*W+x];}
 
 // ══ RENDERER v4 ════════════════════════════════════════════════
-// TS=32. Canvas 416×256. VW=13, VH=8. 104 tiles rendered.
+// TS=32. Canvas 480×320. VW=15, VH=10. 150 tiles rendered.
 // Correct GBA grammar: walkable ground = top-down texture.
 // Depth = viewport tint + object shadows. NOT tile side-faces.
 // Bresenham circles for all organic shapes. Bayer dither everywhere.
@@ -3159,6 +3213,156 @@ function drawTile(sx,sy,type,wx,wy,neighbors){
     }
   }
 
+  // ── HOUSE (building wall — impassable) ──────────────────────
+  // Top-down view of exterior wall. 3 architectural variants per chunk.
+  // Wall face is visible from S (nearest), roof from N (farther).
+  // Each variant: different roof material + wall texture.
+  else if(type===T.HOUSE){
+    const hV=hashStr(Math.floor(wx/4)*0xC1F3+Math.floor(wy/4)*0xA7B9)%3;
+    const wallBase=PAL[T.HOUSE][0];
+    const roofCols=[
+      ['#8a3018','#6a2010','#c04828'], // TERRACOTTA — warm red tiles
+      ['#3a5a40','#244030','#5a8058'], // THATCH — mossy green
+      ['#606870','#404850','#90a0a8'], // SLATE — cool grey
+    ][hV];
+    const[roofMid,roofDk,roofHl]=roofCols;
+    const wp2=gsPal(wallBase);
+
+    // ROOF PLANE: fills ~60% of tile (N portion — farther from viewer)
+    px(sx,sy,TS,20,roofMid);
+    // Roof tiles: horizontal ridgelines for depth
+    for(let row=0;row<4;row++){
+      const ry=sy+2+row*5;
+      px(sx,ry,TS,1,roofDk);          // ridge shadow
+      px(sx,ry+1,TS,3,roofMid);       // tile face
+      px(sx,ry+1,TS,1,roofHl);        // tile highlight
+    }
+    // Roof NW specular edge
+    px(sx,sy,2,20,_shift(roofHl,+6,+0.03,+0.08));
+    // Eave shadow: underside of roof overhang (where roof meets wall)
+    px(sx,sy+18,TS,3,roofDk);
+    px(sx,sy+19,TS,2,_shift(roofDk,-8,-0.04,-0.12));
+
+    // WALL FACE: bottom portion (S, nearest viewer)
+    px(sx,sy+20,TS,12,wp2.md);
+    // Wall texture: stone block pattern on plaster
+    const wbC=_shift(wallBase,-6,-0.03,-0.08);
+    for(let bi=0;bi<3;bi++){
+      px(sx+bi*10+1,sy+22,9,3,_shift(wallBase,+3,+0.01,+0.04));  // block faces
+      px(sx+bi*10+1,sy+22,9,1,wp2.hl);                             // block top highlight
+      px(sx+bi*10+1,sy+24,9,1,wbC);                                // block bottom shadow
+    }
+    px(sx,sy+20,TS,1,wp2.hl);   // wall top highlight (eave transition)
+    px(sx,sy+31,TS,1,wp2.sh);   // wall base shadow
+
+    // WINDOW: 1–2 windows per tile (chunk-stable position)
+    const wwr=mkRNG((wx>>>0)*0xF1B2^(wy>>>0)*0xC3A7);
+    const hasWin=wwr()<0.65;
+    if(hasWin){
+      const winX=sx+5+Math.floor(wwr()*18);
+      const winY=sy+22;
+      // Window frame
+      px(winX,winY,8,6,_shift(wallBase,-14,-0.07,-0.20));   // frame dark
+      // Glass: pale blue-grey reflection
+      px(winX+1,winY+1,6,4,'#2a3850');
+      // Glass reflection (always top-left — consistent GS light)
+      px(winX+1,winY+1,3,1,'rgba(180,210,255,0.55)');
+      px(winX+1,winY+1,1,2,'rgba(180,210,255,0.45)');
+      // Cross muntin
+      px(winX+4,winY+1,1,4,_shift(wallBase,-10,-0.05,-0.14));
+      px(winX+1,winY+3,6,1,_shift(wallBase,-10,-0.05,-0.14));
+    }
+
+    // CHIMNEY: ~30% of tiles have a chimney (chunk stable, north edge)
+    if(wwr()<0.30){
+      const chX=sx+18+Math.floor(wwr()*6);
+      px(chX,sy,4,8,wp2.sh);
+      px(chX,sy,4,8,_shift(wallBase,-8,-0.04,-0.12));
+      px(chX,sy,4,1,_shift(wallBase,+6,+0.03,+0.08)); // chimney cap highlight
+      px(chX+1,sy,2,1,_shift(wallBase,+12,+0.06,+0.16));
+    }
+  }
+
+  // ── DOOR (building entrance — walkable) ──────────────────────
+  // A doorway set into the south face of a building.
+  // Player walks through → interior mode activates.
+  else if(type===T.DOOR){
+    const wallBase=PAL[T.HOUSE][0];
+    const wp2=gsPal(wallBase);
+    const dC=PAL[T.DOOR][0];
+    const dp=gsPal(dC);
+
+    // Wall continuation (same as house south face)
+    px(sx,sy,TS,TS,wp2.md);
+    px(sx,sy,TS,1,wp2.hl);
+    // Block texture continuation
+    for(let bi=0;bi<3;bi++){
+      px(sx+bi*10+1,sy+2,9,4,_shift(wallBase,+3,+0.01,+0.04));
+      px(sx+bi*10+1,sy+2,9,1,wp2.hl);
+      px(sx+bi*10+1,sy+5,9,1,wp2.sh);
+    }
+
+    // DOORFRAME: stone arch surround
+    const dfC=_shift(wallBase,-12,-0.06,-0.18);
+    px(sx+8,sy+6,16,TS-7,dfC);    // frame body
+    px(sx+8,sy+6,2,TS-7,wp2.sh);  // frame left shadow
+    px(sx+22,sy+6,2,TS-7,wp2.sh); // frame right shadow
+    px(sx+8,sy+6,16,2,wp2.sh);    // frame top shadow
+
+    // DOOR PANEL: rich warm wood
+    px(sx+10,sy+8,12,TS-9,dp.sh);   // door body dark
+    px(sx+10,sy+8,12,TS-10,dp.md);  // door face
+    px(sx+10,sy+8,12,2,dp.hl);      // door top highlight
+    px(sx+10,sy+8,2,TS-10,dp.hl);   // door left highlight (NW light)
+    px(sx+20,sy+8,2,TS-10,dp.sh);   // door right shadow
+    // Wood planks: vertical grain lines
+    for(let g=0;g<3;g++){
+      px(sx+13+g*3,sy+10,1,TS-12,_shift(dC,-4,-0.02,-0.06));
+    }
+    // Door panels: 2 recessed rectangles
+    px(sx+11,sy+11,4,6,dp.sh); px(sx+11,sy+11,4,1,dp.md);
+    px(sx+17,sy+11,4,6,dp.sh); px(sx+17,sy+11,4,1,dp.md);
+    // Door knocker/handle: gold circle
+    px(sx+14,sy+20,4,4,_shift('#c8a030',-6,-0.03,-0.08));
+    bCircle(sx+16,sy+22,2,'#c8a030');
+    px(sx+16,sy+21,2,1,'#f0d060'); // handle highlight
+    // Door sill at base
+    px(sx+10,sy+TS-2,12,2,_shift(wallBase,-16,-0.08,-0.22));
+    px(sx+10,sy+TS-2,12,1,wp2.sh);
+
+    // Prompt: ▲A drawn in render loop
+  }
+
+  // ── FLOOR (interior — walkable) ──────────────────────────────
+  // Interior of a building. Wooden planks top-down.
+  // Shows worn path from door, furniture outlines, warm candlelight tint.
+  else if(type===T.FLOOR){
+    const fp2=gsPal(PAL[T.FLOOR][0]);
+    // Base planks
+    px(sx,sy,TS,TS,fp2.md);
+    // Plank grain: horizontal boards, alternating tone
+    for(let p=0;p<4;p++){
+      const plankC=p%2===0?fp2.md:_shift(PAL[T.FLOOR][0],-4,-0.02,-0.06);
+      px(sx,sy+p*8,TS,8,plankC);
+      px(sx,sy+p*8,TS,1,fp2.sh); // board gap (shadow)
+      px(sx,sy+p*8+1,TS,1,fp2.hl); // board top face highlight
+      // Wood grain marks: short horizontal dashes
+      const pr2=mkRNG((wx>>>0)*0xB1C3^(wy>>>0)*0xA4F1^(p*0x137));
+      for(let g=0;g<4;g++){
+        const gx=sx+Math.floor(pr2()*26),gy=sy+p*8+2+Math.floor(pr2()*5);
+        px(gx,gy,3+Math.floor(pr2()*4),1,_shift(PAL[T.FLOOR][0],-6,-0.03,-0.08));
+      }
+    }
+    // Worn path: central strip slightly darker (foot traffic)
+    dRect(sx+8,sy,TS-16,TS,fp2.md,fp2.sh,0.18);
+    // Edge skirting board: darker strip at N wall
+    px(sx,sy,TS,2,fp2.dk);
+    px(sx,sy+1,TS,1,fp2.sh);
+    // Warm interior tint: candlelight amber
+    ctx.fillStyle='rgba(255,180,60,0.06)';
+    ctx.fillRect(sx,sy,TS,TS);
+  }
+
   else{ px(sx,sy,TS,TS,hi); }
 }
 
@@ -3628,8 +3832,8 @@ function drawPlayer(sx,sy){
       px(sx+13,sy+8+by,6,1,_shift(lipC,+5,+0.02,+0.04));
       px(sx+12,sy+8+by,2,1,P2.skin.dk); px(sx+18,sy+8+by,2,1,P2.skin.dk);
     }
-    // Jaw highlight — catches light from below (GS)
-    px(sx+12,sy+9+by,8,1,P2.skin.hl);
+    // Jaw highlight — catches light from below (GS). Only on visible jaw (not north-facing)
+    if(!fn) px(sx+12,sy+9+by,8,1,P2.skin.hl);
 
     // ── Beard rendering ───────────────────────────────────────
     // Drawn over jaw/chin, under nothing — always last in face pass
@@ -3913,7 +4117,7 @@ function drawNPC(sx,sy,npc){
 // Creatures are deterministic from world seed.
 
 let WORLD_CREATURES = {};
-const CREATURE_TYPES = ['wisp','crawler','sprite','wraith','tidecrawler','ashgecko','thornback','lumamoth'];
+const CREATURE_TYPES = ['wisp','crawler','sprite','wraith','tidecrawler','ashgecko','thornback','lumamoth','salteel','duskheron','ironshell','fenwick','paledeer'];
 
 function buildCreature(seed, x, y){
   const r = mkRNG((seed ^ (x*431) ^ (y*607) ^ 0xC4EA)>>>0);
@@ -3928,11 +4132,18 @@ function buildCreature(seed, x, y){
     ashgecko:   ['fire','earth','null'],     // Ash Gecko — lizard; fire/earth
     thornback:  ['wood','earth','metal'],    // Thornback — armoured boar; wood/earth
     lumamoth:   ['pale','wind','wood'],      // Luma Moth — bioluminescent; pale/wind
+    salteel:    ['water','null','pale'],     // Saltmire Eel — ambush predator; water/pale
+    duskheron:  ['water','wind','null'],     // Dusk Heron — wading stalker; water/wind
+    ironshell:  ['earth','metal','null'],    // Ironshell Tortoise — armoured; earth/metal
+    fenwick:    ['wood','earth','null'],     // Fenwick — burrow-fox; wood/earth
+    paledeer:   ['pale','wind','wood'],     // Pale Deer — signal-touched; pale/wind
   };
   const nameMap = {
     wisp:'Pale Wisp', crawler:'Stone Crawler', sprite:'Briar Sprite',
     wraith:'Veld Wraith', tidecrawler:'Tidecrawler', ashgecko:'Ash Gecko',
     thornback:'Thornback', lumamoth:'Luma Moth',
+    salteel:'Saltmire Eel', duskheron:'Dusk Heron',
+    ironshell:'Ironshell Tortoise', fenwick:'Fenwick', paledeer:'Pale Deer',
   };
   const hpMap = {
     wisp:12, crawler:18, sprite:8,
@@ -3941,12 +4152,22 @@ function buildCreature(seed, x, y){
     ashgecko:7,      // fragile but quick
     thornback:20,    // tank silhouette
     lumamoth:9,      // fragile, pacifist-leaning
+    salteel:14,      // ambush — strikes first
+    duskheron:11,    // fragile, highly evasive
+    ironshell:25,    // maximum armour — slowest
+    fenwick:8,       // fast digger, flees often
+    paledeer:13,     // graceful, rarely fights
   };
   // Hostility bias: lumamoth almost never hostile; thornback often
   const hostileBias = {
     wisp:0.35, crawler:0.35, sprite:0.30,
     wraith:0.55, tidecrawler:0.30, ashgecko:0.40,
     thornback:0.50, lumamoth:0.08,
+    salteel:0.70,    // ambush predator — usually hostile
+    duskheron:0.20,  // cautious wader — flees first
+    ironshell:0.25,  // defensive, withdraws into shell
+    fenwick:0.15,    // skittish burrow-fox — runs
+    paledeer:0.05,   // almost never hostile
   };
   const element = (elemMap[type]||['null'])[Math.floor(r() * 3)];
   const hp = hpMap[type] || 12;
@@ -3971,7 +4192,12 @@ function scatterCreatures(seed){
     tidecrawler: [T.SAND,T.WATER,T.DEEP],             // intertidal — sand meets water
     ashgecko:    [T.STONE,T.MOUNT,T.SAND],            // rock faces + arid ground
     thornback:   [T.FOREST,T.TALL,T.GRASS],           // woodland + tall grass
-    lumamoth:    [T.PALE,T.FOREST,T.TALL],            // low-light forest + pale zones
+    lumamoth:    [T.PALE,T.FOREST,T.TALL],
+    salteel:     [T.WATER,T.DEEP,T.SAND],   // lurks at water margin
+    duskheron:   [T.SAND,T.WATER,T.GRASS],  // wades shallow margins
+    ironshell:   [T.STONE,T.SAND,T.PATH],   // slow ground mover
+    fenwick:     [T.FOREST,T.TALL,T.GRASS], // woodland burrow-fox
+    paledeer:    [T.PALE,T.GRASS,T.TALL],   // pale zones + open ground
   };
   let placed = 0;
   for(let i = 0; placed < 20 && i < 300; i++){  // bumped to 20 creatures (8 types)
@@ -4080,6 +4306,453 @@ function drawCreature(sx, sy, creature){
   else if(creature.type==='ashgecko') drawAshGecko(sx,sy,creature);
   else if(creature.type==='thornback') drawThornback(sx,sy,creature);
   else if(creature.type==='lumamoth') drawLumaMoth(sx,sy,creature);
+  else if(creature.type==='salteel') drawSaltEel(sx,sy,creature);
+  else if(creature.type==='duskheron') drawDuskHeron(sx,sy,creature);
+  else if(creature.type==='ironshell') drawIronshell(sx,sy,creature);
+  else if(creature.type==='fenwick') drawFenwick(sx,sy,creature);
+  else if(creature.type==='paledeer') drawPaleDeer(sx,sy,creature);
+}
+
+// ── SALTMIRE EEL ──────────────────────────────────────────────
+// Ambush predator from still water and saltmire margins.
+// S-curve body, frilled crest, bioluminescent lure nodule.
+// Real ref: moray eel + gulper eel + electric eel + amphisbaena.
+// GBA art: sinuous S-body with Bresenham arcs, frilled dorsal, glow tip.
+function drawSaltEel(sx, sy, creature){
+  const t = frame * 0.055;
+  const sway = Math.round(Math.sin(t) * 3);
+  const sway2 = Math.round(Math.sin(t + 1.2) * 2);
+  const pulse = 0.5 + 0.5 * Math.sin(t * 1.6);
+  const elemC = ENGRAM_ELEMENT_COLORS[creature.element] || '#186080';
+  const P = gsPal(_shift(elemC, -6, -0.03, -0.10));
+  const belly = _shift(elemC, +12, +0.06, +0.20);
+  const BP = gsPal(belly);
+  const lureC = _shift('#40ffcc', +0, +0, +0.10);
+
+  // Ground shadow — elongated, smeared (eel lies low)
+  dRect(sx+6, sy+27, 20, 3, 'rgba(0,0,0,0)', 'rgba(0,0,0,0.25)', 0.60);
+
+  // TAIL section — thin, tapered, swaying
+  px(sx+22+sway2, sy+26, 6, 2, P.dk);
+  px(sx+22+sway2, sy+25, 5, 2, P.sh);
+  px(sx+24+sway2, sy+24, 3, 2, P.md);
+
+  // MID BODY — thicker, S-curve inflection
+  px(sx+16+sway, sy+21, 8, 4, P.dk);
+  px(sx+16+sway, sy+20, 8, 4, P.sh);
+  px(sx+17+sway, sy+20, 6, 3, P.md);
+  px(sx+17+sway, sy+20, 4, 1, BP.hl); // belly catch
+
+  // DORSAL FRILL — serrated fin running down spine
+  for(let f=0;f<5;f++){
+    const fx=sx+17+f*2+sway, fy=sy+18-Math.floor(Math.sin(f*0.8+t)*2);
+    px(fx,fy,2,3,P.sh); px(fx,fy,1,2,P.md); px(fx,fy,1,1,P.hl);
+  }
+
+  // UPPER BODY / NECK — thickest point
+  bCircle(sx+13-sway2+3, sy+16, 6, P.dk);
+  bCircle(sx+12-sway2+3, sy+15, 6, P.sh);
+  bCircle(sx+11-sway2+3, sy+14, 5, P.md);
+  px(sx+10-sway2+3, sy+13, 4, 3, BP.hl); // belly pale ventral
+
+  // HEAD — blunt, wide-mouthed
+  bCircle(sx+9, sy+10, 7, P.dk);
+  bCircle(sx+8, sy+9, 7, P.sh);
+  bCircle(sx+7, sy+8, 6, P.md);
+  px(sx+6, sy+7, 5, 3, P.hl);
+  // Wide jaw — eel gape
+  px(sx+5, sy+12, 10, 3, P.sh); // lower jaw
+  px(sx+5, sy+12, 10, 1, _shift(elemC,-16,-0.08,-0.24)); // jaw dark underside
+  px(sx+6, sy+12, 8, 1, belly); // inner mouth hint
+  // Nostril pits
+  px(sx+7, sy+8, 2, 2, P.dk); px(sx+11, sy+8, 2, 2, P.dk);
+  // Eye — cold, lateral
+  ctx.fillStyle='#0a0a12'; ctx.fillRect(sx+6,sy+9,4,4);
+  ctx.fillStyle='rgba(80,200,160,0.85)'; ctx.fillRect(sx+7,sy+10,2,2); // eerie iris
+  ctx.fillStyle='rgba(255,255,255,0.75)'; ctx.fillRect(sx+8,sy+10,1,1);
+
+  // BIOLUMINESCENT LURE — tip of barbel (forehead filament)
+  const lureX=sx+4, lureY=sy+6;
+  px(lureX, lureY+2, 1, 4, _shift(elemC,+4,+0.02,+0.04)); // filament
+  const lA=(0.55+pulse*0.40).toFixed(2);
+  bCircle(lureX, lureY+1, 3, lureC);
+  ctx.fillStyle=`rgba(64,255,200,${lA})`; ctx.fillRect(lureX-2,lureY-2,6,6); // glow
+  ctx.fillStyle='rgba(200,255,240,0.95)'; ctx.fillRect(lureX,lureY,2,2); // core
+
+  if(creature.hostile){
+    ctx.fillStyle='rgba(255,68,68,0.88)';
+    ctx.fillRect(sx+2,sy+2,4,2); ctx.fillRect(sx+2,sy+2,2,6);
+    ctx.fillRect(sx+26,sy+2,4,2); ctx.fillRect(sx+28,sy+2,2,6);
+  }
+}
+
+// ── DUSK HERON ────────────────────────────────────────────────
+// Tall wading bird, stalks shallow margins at dusk. Strikes with
+// lightning-fast neck extension. Reads as enormous when wings spread.
+// Real ref: goliath heron + shoebill + grey heron.
+// GBA art: long neck, dagger bill, folded wing planes, S-pose.
+function drawDuskHeron(sx, sy, creature){
+  const t = frame * 0.04;
+  const neckSway = Math.round(Math.sin(t) * 1);
+  const legBob = Math.floor(frame * 0.025) % 2;
+  const elemC = ENGRAM_ELEMENT_COLORS[creature.element] || '#186080';
+  const P = gsPal(elemC);
+  const plume = _shift(elemC, +6, +0.03, +0.18); // lighter plume feathers
+  const bill = _shift('#c8a030', -8, -0.04, -0.14);
+
+  // Shadow — elongated legs cast thin shadow
+  dRect(sx+12, sy+29, 8, 2, 'rgba(0,0,0,0)', 'rgba(0,0,0,0.22)', 0.55);
+
+  // LEGS — stilt-thin, in standing water stance
+  px(sx+13, sy+22, 2, 8+legBob, P.sh);
+  px(sx+17, sy+22, 2, 8+(1-legBob), P.sh);
+  px(sx+13, sy+22, 1, 7+legBob, P.md);
+  px(sx+17, sy+22, 1, 7+(1-legBob), P.md);
+  // Feet splayed on ground
+  px(sx+10, sy+29+legBob, 5, 1, P.dk);
+  px(sx+16, sy+29+(1-legBob), 5, 1, P.dk);
+  px(sx+12, sy+30+legBob, 4, 1, P.sh);
+  px(sx+17, sy+30+(1-legBob), 3, 1, P.sh);
+
+  // BODY — compact oval, folded wings give wide flat read
+  bCircle(sx+16, sy+17, 8, P.dk);
+  bCircle(sx+15, sy+16, 8, P.sh);
+  bCircle(sx+14, sy+15, 7, P.md);
+  px(sx+11, sy+13, 8, 4, P.hl); // NW dorsal highlight
+  px(sx+11, sy+13, 4, 2, P.sp||P.hl);
+  // Wing fold edges — two broad planes visible from above
+  px(sx+7,  sy+16, 8, 6, P.sh); // left wing plane
+  px(sx+7,  sy+16, 6, 4, P.md);
+  px(sx+7,  sy+16, 3, 2, P.hl);
+  px(sx+23, sy+16, 8, 6, P.dk); // right wing (shadow side)
+  px(sx+24, sy+17, 6, 4, P.sh);
+  // Wing primary feathers — fanned tips
+  for(let f=0;f<4;f++){
+    px(sx+5-f,sy+18+f*2,3,2,_shift(elemC,-10-f*4,-0.05,-0.14));
+    px(sx+25+f,sy+18+f*2,3,2,_shift(elemC,-12-f*4,-0.06,-0.16));
+  }
+  // Breast plume — lighter cascading feathers
+  dRect(sx+12,sy+18,8,5,P.md,plume,0.28);
+  px(sx+13,sy+18,6,1,_shift(plume,+4,+0.02,+0.06));
+
+  // NECK — S-curve extension, GS parallel lines
+  px(sx+15+neckSway, sy+9, 4, 7, P.dk);
+  px(sx+14+neckSway, sy+8, 4, 7, P.sh);
+  px(sx+14+neckSway, sy+8, 3, 6, P.md);
+  px(sx+14+neckSway, sy+8, 2, 2, P.hl); // nape highlight
+  // Throat stripe (dark longitudinal stripe — heron ID mark)
+  px(sx+15+neckSway, sy+10, 1, 5, P.dk);
+
+  // HEAD — small relative to body
+  bCircle(sx+15+neckSway, sy+5, 5, P.dk);
+  bCircle(sx+14+neckSway, sy+4, 5, P.sh);
+  bCircle(sx+13+neckSway, sy+3, 4, P.md);
+  px(sx+12+neckSway, sy+2, 4, 2, P.hl);
+  // Crown crest plumes (2 long feathers trailing back)
+  px(sx+19+neckSway, sy+2, 1, 5, _shift(plume,-8,-0.04,-0.12));
+  px(sx+20+neckSway, sy+1, 1, 6, _shift(plume,-10,-0.05,-0.16));
+
+  // BILL — long dagger, slightly kinked
+  px(sx+9+neckSway, sy+4, 8, 3, bill);
+  px(sx+8+neckSway, sy+4, 8, 2, _shift(bill,+4,+0.02,+0.06));
+  px(sx+8+neckSway, sy+4, 4, 1, _shift(bill,+10,+0.05,+0.12)); // tip highlight
+  // Eye — piercing yellow
+  ctx.fillStyle='#0a0a0e'; ctx.fillRect(sx+16+neckSway,sy+4,3,3);
+  ctx.fillStyle='rgba(220,180,40,0.90)'; ctx.fillRect(sx+17+neckSway,sy+4,2,2);
+  ctx.fillStyle='rgba(255,255,180,0.80)'; ctx.fillRect(sx+17+neckSway,sy+4,1,1);
+
+  if(creature.hostile){
+    ctx.fillStyle='rgba(255,68,68,0.88)';
+    ctx.fillRect(sx+2,sy+2,4,2); ctx.fillRect(sx+2,sy+2,2,6);
+    ctx.fillRect(sx+26,sy+2,4,2); ctx.fillRect(sx+28,sy+2,2,6);
+  }
+}
+
+// ── IRONSHELL TORTOISE ─────────────────────────────────────────
+// Largest land creature. Shell has geological age — lichen + crack
+// patterns read like a landscape from above. Nearly impervious.
+// Real ref: Galapagos tortoise + Testudo kleinmanni + Geochelone.
+// GBA art: dome shell from above with scute plates, tiny head retracted.
+function drawIronshell(sx, sy, creature){
+  const t = frame * 0.02;
+  const bob = Math.round(Math.sin(t) * 1);
+  const elemC = ENGRAM_ELEMENT_COLORS[creature.element] || '#706060';
+  const shellBase = _shift(elemC, -8, -0.04, -0.12);
+  const SP = gsPal(shellBase);
+  const scuteC = _shift(shellBase, +6, +0.03, +0.08); // individual plate faces
+  const seamC = _shift(shellBase, -16, -0.08, -0.24); // suture lines between plates
+  const lichenA = _shift(shellBase, +22, +0.14, +0.06); // warm ochre lichen
+
+  // Shell cast shadow — large, elliptical
+  dRect(sx+2, sy+26+bob, 28, 5, 'rgba(0,0,0,0)', 'rgba(0,0,0,0.40)', 0.75);
+
+  // SHELL DOME — 5-layer depth stack (outer→inner = darker→lighter)
+  bCircle(sx+16, sy+17+bob, 14, SP.dk);   // outermost shadow rim
+  bCircle(sx+16, sy+16+bob, 13, SP.sh);
+  bCircle(sx+15, sy+15+bob, 12, SP.md);
+  bCircle(sx+14, sy+14+bob, 10, scuteC);  // main dome face
+  bCircle(sx+13, sy+12+bob, 8, _shift(shellBase,+10,+0.05,+0.14));  // upper dome
+  bCircle(sx+12, sy+10+bob, 5, _shift(shellBase,+18,+0.09,+0.22));  // NW specular cap
+  px(sx+11, sy+8+bob, 5, 3, _shift(shellBase,+26,+0.13,+0.30)); // crown specular
+
+  // SCUTE PLATES — hexagonal pattern via suture lines
+  // Central vertebral column
+  px(sx+15, sy+10+bob, 2, 14, seamC);
+  // Lateral sutures (paired rows)
+  for(let row=0;row<3;row++){
+    const ry=sy+10+row*5+bob;
+    px(sx+10, ry, 12, 1, seamC); // transverse seam
+    // Left costals
+    px(sx+8+row, ry+1, 1, 4, seamC);
+    // Right costals
+    px(sx+22-row, ry+1, 1, 4, seamC);
+    // Scute face highlights (NW on each plate)
+    px(sx+9+row*2, ry+1, 3, 2, _shift(scuteC,+4+row,+0.02,+0.05));
+    px(sx+19-row*2, ry+1, 3, 2, _shift(scuteC,+2+row,+0.01,+0.03));
+  }
+
+  // LICHEN + GROWTH — biological age marker on shell surface
+  const lr=mkRNG((creature.x||0)*0xF1B^(creature.y||0)*0xC3A);
+  for(let l=0;l<5;l++){
+    const lx=sx+6+Math.floor(lr()*18), ly=sy+8+Math.floor(lr()*14)+bob;
+    dRect(lx,ly,3+Math.floor(lr()*4),2+Math.floor(lr()*3),scuteC,lichenA,0.55);
+  }
+
+  // LIMBS — just stubs visible at shell rim (mostly retracted)
+  px(sx+4,sy+20+bob,5,4,SP.sh); px(sx+4,sy+20+bob,3,3,SP.md); px(sx+4,sy+20+bob,2,1,SP.hl);
+  px(sx+23,sy+20+bob,5,4,SP.sh); px(sx+24,sy+20+bob,3,3,SP.md);
+  px(sx+8,sy+26+bob,5,3,SP.sh); px(sx+8,sy+27+bob,4,2,SP.md);
+  px(sx+19,sy+26+bob,5,3,SP.sh); px(sx+20,sy+27+bob,4,2,SP.md);
+
+  // HEAD — small, retracted (barely visible from above)
+  bCircle(sx+16,sy+7+bob,4,SP.dk);
+  bCircle(sx+15,sy+6+bob,4,SP.sh);
+  bCircle(sx+14,sy+5+bob,3,SP.md);
+  px(sx+13,sy+4+bob,3,2,SP.hl);
+  // Eye: tiny, deep-set
+  ctx.fillStyle='#0a0808'; ctx.fillRect(sx+14,sy+5+bob,2,2);
+  ctx.fillStyle='rgba(180,140,40,0.70)'; ctx.fillRect(sx+15,sy+5+bob,1,1);
+
+  // Ancient cracks in shell (geological stress fractures)
+  const cr=seamC;
+  px(sx+8,sy+14+bob,3,1,cr); px(sx+9,sy+15+bob,2,2,cr);
+  px(sx+22,sy+12+bob,2,3,cr); px(sx+21,sy+14+bob,3,1,cr);
+
+  if(creature.hostile){
+    ctx.fillStyle='rgba(255,68,68,0.88)';
+    ctx.fillRect(sx+2,sy+2,4,2); ctx.fillRect(sx+2,sy+2,2,6);
+    ctx.fillRect(sx+26,sy+2,4,2); ctx.fillRect(sx+28,sy+2,2,6);
+  }
+}
+
+// ── FENWICK ───────────────────────────────────────────────────
+// A small burrowing fox-like mammal with oversized digging claws
+// and a rust-red pelt with cream underside. Extremely fast.
+// Digs escape tunnels mid-encounter. Barely hostile — pure flight.
+// Real ref: fennec fox + bat-eared fox + meerkat.
+// GBA art: triangular ears, bushy tail, claw-heavy forepaws.
+function drawFenwick(sx, sy, creature){
+  const t = frame * 0.10;
+  const scurry = Math.round(Math.sin(t * 2.1) * 2);
+  const tailWag = Math.round(Math.sin(t * 0.7) * 4);
+  const earTwitch = Math.round(Math.sin(t * 1.3) * 1);
+  const elemC = ENGRAM_ELEMENT_COLORS[creature.element] || '#8a6030';
+  const pelt = _shift(elemC, +6, +0.04, +0.08);
+  const P = gsPal(pelt);
+  const cream = _shift('#e8d8b0', 0, 0, 0);
+  const CP = gsPal(cream);
+  const clawC = _shift('#b8a880', -6, -0.03, -0.14);
+
+  // Shadow — small, quick
+  dRect(sx+10, sy+28+scurry, 12, 3, 'rgba(0,0,0,0)', 'rgba(0,0,0,0.20)', 0.55);
+
+  // BUSHY TAIL — longest feature, flags behind
+  const tBase=sx+24, tY=sy+18+scurry;
+  bCircle(tBase+tailWag/2+2, tY+4, 6, P.dk);
+  bCircle(tBase+tailWag/2+1, tY+3, 6, P.sh);
+  bCircle(tBase+tailWag/2,   tY+2, 5, P.md);
+  bCircle(tBase+tailWag/2-1, tY+1, 4, P.hl);
+  px(tBase+tailWag/2-2, tY, 4, 3, P.sp||P.hl);
+  // White tail tip
+  bCircle(tBase+tailWag/2-2, tY-1, 3, cream);
+  px(tBase+tailWag/2-1, tY-2, 2, 2, CP.hl);
+
+  // HIND LEGS — powerful springs
+  px(sx+18,sy+22+scurry,5,6,P.sh); px(sx+18,sy+22+scurry,4,5,P.md); px(sx+18,sy+22+scurry,3,2,P.hl);
+  px(sx+14,sy+23+scurry,5,5,P.sh); px(sx+14,sy+23+scurry,3,4,P.md);
+  px(sx+13,sy+27+scurry,6,2,P.dk); px(sx+18,sy+28+scurry,5,2,P.dk); // feet
+
+  // BODY — lean, aerodynamic
+  bCircle(sx+15, sy+18+scurry, 8, P.dk);
+  bCircle(sx+14, sy+17+scurry, 8, P.sh);
+  bCircle(sx+13, sy+16+scurry, 7, P.md);
+  px(sx+10, sy+14+scurry, 7, 4, P.hl);
+  px(sx+10, sy+14+scurry, 4, 2, P.sp||P.hl);
+  // Cream underside (belly visible on lean torso)
+  dRect(sx+11,sy+17+scurry,9,5,P.md,cream,0.35);
+  px(sx+12,sy+18+scurry,7,2,CP.hl);
+
+  // FOREPAWS — oversized digging claws (fenwick hallmark)
+  px(sx+8,sy+19+scurry,5,4,P.sh); px(sx+8,sy+19+scurry,4,3,P.md);
+  px(sx+5,sy+21+scurry,5,3,P.sh); px(sx+6,sy+22+scurry,3,2,P.md);
+  // Claws — three per foot, white-tipped
+  for(let c=0;c<3;c++){
+    px(sx+5+c*2,sy+23+scurry,2,2,clawC);
+    px(sx+5+c*2,sy+23+scurry,1,1,_shift(clawC,+14,+0.07,+0.16));
+  }
+  for(let c=0;c<3;c++){
+    px(sx+9+c*2,sy+22+scurry,2,2,clawC);
+    px(sx+9+c*2,sy+22+scurry,1,1,_shift(clawC,+14,+0.07,+0.16));
+  }
+
+  // NECK
+  px(sx+11,sy+11+scurry,5,5,P.sh); px(sx+11,sy+11+scurry,4,4,P.md);
+
+  // HEAD — big ears dominate
+  bCircle(sx+12,sy+8+scurry,6,P.dk);
+  bCircle(sx+11,sy+7+scurry,6,P.sh);
+  bCircle(sx+10,sy+6+scurry,5,P.md);
+  px(sx+9,sy+5+scurry,5,3,P.hl);
+  // Cream face mask
+  bCircle(sx+11,sy+8+scurry,4,cream);
+  px(sx+10,sy+7+scurry,4,2,CP.hl);
+
+  // TRIANGULAR EARS — large, upright (fennec-style)
+  // Left ear
+  px(sx+7,sy+2+scurry+earTwitch,3,6,P.sh);
+  px(sx+7,sy+2+scurry+earTwitch,2,5,P.md);
+  px(sx+8,sy+2+scurry+earTwitch,1,4,cream); // inner ear
+  // Right ear
+  px(sx+16,sy+1+scurry,3,7,P.sh);
+  px(sx+16,sy+1+scurry,2,6,P.md);
+  px(sx+16,sy+2+scurry,1,5,cream);
+
+  // EYES — huge, reflective (nocturnal)
+  ctx.fillStyle='#060808'; ctx.fillRect(sx+10,sy+7+scurry,3,3); ctx.fillRect(sx+14,sy+7+scurry,3,3);
+  ctx.fillStyle='rgba(100,180,80,0.85)'; ctx.fillRect(sx+11,sy+8+scurry,2,2); ctx.fillRect(sx+15,sy+8+scurry,2,2);
+  ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.fillRect(sx+12,sy+8+scurry,1,1); ctx.fillRect(sx+16,sy+8+scurry,1,1);
+
+  // Nose — tiny black dot
+  px(sx+12,sy+10+scurry,2,2,'#0a0808'); px(sx+13,sy+10+scurry,1,1,'rgba(255,200,180,0.8)');
+
+  if(creature.hostile){
+    ctx.fillStyle='rgba(255,68,68,0.88)';
+    ctx.fillRect(sx+2,sy+2,4,2); ctx.fillRect(sx+2,sy+2,2,6);
+    ctx.fillRect(sx+26,sy+2,4,2); ctx.fillRect(sx+28,sy+2,2,6);
+  }
+}
+
+// ── PALE DEER ─────────────────────────────────────────────────
+// A signal-touched cervid. Antlers conduct pale energy — glow at
+// resonance hotspots. Almost never hostile. Encountering one is
+// considered a good omen in-world. Reference creature for the TCG.
+// Real ref: white stag + reindeer + ghost deer of folklore.
+// GBA art: elegant frame, branching antlers, pale mark on flank, eye glow.
+function drawPaleDeer(sx, sy, creature){
+  const t = frame * 0.045;
+  const breathe = Math.round(Math.sin(t) * 1);
+  const earF = Math.round(Math.sin(t * 1.8) * 1);
+  const glowPulse = 0.5 + 0.5 * Math.sin(t * 1.1);
+  const elemC = ENGRAM_ELEMENT_COLORS[creature.element] || '#8fa8ff';
+  const coatBase = '#d0c8b0'; // pale cream-grey coat
+  const P = gsPal(coatBase);
+  const antlerC = _shift('#c8c0a0', -4, -0.02, -0.06);
+  const AP = gsPal(antlerC);
+  const paleGlow = '#8fa8ff';
+  const noseC = '#1a0e0e';
+
+  // Shadow — deer stand tall, shadow elongated
+  dRect(sx+8, sy+29+breathe, 16, 3, 'rgba(0,0,0,0)', 'rgba(0,0,0,0.22)', 0.55);
+
+  // HIND LEGS — slender, defined fetlocks
+  px(sx+17,sy+20+breathe,3,10,P.sh); px(sx+17,sy+20+breathe,2,9,P.md);
+  px(sx+13,sy+21+breathe,3,9,P.sh);  px(sx+13,sy+21+breathe,2,8,P.md);
+  // Hooves
+  px(sx+13,sy+29+breathe,4,2,'#1a1410'); px(sx+17,sy+29+breathe,3,2,'#1a1410');
+  px(sx+13,sy+29+breathe,2,1,'#2a2418'); px(sx+18,sy+29+breathe,2,1,'#2a2418');
+
+  // BODY — elegant oval, longer than wide
+  bCircle(sx+16, sy+17+breathe, 9, P.dk);
+  bCircle(sx+15, sy+16+breathe, 9, P.sh);
+  bCircle(sx+14, sy+15+breathe, 8, P.md);
+  bCircle(sx+13, sy+14+breathe, 6, P.hl);
+  px(sx+11,sy+12+breathe,7,4,P.hl);
+  px(sx+11,sy+12+breathe,4,2,P.sp||P.hl);
+  // PALE FLANK MARK — signal brand, glows with resonance
+  const markA=(0.30+glowPulse*0.45).toFixed(2);
+  ctx.fillStyle=`rgba(143,168,255,${markA})`;
+  ctx.fillRect(sx+15,sy+16+breathe,6,4);
+  ctx.fillStyle=`rgba(200,215,255,${(glowPulse*0.60).toFixed(2)})`;
+  ctx.fillRect(sx+16,sy+17+breathe,4,2);
+  // Winter coat texture: dithered cream/grey
+  dRect(sx+12,sy+14+breathe,10,7,P.md,_shift(coatBase,+4,+0.01,+0.04),0.20);
+
+  // FORELEGS
+  px(sx+10,sy+20+breathe,3,8,P.sh); px(sx+10,sy+20+breathe,2,7,P.md);
+  px(sx+7, sy+21+breathe,3,7,P.sh);  px(sx+7, sy+21+breathe,2,6,P.md);
+  px(sx+7, sy+27+breathe,4,2,'#1a1410'); px(sx+10,sy+27+breathe,3,2,'#1a1410');
+
+  // NECK — arched gracefully
+  px(sx+11,sy+9+breathe,5,7,P.sh); px(sx+11,sy+9+breathe,4,6,P.md);
+  px(sx+11,sy+9+breathe,3,3,P.hl);
+  // Throat mane — slight winter ruff
+  dRect(sx+11,sy+12+breathe,4,5,P.md,P.sh,0.28);
+
+  // HEAD — elegant, small
+  bCircle(sx+13,sy+5+breathe,6,P.dk);
+  bCircle(sx+12,sy+4+breathe,6,P.sh);
+  bCircle(sx+11,sy+3+breathe,5,P.md);
+  px(sx+10,sy+2+breathe,5,3,P.hl);
+  px(sx+10,sy+2+breathe,3,2,P.sp||P.hl);
+
+  // EARS — large, mobile, alert
+  // Left ear (near)
+  px(sx+7,sy+1+breathe+earF,3,7,P.sh); px(sx+7,sy+1+breathe+earF,2,6,P.md);
+  px(sx+8,sy+2+breathe+earF,1,4,_shift(coatBase,+14,+0.06,+0.12));
+  // Right ear (far, smaller)
+  px(sx+17,sy+0+breathe,2,6,P.sh); px(sx+17,sy+0+breathe,1,5,P.md);
+
+  // EYES — large, luminous amber
+  ctx.fillStyle='#0a0808'; ctx.fillRect(sx+10,sy+4+breathe,4,4);
+  ctx.fillStyle=`rgba(200,160,40,${(0.70+glowPulse*0.25).toFixed(2)})`; ctx.fillRect(sx+11,sy+4+breathe,3,3);
+  ctx.fillStyle='rgba(255,240,160,0.90)'; ctx.fillRect(sx+11,sy+4+breathe,2,2);
+  ctx.fillStyle='rgba(255,255,255,0.90)'; ctx.fillRect(sx+13,sy+4+breathe,1,1);
+  // Eyelid — delicate upper rim
+  ctx.fillStyle=P.sh; ctx.fillRect(sx+10,sy+4+breathe,4,1);
+
+  // Nose — dark, moist
+  px(sx+8,sy+7+breathe,4,3,noseC); px(sx+9,sy+7+breathe,3,2,'#2a1818');
+  px(sx+10,sy+7+breathe,2,1,'rgba(200,140,140,0.6)'); // nostril highlight
+
+  // ANTLERS — branching, signal-charged
+  // Main beam left
+  px(sx+11,sy-3+breathe,2,6,AP.sh); px(sx+11,sy-3+breathe,1,5,AP.md);
+  px(sx+9,sy-5+breathe,3,4,AP.sh); px(sx+9,sy-5+breathe,2,3,AP.md);
+  // Brow tine left
+  px(sx+8,sy-2+breathe,4,2,AP.sh); px(sx+8,sy-2+breathe,3,1,AP.hl);
+  // Bez tine left
+  px(sx+7,sy-5+breathe,3,2,AP.sh); px(sx+7,sy-5+breathe,2,1,AP.hl);
+  // Main beam right
+  px(sx+16,sy-4+breathe,2,7,AP.sh); px(sx+16,sy-4+breathe,1,6,AP.md);
+  px(sx+17,sy-6+breathe,3,5,AP.sh); px(sx+17,sy-6+breathe,2,4,AP.md);
+  // Right tines
+  px(sx+19,sy-3+breathe,4,2,AP.sh); px(sx+19,sy-3+breathe,3,1,AP.hl);
+  px(sx+18,sy-6+breathe,4,2,AP.sh); px(sx+18,sy-6+breathe,3,1,AP.hl);
+
+  // ANTLER PALE GLOW — signal energy radiates from tine tips
+  const aA=(0.40+glowPulse*0.50).toFixed(2);
+  ctx.fillStyle=`rgba(143,168,255,${aA})`;
+  ctx.fillRect(sx+9,sy-6+breathe,4,3);
+  ctx.fillRect(sx+17,sy-7+breathe,4,3);
+  ctx.fillStyle=`rgba(200,215,255,${(glowPulse*0.70).toFixed(2)})`;
+  ctx.fillRect(sx+10,sy-6+breathe,2,2);
+  ctx.fillRect(sx+18,sy-7+breathe,2,2);
+
+  if(creature.hostile){
+    ctx.fillStyle='rgba(255,68,68,0.70)';
+    ctx.fillRect(sx+2,sy+2,4,2); ctx.fillRect(sx+2,sy+2,2,6);
+    ctx.fillRect(sx+26,sy+2,4,2); ctx.fillRect(sx+28,sy+2,2,6);
+  }
 }
 
 // ── VELD WRAITH ───────────────────────────────────────────────
@@ -5017,6 +5690,16 @@ function render(){
       if(gcsx>=0&&gcsx<=CW&&gcsy>=0&&gcsy<=CH)
         drawPrompt(gcsx,gcsy,'rgba(143,168,255,1)','▲A');
     }
+
+    // Door tiles adjacent — enter building prompt
+    checks.forEach(({dx,dy})=>{
+      const wx2=px+dx,wy2=py+dy;
+      if(tile(wx2,wy2)===T.DOOR){
+        const dsx=(wx2-camX)*TS,dsy=(wy2-camY)*TS;
+        if(dsx>=0&&dsx<=CW&&dsy>=0&&dsy<=CH)
+          drawPrompt(dsx,dsy,'rgba(200,144,10,1)','▲A');
+      }
+    });
   }
 
   // CRT SCANLINE PASS — unifies the pixel art and gives a subtle screen-in-bezel feel
@@ -5316,6 +5999,43 @@ const Input={
   interact(){
     TUTORIAL.event('FIRST_INTERACT');
     const t=tile(INSTANCE.px,INSTANCE.py);
+
+    // Door — enter building
+    if(t===T.DOOR){
+      const buildingNPCs=[];
+      for(const id in WORLD_NPCS){
+        const npc=WORLD_NPCS[id];
+        const dist=Math.abs(INSTANCE.px-npc.x)+Math.abs(INSTANCE.py-npc.y);
+        if(dist<=3&&!npc.defeated) buildingNPCs.push(npc);
+      }
+      const innMsg=[
+        `◈ YOU ENTER`,
+        buildingNPCs.length>0
+          ? `${buildingNPCs[0].name} is inside.\n${buildingNPCs[0].engram?.duty||'They wait.'}`
+          : `Empty. Dust in the corners.\nSomeone was here.`,
+      ];
+      Dialog.show(innMsg,'SAEL','');
+      return;
+    }
+
+    // Check door adjacent (approach from south)
+    const adjDoor=[{dx:0,dy:-1},{dx:1,dy:-1},{dx:-1,dy:-1}].find(({dx,dy})=>
+      tile(INSTANCE.px+dx,INSTANCE.py+dy)===T.DOOR);
+    if(adjDoor){
+      const buildingNPCs=[];
+      for(const id in WORLD_NPCS){
+        const npc=WORLD_NPCS[id];
+        const dist=Math.abs(INSTANCE.px-npc.x)+Math.abs(INSTANCE.py-npc.y);
+        if(dist<=4&&!npc.defeated) buildingNPCs.push(npc);
+      }
+      Dialog.show([
+        '◈ BUILDING',
+        buildingNPCs.length>0
+          ? `${buildingNPCs[0].name} is inside.`
+          : `It looks empty.\nMove to the door to enter.`,
+      ],'SAEL','');
+      return;
+    }
 
     // NPC proximity — A button initiates encounter for non-auto-engage types
     if(!ENCOUNTER_NPC&&!BATTLE){
@@ -7673,17 +8393,121 @@ function openStats(){
 // ══ BATTLE SYSTEM ════════════════════════════════════════════
 let BATTLE=null;
 
-function startBattle(npc){
-  BATTLE={npc,playerTurn:npc.cfg.app!=='ambush',
-    stunned:false,enemyStunned:false,inspected:false,turnCount:0,over:false};
-  document.getElementById('btl-ui').classList.add('open');
-  updateBattleHUD();
-  document.getElementById('pp-name').textContent=INSTANCE.name||'EXPLORER';
-  if(BATTLE.playerTurn)openActMenu();
-  else{
-    closeBtlSubMenus();
-    Dialog.show([`${npc.name} ambushes you.\nYou lose the first action.`],'SAEL','battle',()=>enemyTurn());
+// ── BATTLE BACKGROUND RENDERER ────────────────────────────────
+function drawBattleBg(biome){
+  const bc=document.getElementById('btl-bg-canvas');
+  if(!bc)return;
+  bc.width=window.innerWidth||480; bc.height=window.innerHeight||640;
+  const bx=bc.getContext('2d');
+  const W2=bc.width,H2=bc.height;
+  const skyH=Math.floor(H2*0.45);
+  const groundH=H2-skyH;
+  const themes={
+    3:{sky:['#0d1a0a','#1a2e12'],ground:['#1c4010','#2a5a18'],acc:'#44cc44'},  // GRASS
+    4:{sky:['#0a150a','#152512'],ground:['#143008','#1e4410'],acc:'#66dd44'},  // TALL
+    5:{sky:['#070e06','#101a0e'],ground:['#0c2008','#14300e'],acc:'#338822'},  // FOREST
+    2:{sky:['#1a1408','#2a200e'],ground:['#6a5020','#8a6a30'],acc:'#d4a840'},  // SAND
+    6:{sky:['#0e0e14','#181820'],ground:['#303040','#404050'],acc:'#8888aa'},  // STONE
+    7:{sky:['#080810','#10101a'],ground:['#484858','#585868'],acc:'#aaaacc'},  // MOUNT
+    8:{sky:['#080d1a','#10183a'],ground:['#4050a0','#5870cc'],acc:'#8fa8ff'},  // PALE
+    1:{sky:['#060c18','#0e1830'],ground:['#0e3050','#186080'],acc:'#40a8d0'},  // WATER
+   14:{sky:['#0a0806','#181210'],ground:['#5a4030','#7a5840'],acc:'#c89060'},  // FLOOR
+  };
+  const th=themes[biome]||themes[3];
+  // Sky
+  const sg=bx.createLinearGradient(0,0,0,skyH);
+  sg.addColorStop(0,th.sky[0]);sg.addColorStop(1,th.sky[1]);
+  bx.fillStyle=sg;bx.fillRect(0,0,W2,skyH);
+  // Stars
+  const sr=mkRNG((biome+1)*0xF1A3^0xDEAD1234);
+  for(let i=0;i<50;i++){
+    const sa=(0.2+sr()*0.8).toFixed(2);
+    bx.fillStyle=`rgba(200,215,255,${sa})`;
+    bx.fillRect(Math.floor(sr()*W2),Math.floor(sr()*skyH*0.85),sr()<0.15?2:1,1);
   }
+  // Horizon glow
+  bx.fillStyle=th.acc+'33';bx.fillRect(0,skyH-6,W2,10);
+  bx.fillStyle=th.acc+'15';bx.fillRect(0,skyH-16,W2,12);
+  // Ground
+  const gg=bx.createLinearGradient(0,skyH,0,H2);
+  gg.addColorStop(0,th.ground[0]);gg.addColorStop(1,th.ground[1]);
+  bx.fillStyle=gg;bx.fillRect(0,skyH,W2,groundH);
+  // Silhouettes
+  const or2=mkRNG((biome+1)*0xC3B1^0xBEEFCAFE);
+  if(biome===5||biome===4){
+    for(let t=0;t<9;t++){
+      const tx=Math.floor(or2()*W2),th2=25+Math.floor(or2()*55),tr2=10+Math.floor(or2()*22);
+      const tC=th.ground[0];
+      bx.fillStyle=_shift(tC,-8,-0.04,-0.12);bx.fillRect(tx-2,skyH-th2,4,th2+2);
+      bx.fillStyle=tC;bx.beginPath();bx.arc(tx,skyH-th2,tr2,0,Math.PI*2);bx.fill();
+      bx.fillStyle=_shift(tC,+4,+0.02,+0.06);bx.beginPath();bx.arc(tx-3,skyH-th2-3,tr2*0.65,0,Math.PI*2);bx.fill();
+    }
+  }else if(biome===6||biome===7){
+    for(let r=0;r<7;r++){
+      const rx=Math.floor(or2()*W2),rh=15+Math.floor(or2()*70),rw=25+Math.floor(or2()*55);
+      bx.fillStyle=_shift(th.ground[0],-6,-0.03,-0.10);
+      bx.beginPath();bx.ellipse(rx,skyH,rw/2,rh,0,Math.PI,0);bx.fill();
+      bx.fillStyle=_shift(th.ground[0],+4,+0.02,+0.06);
+      bx.beginPath();bx.ellipse(rx-4,skyH,rw/2*0.6,rh*0.7,0,Math.PI,0);bx.fill();
+    }
+  }else if(biome===8){
+    for(let c=0;c<7;c++){
+      const cx=Math.floor(or2()*W2),ch=15+Math.floor(or2()*90),cw=5+Math.floor(or2()*14);
+      bx.fillStyle=th.acc+'44';bx.beginPath();bx.moveTo(cx-cw/2,skyH);bx.lineTo(cx,skyH-ch);bx.lineTo(cx+cw/2,skyH);bx.fill();
+      bx.fillStyle=th.acc+'99';bx.beginPath();bx.moveTo(cx-2,skyH);bx.lineTo(cx,skyH-ch);bx.lineTo(cx+2,skyH);bx.fill();
+    }
+  }else if(biome===2){
+    for(let d=0;d<5;d++){
+      const dx=Math.floor(or2()*W2);
+      bx.fillStyle=_shift(th.ground[0],+6,+0.03,+0.08);
+      bx.beginPath();bx.ellipse(dx,skyH+8,70+or2()*70,22,0,Math.PI,0);bx.fill();
+    }
+  }else if(biome===14){
+    bx.fillStyle=_shift(th.ground[0],-6,-0.03,-0.10);bx.fillRect(0,skyH-32,W2,34);
+    const bkC=_shift(th.ground[0],-12,-0.06,-0.18);
+    bx.fillStyle=bkC;
+    for(let br=0;br<4;br++) for(let bc2=0;bc2<Math.ceil(W2/20);bc2++){
+      const off=(br%2)*10;bx.fillRect(bc2*20+off,skyH-30+br*8,19,7);
+    }
+    for(let t=0;t<3;t++){
+      const tx=80+t*Math.floor(W2/3);
+      bx.fillStyle='rgba(180,90,20,1)';bx.fillRect(tx-3,skyH-55,6,28);
+      const tA=(0.7+0.3*Math.sin(Date.now()*0.004+t)).toFixed(2);
+      bx.fillStyle=`rgba(255,160,30,${tA})`;bx.fillRect(tx-6,skyH-58,12,8);
+      bx.fillStyle=`rgba(255,220,80,${tA})`;bx.fillRect(tx-3,skyH-60,6,5);
+      bx.fillStyle='rgba(255,255,160,0.5)';bx.fillRect(tx-1,skyH-62,3,4);
+    }
+  }
+  // Ground scatter
+  const gr=mkRNG((biome+1)*0xA1B2^0xCAFEBABE);
+  for(let i=0;i<25;i++){
+    bx.fillStyle=th.acc+'20';
+    bx.fillRect(Math.floor(gr()*W2),skyH+5+Math.floor(gr()*groundH*0.8),2+Math.floor(gr()*10),1);
+  }
+  bc.style.opacity='1';
+}
+function hideBattleBg(){const bc=document.getElementById('btl-bg-canvas');if(bc)bc.style.opacity='0';}
+function battleFlash(col,cb){
+  const f=document.getElementById('btl-flash');
+  if(!f){if(cb)cb();return;}
+  f.style.background=col||'#ffffff';f.style.opacity='0.9';
+  setTimeout(()=>{f.style.opacity='0';setTimeout(cb||function(){},90);},70);
+}
+
+function startBattle(npc){
+  battleFlash(npc.isCreature?'#8fa8ff20':'#ff664420',()=>{
+    BATTLE={npc,playerTurn:npc.cfg.app!=='ambush',
+      stunned:false,enemyStunned:false,inspected:false,turnCount:0,over:false};
+    drawBattleBg(tile(INSTANCE.px,INSTANCE.py));
+    document.getElementById('btl-ui').classList.add('open');
+    updateBattleHUD();
+    document.getElementById('pp-name').textContent=INSTANCE.name||'EXPLORER';
+    if(BATTLE.playerTurn)openActMenu();
+    else{
+      closeBtlSubMenus();
+      Dialog.show([`${npc.name} ambushes you.\nYou lose the first action.`],'SAEL','battle',()=>enemyTurn());
+    }
+  });
 }
 
 function updateBattleHUD(){
@@ -7742,6 +8566,7 @@ function endBattle(outcome){
   BATTLE.over=true;
   closeBtlSubMenus();
   document.getElementById('btl-ui').classList.remove('open');
+  hideBattleBg();
   const npc=BATTLE.npc; BATTLE=null;
   TUTORIAL.event('FIRST_COMBAT_ENDED');
 
@@ -7758,11 +8583,18 @@ function endBattle(outcome){
       ashgecko:    ['◈ ASH SCALE collected.','Fireproof. Lightweight.'],
       thornback:   ['◈ QUILL SHARD recovered.','Barbed. Useful for traps or tools.'],
       lumamoth:    ['◈ WING DUST collected.','Faintly luminous. Handle gently.'],
+      salteel:     ['◈ EEL SPINE recovered.','Serrated. Conducts signal.'],
+      duskheron:   ['◈ HERON FEATHER taken.','Perfectly balanced. Hollow.'],
+      ironshell:   ['◈ SHELL PLATE salvaged.','The heaviest natural armour found.'],
+      fenwick:     ['◈ FENWICK PELT recovered.','Dense undercoat. Warm.'],
+      paledeer:    ['◈ PALE ANTLER SHARD.','Signal-charged. Handle with care.'],
     }[cr.type]||['Nothing left.'];
     const lootItem={
       wisp:'pale_fragment', crawler:'stone_chip', sprite:'briar_leaf',
       wraith:'veld_static', tidecrawler:'chitin_plate',
       ashgecko:'ash_scale', thornback:'quill_shard', lumamoth:'wing_dust',
+      salteel:'eel_spine', duskheron:'heron_feather',
+      ironshell:'shell_plate', fenwick:'fenwick_pelt', paledeer:'pale_antler',
     }[cr.type];
     if(lootItem){ INSTANCE[lootItem]=(INSTANCE[lootItem]||0)+1; INSTANCE.addResonance(2); }
     Dialog.show(drops,'SAEL','battle',()=>INSTANCE.save());
@@ -7966,6 +8798,60 @@ function initBattleButtons(){
     document.getElementById('pa-opens').style.display=known.includes('pa_opens')?'flex':'none';
     document.getElementById('pale-menu').classList.add('open');};
   document.getElementById('am-talk').onclick=()=>{closeBtlSubMenus();document.getElementById('talk-menu').classList.add('open');};
+  // Echo Card — only visible when fighting a creature with cards in inventory
+  const echoBtn=document.getElementById('am-echo');
+  const echoCount=INSTANCE.echo_cards||0;
+  const isCreatureFight=BATTLE?.npc?.isCreature;
+  echoBtn.style.display=(isCreatureFight&&echoCount>0)?'flex':'none';
+  echoBtn.textContent='';
+  echoBtn.innerHTML=`◈ ECHO CARD<span class="cost" style="color:#8fa8ff">×${echoCount} · Capture</span>`;
+  echoBtn.onclick=()=>{
+    if(!BATTLE||!BATTLE.playerTurn||!BATTLE.npc.isCreature)return;
+    const cr=BATTLE.npc._creatureRef;
+    if(!cr){return;}
+    INSTANCE.echo_cards=Math.max(0,(INSTANCE.echo_cards||0)-1);
+    BATTLE.playerTurn=false;
+    closeBtlSubMenus();
+    // Capture probability: base 40% at full HP, scales up as creature weakens
+    const hpRatio=BATTLE.npc.hp/BATTLE.npc.maxHp;
+    const basePct=0.40;
+    const capturePct=Math.min(0.92, basePct + (1-hpRatio)*0.52);
+    const roll=Math.random();
+    const captured=roll<capturePct;
+    if(captured){
+      // Add to TCG deck as echo
+      const echo={
+        id:`echo_${cr.type}_${Date.now()}`,
+        name:cr.name,
+        element:cr.element,
+        type:cr.type,
+        rarity:hpRatio<0.25?'Rare':hpRatio<0.60?'Uncommon':'Common',
+        hp:cr.maxHp, atk:BATTLE.npc.stats.str, spd:BATTLE.npc.stats.agi,
+        wit:BATTLE.npc.stats.wit, captured:Date.now(),
+      };
+      INSTANCE.capturedEchoes=INSTANCE.capturedEchoes||[];
+      INSTANCE.capturedEchoes.push(echo);
+      INSTANCE.addResonance(4);
+      battleFlash('#8fa8ff',()=>{});
+      Dialog.show([
+        `◈ ECHO CARD THROWN`,
+        `The card pulses — ${cr.name} is drawn in.`,
+        `◈ CAPTURED: ${cr.name} [${echo.rarity}]`,
+        `Added to your Echo collection.\nView in TCG.`,
+      ],'SAEL','pale',()=>{endBattle('resolved');});
+    } else {
+      const escPct=Math.round((1-capturePct)*100);
+      Dialog.show([
+        `◈ ECHO CARD THROWN`,
+        `${cr.name} resists. The card shatters.`,
+        `(${escPct}% resistance — weaken it further)`,
+      ],'SAEL','battle',()=>{
+        updateBattleHUD();
+        if(BATTLE)enemyTurn();
+      });
+    }
+    INSTANCE.save();
+  };
   document.getElementById('am-flee').onclick=btlFlee;
   document.getElementById('am-wpn').onclick=()=>{
     if(!INSTANCE.equipped_weapon)return;
@@ -8084,7 +8970,12 @@ function startCreatureBattle(creature){
       tidecrawler: {str:6,agi:2,wit:1,per:3,rep:0,end:7},  // heaviest armor
       ashgecko:    {str:2,agi:8,wit:2,per:5,rep:0,end:1},  // extreme agility, fragile
       thornback:   {str:7,agi:2,wit:1,per:2,rep:0,end:6},  // charge tank, low wit
-      lumamoth:    {str:1,agi:5,wit:5,per:7,rep:0,end:2},  // perceptive, pacifist
+      lumamoth:    {str:1,agi:5,wit:5,per:7,rep:0,end:2},
+      salteel:     {str:5,agi:8,wit:2,per:6,rep:0,end:3},  // fast ambush striker
+      duskheron:   {str:3,agi:7,wit:3,per:8,rep:0,end:2},  // evasive, high perception
+      ironshell:   {str:4,agi:1,wit:1,per:2,rep:0,end:10}, // fortress defense
+      fenwick:     {str:2,agi:9,wit:3,per:5,rep:0,end:2},  // fastest creature
+      paledeer:    {str:2,agi:6,wit:6,per:9,rep:0,end:3},  // aware, graceful
     }[creature.type])||{str:3+(creature.hp/6|0),agi:4,wit:2,per:3,rep:0,end:3},
     alignment: 'dark',
     morality: 20,
@@ -8103,6 +8994,11 @@ function startCreatureBattle(creature){
     ashgecko:    [`An ${creature.name} puffs its throat. A warning.`,`It doesn't retreat.`],
     thornback:   [`A ${creature.name} lowers its head.`,`Quills flared. It's about to charge.`],
     lumamoth:    [`A ${creature.name} flickers — it's cornered and panicking.`,`It doesn't want this fight.`],
+    salteel:     [`A ${creature.name} erupts from the shallows.`,`You didn't see it coming.`],
+    duskheron:   [`A ${creature.name} fixes you with one eye.`,`Still. Measuring. Then it strikes.`],
+    ironshell:   [`An ${creature.name} seals its shell.`,`It will outlast you. It knows this.`],
+    fenwick:     [`A ${creature.name} snaps at your ankle.`,`It's already looking for the exit.`],
+    paledeer:    [`A ${creature.name} turns to face you.`,`Its antlers glow faint pale.\nIt didn't expect this either.`],
   }[creature.type]||[`${creature.name} attacks.`];
   Dialog.show(intro,'SAEL','battle',()=>startBattle(fakeNPC));
 }
@@ -8605,20 +9501,18 @@ window.addEventListener('resize', ()=>{ _checkOrientation(); scaleApp(); });
 window.addEventListener('orientationchange',()=>setTimeout(()=>{ _checkOrientation(); scaleApp(); },150));
 
 // ── RESPONSIVE SCALING ─────────────────────────────────────────
-// Scale the GBA shell down on viewports narrower than 456px.
-// Never scale up. transform-origin: top center.
-// Runs on load, resize, and orientation change.
+// Scale the GBA shell to fill the viewport. No fixed max — breaks container when needed.
+// transform-origin: top center. Runs on load, resize, orientation change.
 function scaleApp(){
   const app=document.getElementById('app');
   if(!app||app.style.display==='none')return;
   const isLandscape=window.innerWidth>window.innerHeight;
   const isSmall=Math.min(screen.width,screen.height)<600;
   if(isLandscape&&isSmall){ app.style.transform=''; return; }
-  const GBA_W=456;
+  const GBA_W=520; // 480px canvas + 40px bezel padding
   const sal=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sal'))||0;
   const sar=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sar'))||0;
   const availW=window.innerWidth-sal-sar;
-  // Fill the available width — scale UP on large screens, DOWN on small
   const scale=availW/GBA_W;
   app.style.transform=Math.abs(scale-1)>0.005?`scale(${scale.toFixed(4)})`:'';
   // Adjust shell height to match scaled content
