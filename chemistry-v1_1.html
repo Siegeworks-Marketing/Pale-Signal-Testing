@@ -529,7 +529,7 @@ function doSearch(q){
   if(!q.trim()){r.innerHTML=`<div class="search-empty"><div class="se-icon">🔍</div><p>Search all 118 elements by name, symbol, or atomic number</p></div>`;return;}
   const q2=q.toLowerCase();
   const res=elements.filter(e=>e.name.toLowerCase().includes(q2)||e.sym.toLowerCase().includes(q2)||String(e.n).includes(q));
-  if(!res.length){r.innerHTML='<p style="color:#4a5e99;text-align:center;padding:20px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:1px">NO RESULTS · CHECK SPELLING</p>';return;}
+  if(!res.length){r.innerHTML=`<p style="color:#4a5e99;text-align:center;padding:20px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:1px">NO RESULTS · CHECK SPELLING</p>`;return;}
   r.innerHTML=`<div style="font-size:9px;color:#4a5e99;margin-bottom:8px;letter-spacing:1px;font-family:'Courier New',monospace">${res.length} RESULT${res.length!==1?'S':''} FOUND</div>
   <div class="search-results">${res.map(el=>{
     const c=gc(el.cat);

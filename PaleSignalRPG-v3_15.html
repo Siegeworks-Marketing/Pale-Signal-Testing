@@ -2478,7 +2478,7 @@ function buildWorld(seed) {
   }
 
   // Buildings — 4-8 per world, on flat GRASS/SAND, away from water + special zones
-  const buildR=mkRNG(seed^0xD00RBEL1);
+  const buildR=mkRNG(seed^0xD00BE115);
   const nBuildings=4+Math.floor(buildR()*5);
   let bPlaced=0;
   for(let bi=0;bi<200&&bPlaced<nBuildings;bi++){
