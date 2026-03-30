@@ -1,12 +1,12 @@
-// PALE SIGNAL · Service Worker v2.17
+// PALE SIGNAL · Service Worker v2.18
 // Cache-first. Full offline. Single repo.
-// v2.17 — v3.15: beard fix, 480×320 canvas, buildings, battle transitions, echo capture, 13 creatures.
-const CACHE = 'pale-signal-v2.17';
-const VERSION = '2.17';
+// v2.18 — v3.16: buildings fixed, creature encounters, NPC interiors, door/floor fidelity, beard fix.
+const CACHE = 'pale-signal-v2.18';
+const VERSION = '2.18';
 
 const CORE = [
   './index.html',
-  './PaleSignalRPG-v3_15.html',
+  './PaleSignalRPG-v3_16.html',
   './PaleSignalTCG-v1_2.html',
   './pixel-engine-v1_2.html',
   './chemistry-v1_1.html',

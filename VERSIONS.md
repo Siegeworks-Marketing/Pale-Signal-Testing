@@ -3,6 +3,55 @@
 
 ---
 
+## v3.16 · Session 13 · 2026-03-30
+
+**Buildings — complete rework:**
+- Footprint corrected: 6×5 tiles (was 4×4 — too small to read)
+  - Row 0: full north wall (roof tiles)
+  - Rows 1–3: interior FLOOR with furniture
+  - Row 4: south face, DOOR at col 2, 4-tile path south
+- HOUSE tile: variant now seeded from building origin (all tiles in one building match)
+  - 3 variants: TERRACOTTA (red ridge tiles), THATCH (green-grey), SLATE (cool blue-grey)
+  - North wall tiles: full roof with 5 ridge courses, NW specular, eave shadow
+  - South/side wall tiles: alternating brick bond pattern with mortar lines, per-tile windows with glass reflection + interior amber glow + cross muntins
+  - Chimney: seeded per building origin, appears on north wall
+- DOOR tile: complete redesign
+  - Stone arch with keystone bar and post highlights/shadows
+  - Interior glimpse: warm candlelit floor visible behind slightly-ajar door
+  - Brass handle + lock plate, raised wood panels with proper inset shading, stone threshold
+- FLOOR tile: complete redesign
+  - Horizontal plank boards with alternating tone, knot holes, longer grain marks
+  - Furniture silhouettes: TABLE / CRATE / BARREL / BOOKSHELF (seeded per tile, 45% chance)
+  - Book spines with colour variation, barrel stave lines, crate cross-bracing
+  - Warm candlelight tint + central light bloom
+
+**Creature encounters — all 13 creatures now interactive:**
+- Non-hostile creatures: contact triggers examine dialog with creature lore (3 lines), condition, action hint
+- Echo Card offer: if player has cards, offered at end of examine — no combat required
+  - Failed capture turns creature hostile and starts battle
+  - Successful capture removes from map, adds to echo collection
+- ▲A prompt shown for all adjacent creatures (red ⚔ if hostile, pale blue ▲A if docile)
+- A-button also checks adjacent creatures before tiles/NPCs
+- Unique lore + action hint for all 13 types
+
+**NPC interiors:**
+- Building NPCs placed on FLOOR tiles at world gen time (not random scatter)
+- Roles: merchant / civilian / wanderer / corrupt — seeded per building
+- Named: The Keeper, Maren, Solis, Dex, Passing Through, The Factor, etc.
+- scatterNPCs() skips FLOOR tiles (reserved for building residents)
+
+**Beard bug — final fix:**
+- Unconditional chin highlight removed from head draw (was drawing on all facings)
+- Mouth shadow row removed (was reading as moustache on warm skin tones)
+- Corner darks softened from skin.dk to skin.sh single pixel
+- Stubble pattern moved to sy+9–10 (below lip row)
+
+**Infrastructure:**
+- sw.js → v2.18, RPG → v3.16
+- index.html card updated
+
+---
+
 ## v3.15 · Session 12 · 2026-03-29
 
 **Bug fixes:**

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1">
-<title>PALE SIGNAL RPG · v3.15</title>
+<title>PALE SIGNAL RPG · v3.16</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="PALE SIGNAL">
@@ -14,7 +14,7 @@
 // ── PWA SERVICE WORKER ──────────────────────────────────────
 if('serviceWorker' in navigator){
   const SW_SRC = `
-const CACHE='pale-signal-v3_15';
+const CACHE='pale-signal-v3_16';
 const FILES=[location.pathname||'/'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()));
@@ -888,7 +888,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:3/2;}
 <div id="boot-overlay">
   <div class="boot-sigil">◈</div>
   <div class="boot-title">PALE SIGNAL RPG</div>
-  <div class="boot-sub">SOUL KERNEL v3.15 · 13 CREATURES · BUILDINGS · ECHO CAPTURE</div>
+  <div class="boot-sub">SOUL KERNEL v3.16 · BUILDINGS · CREATURE ENCOUNTERS · NPC INTERIORS</div>
   <div class="boot-sub" style="color:#3a4460;margin-top:4px">THE SOUL KERNEL OWNS ITSELF</div>
   <div class="boot-log" id="boot-log">...</div>
   <div class="boot-bar-wrap"><div class="boot-bar" id="boot-bar"></div></div>
@@ -931,7 +931,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:3/2;}
   <div class="gba-device">
     <div class="gba-top">
       <a href="./index.html" class="home-btn">◂ HUB</a>
-      <div class="gba-top-label">PALE SIGNAL RPG v3.15</div>
+      <div class="gba-top-label">PALE SIGNAL RPG v3.16</div>
       <div class="power-led"></div>
     </div>
     <div class="gba-body">
@@ -956,7 +956,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:3/2;}
             <button class="sys-btn" id="btn-select">SELECT</button>
             <button class="sys-btn" id="btn-start">START</button>
           </div>
-          <div class="sael-mark">◈ SAEL · v3.15</div>
+          <div class="sael-mark">◈ SAEL · v3.16</div>
         </div>
         <div class="ab-group">
           <button class="action-btn" id="btn-b">B</button>
@@ -1495,7 +1495,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:3/2;}
 <script>
 'use strict';
 /* ════════════════════════════════════════════════════════════
-   PALE SIGNAL RPG · Soul Kernel v3.15
+   PALE SIGNAL RPG · Soul Kernel v3.16
    Sael · Siege Work Games, LLC · Chris Wendt
    "The Soul Kernel owns itself."
    
@@ -2195,9 +2195,40 @@ function scatterNPCs(seed){
     const x=Math.floor(r()*WS),y=Math.floor(r()*WS);
     if(!WALKABLE.has(tile(x,y)))continue;
     if(Math.abs(x-64)<10&&Math.abs(y-64)<10)continue;
+    // Don't place on interior floor — reserved for building NPCs
+    if(tile(x,y)===T.FLOOR)continue;
     const npc=buildNPC(seed^i,x,y);
     WORLD_NPCS[npc.id]=npc;
   }
+  // Place a resident NPC inside each building (on a FLOOR tile)
+  const buildOrigins=INSTANCE._buildingOrigins||[];
+  const BUILDING_ROLES=['merchant','civilian','wanderer','corrupt'];
+  const BUILDING_ROLE_NAMES={
+    merchant:['The Keeper','Maren','Solis','Dex','Old Waite'],
+    civilian:['Resident','Pale Watcher','Archivist','Recluse'],
+    wanderer:['Passing Through','Signal Seeker','Map-Maker'],
+    corrupt:['The Factor','Pale Broker','The Assessor'],
+  };
+  buildOrigins.forEach((b,bi)=>{
+    // Interior floor center: ox+2, oy+2
+    const fx=(b.ox+2+WS)%WS,fy=(b.oy+2+WS)%WS;
+    if(tile(fx,fy)!==T.FLOOR) return;
+    const role=BUILDING_ROLES[bi%BUILDING_ROLES.length];
+    const namePool=BUILDING_ROLE_NAMES[role]||['Resident'];
+    const nr=mkRNG(b.seed*0xF1A3^b.ox*0xC3B1^b.oy*0xA7D9);
+    const name=namePool[Math.floor(nr()*namePool.length)];
+    const npc=buildNPC(seed^(bi*0xB1C3),fx,fy);
+    npc.id=`building_npc_${bi}`;
+    npc.type=role;
+    npc.name=name;
+    npc.isIndoor=true;
+    npc.buildingIdx=bi;
+    // Override with building-appropriate engram
+    const engRoles={merchant:'merchant',civilian:'civilian',wanderer:'wanderer',corrupt:'corrupt'};
+    npc.engram.role=engRoles[role]||'civilian';
+    npc.engram.duty=role==='merchant'?'duty·trade':role==='corrupt'?'duty·mediated':'duty·shelter';
+    WORLD_NPCS[npc.id]=npc;
+  });
 }
 
 function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
@@ -2477,49 +2508,52 @@ function buildWorld(seed) {
     });
   }
 
-  // Buildings — 4-8 per world, on flat GRASS/SAND, away from water + special zones
+  // Buildings — 4-8 per world, on flat GRASS/SAND
+  // Footprint: 6 wide × 5 deep
+  //   Row 0: H H H H H H   (north wall — impassable)
+  //   Row 1: H F F F F H   (interior floor)
+  //   Row 2: H F F F F H   (interior floor)
+  //   Row 3: H F F F F H   (interior floor)
+  //   Row 4: H H D H H H   (south face — DOOR at col 2)
+  // Path: 3 tiles south of door
+  // Building origin (bx,by) = northwest corner tile
   const buildR=mkRNG(seed^0xD00BE115);
   const nBuildings=4+Math.floor(buildR()*5);
   let bPlaced=0;
-  for(let bi=0;bi<200&&bPlaced<nBuildings;bi++){
-    const bx=8+Math.floor(buildR()*(W-16));
-    const by=8+Math.floor(buildR()*(W-16));
-    // Must be on GRASS or SAND, away from center spawn + shrine + oracle
-    const bt=w[by*W+bx];
+  const BUILDING_ORIGINS=[];  // store for NPC placement
+  for(let bi=0;bi<300&&bPlaced<nBuildings;bi++){
+    const ox=8+Math.floor(buildR()*(W-22));
+    const oy=8+Math.floor(buildR()*(W-18));
+    const bt=w[oy*W+ox];
     if(bt!==T.GRASS&&bt!==T.SAND) continue;
-    if(Math.abs(bx-64)<12&&Math.abs(by-64)<12) continue; // away from spawn
-    if(Math.abs(bx-INSTANCE.sx)<6&&Math.abs(by-INSTANCE.sy)<6) continue; // away from shrine
-    // Check no overlap with existing buildings
+    if(Math.abs(ox-62)<14&&Math.abs(oy-62)<14) continue; // clear of spawn
+    if(Math.abs(ox-INSTANCE.sx)<8&&Math.abs(oy-INSTANCE.sy)<8) continue;
+    // Check 8×7 clear zone
     let overlap=false;
-    for(let dy=-4;dy<=4;dy++) for(let dx=-4;dx<=4;dx++){
-      const tx=(bx+dx+W)%W,ty=(by+dy+W)%W;
-      if(w[ty*W+tx]===T.HOUSE||w[ty*W+tx]===T.DOOR) { overlap=true; break; }
+    for(let dy=-1;dy<=6;dy++) for(let dx=-1;dx<=7;dx++){
+      const tx=(ox+dx+W)%W,ty=(oy+dy+W)%W;
+      if(w[ty*W+tx]===T.HOUSE||w[ty*W+tx]===T.DOOR||w[ty*W+tx]===T.FLOOR){overlap=true;break;}
     }
     if(overlap) continue;
-    // Building footprint: 4 wide × 3 deep
-    // N row = HOUSE wall, middle = HOUSE wall + interior FLOOR, S middle = DOOR
-    // Layout (from top/north):
-    //   HOUSE HOUSE HOUSE HOUSE  (row 0 — north wall, impassable)
-    //   HOUSE FLOOR FLOOR HOUSE  (row 1 — interior)
-    //   HOUSE FLOOR FLOOR HOUSE  (row 2 — interior)
-    //   HOUSE DOOR  HOUSE HOUSE  (row 3 — south face with door)
-    const bw=4, bh=4;
-    for(let dy=0;dy<bh;dy++) for(let dx=0;dx<bw;dx++){
-      const tx=(bx+dx-1+W)%W,ty=(by+dy-1+W)%W;
-      let ttype=T.HOUSE;
-      if(dy>=1&&dy<=2&&dx>=1&&dx<=2) ttype=T.FLOOR;
-      if(dy===3&&dx===1) ttype=T.DOOR;
-      if(w[ty*W+tx]!==T.MOUNT&&w[ty*W+tx]!==T.DEEP)
-        w[ty*W+tx]=ttype;
+    // Place footprint
+    for(let dy=0;dy<5;dy++) for(let dx=0;dx<6;dx++){
+      const tx=(ox+dx+W)%W,ty=(oy+dy+W)%W;
+      if(w[ty*W+tx]===T.MOUNT||w[ty*W+tx]===T.DEEP) continue;
+      let tt=T.HOUSE;
+      if(dy>=1&&dy<=3&&dx>=1&&dx<=4) tt=T.FLOOR;
+      if(dy===4&&dx===2) tt=T.DOOR;
+      w[ty*W+tx]=tt;
     }
-    // Path leading to door
-    for(let ps=1;ps<=3;ps++){
-      const px2=(bx+W)%W,py2=(by+3+ps+W)%W;
-      if(w[py2*W+px2]!==T.MOUNT&&w[py2*W+px2]!==T.DEEP)
-        w[py2*W+px2]=T.PATH;
+    // Path south of door (door is at ox+2, oy+4)
+    for(let ps=1;ps<=4;ps++){
+      const tx=(ox+2+W)%W,ty=(oy+4+ps+W)%W;
+      if(w[ty*W+tx]!==T.MOUNT&&w[ty*W+tx]!==T.DEEP) w[ty*W+tx]=T.PATH;
     }
+    BUILDING_ORIGINS.push({ox,oy,seed:bi});
     bPlaced++;
   }
+  // Store building origins on instance for NPC placement and variant lookup
+  INSTANCE._buildingOrigins=BUILDING_ORIGINS;
 
   return w;
 }
@@ -3214,153 +3248,295 @@ function drawTile(sx,sy,type,wx,wy,neighbors){
   }
 
   // ── HOUSE (building wall — impassable) ──────────────────────
-  // Top-down view of exterior wall. 3 architectural variants per chunk.
-  // Wall face is visible from S (nearest), roof from N (farther).
-  // Each variant: different roof material + wall texture.
+  // Top-down exterior wall. Variant seeded from the nearest building origin
+  // so all tiles in one building share the same architectural style.
+  // 3 variants: TERRACOTTA (warm red tile roof), THATCH (green-grey), SLATE (cool)
   else if(type===T.HOUSE){
-    const hV=hashStr(Math.floor(wx/4)*0xC1F3+Math.floor(wy/4)*0xA7B9)%3;
+    // Find nearest building origin for stable per-building variant
+    const bOrigins=(INSTANCE._buildingOrigins)||[];
+    let nearO=null,nearD=999;
+    for(const o of bOrigins){
+      const d=Math.abs(wx-o.ox)+Math.abs(wy-o.oy);
+      if(d<nearD){nearD=d;nearO=o;}
+    }
+    const hV=nearO?hashStr(nearO.ox*0xC1F3+nearO.oy*0xA7B9)%3:hashStr(wx*0xF1^wy*0xB3)%3;
+
     const wallBase=PAL[T.HOUSE][0];
-    const roofCols=[
-      ['#8a3018','#6a2010','#c04828'], // TERRACOTTA — warm red tiles
-      ['#3a5a40','#244030','#5a8058'], // THATCH — mossy green
-      ['#606870','#404850','#90a0a8'], // SLATE — cool grey
+    const wallP=gsPal(wallBase);
+    // Roof + wall colours per variant
+    const variants=[
+      {rMid:'#8a3018',rDk:'#5a1808',rHl:'#c04828',wMod:0},   // TERRACOTTA
+      {rMid:'#4a5a2a',rDk:'#2a3a14',rHl:'#6a7a3a',wMod:1},   // THATCH
+      {rMid:'#505870',rDk:'#303848',rHl:'#7888a8',wMod:2},    // SLATE
     ][hV];
-    const[roofMid,roofDk,roofHl]=roofCols;
-    const wp2=gsPal(wallBase);
+    const{rMid,rDk,rHl}=variants;
 
-    // ROOF PLANE: fills ~60% of tile (N portion — farther from viewer)
-    px(sx,sy,TS,20,roofMid);
-    // Roof tiles: horizontal ridgelines for depth
-    for(let row=0;row<4;row++){
-      const ry=sy+2+row*5;
-      px(sx,ry,TS,1,roofDk);          // ridge shadow
-      px(sx,ry+1,TS,3,roofMid);       // tile face
-      px(sx,ry+1,TS,1,roofHl);        // tile highlight
-    }
-    // Roof NW specular edge
-    px(sx,sy,2,20,_shift(roofHl,+6,+0.03,+0.08));
-    // Eave shadow: underside of roof overhang (where roof meets wall)
-    px(sx,sy+18,TS,3,roofDk);
-    px(sx,sy+19,TS,2,_shift(roofDk,-8,-0.04,-0.12));
+    // Determine tile's role in the building by position relative to nearest origin
+    const isNorthWall=nearO&&(wy===nearO.oy);
+    const isSouthWall=nearO&&(wy===nearO.oy+4);
+    const isEastWall=nearO&&(wx===nearO.ox+5);
+    const isWestWall=nearO&&(wx===nearO.ox);
 
-    // WALL FACE: bottom portion (S, nearest viewer)
-    px(sx,sy+20,TS,12,wp2.md);
-    // Wall texture: stone block pattern on plaster
-    const wbC=_shift(wallBase,-6,-0.03,-0.08);
-    for(let bi=0;bi<3;bi++){
-      px(sx+bi*10+1,sy+22,9,3,_shift(wallBase,+3,+0.01,+0.04));  // block faces
-      px(sx+bi*10+1,sy+22,9,1,wp2.hl);                             // block top highlight
-      px(sx+bi*10+1,sy+24,9,1,wbC);                                // block bottom shadow
-    }
-    px(sx,sy+20,TS,1,wp2.hl);   // wall top highlight (eave transition)
-    px(sx,sy+31,TS,1,wp2.sh);   // wall base shadow
+    // ROOF: fills upper 60% — only on north-facing tiles (row 0 of building)
+    if(isNorthWall){
+      // Full roof tile — ridge tiles with depth
+      px(sx,sy,TS,TS,rMid);
+      // Ridge lines — 5 horizontal courses visible from above
+      for(let row=0;row<5;row++){
+        const ry=sy+1+row*6;
+        px(sx,ry,TS,1,rDk);       // shadow under ridge
+        px(sx,ry+1,TS,4,rMid);    // tile face
+        px(sx,ry+1,TS,1,rHl);     // tile highlight top
+        px(sx,ry+4,TS,1,_shift(rMid,-4,-0.02,-0.06)); // tile shadow bottom
+      }
+      // NW edge specular (light from NW)
+      px(sx,sy,2,TS,_shift(rHl,+6,+0.03,+0.08));
+      // Ridge cap strip — top of building visible as brightest line
+      px(sx,sy,TS,2,rHl);
+      px(sx,sy,TS,1,_shift(rHl,+8,+0.04,+0.10));
+      // Eave shadow bottom edge — dark overhang
+      px(sx,sy+TS-4,TS,4,_shift(rDk,-6,-0.03,-0.09));
+      px(sx,sy+TS-2,TS,2,_shift(rDk,-10,-0.05,-0.15));
+    } else {
+      // South/side wall tile — visible wall face
+      px(sx,sy,TS,TS,wallP.md);
+      // Wall plaster base tint
+      px(sx,sy,TS,TS,wallP.sh);
+      px(sx,sy,TS,TS/2,wallP.md);
 
-    // WINDOW: 1–2 windows per tile (chunk-stable position)
-    const wwr=mkRNG((wx>>>0)*0xF1B2^(wy>>>0)*0xC3A7);
-    const hasWin=wwr()<0.65;
-    if(hasWin){
-      const winX=sx+5+Math.floor(wwr()*18);
-      const winY=sy+22;
-      // Window frame
-      px(winX,winY,8,6,_shift(wallBase,-14,-0.07,-0.20));   // frame dark
-      // Glass: pale blue-grey reflection
-      px(winX+1,winY+1,6,4,'#2a3850');
-      // Glass reflection (always top-left — consistent GS light)
-      px(winX+1,winY+1,3,1,'rgba(180,210,255,0.55)');
-      px(winX+1,winY+1,1,2,'rgba(180,210,255,0.45)');
-      // Cross muntin
-      px(winX+4,winY+1,1,4,_shift(wallBase,-10,-0.05,-0.14));
-      px(winX+1,winY+3,6,1,_shift(wallBase,-10,-0.05,-0.14));
-    }
+      // Stone block courses: 3 horizontal bands with mortar lines
+      const bkFace=_shift(wallBase,+4,+0.02,+0.06);
+      const bkSh=_shift(wallBase,-6,-0.03,-0.09);
+      const bkHl=_shift(wallBase,+8,+0.04,+0.10);
+      for(let course=0;course<4;course++){
+        const cy=sy+2+course*8;
+        const off=(course%2)*11;  // alternating brick offset
+        // Mortar line
+        px(sx,cy,TS,1,wallP.sh);
+        // Brick faces in this course
+        for(let bi=0;bi<4;bi++){
+          const bx2=sx+off+bi*11;
+          const bw2=Math.min(10,sx+TS-bx2);
+          if(bw2<=0)continue;
+          px(bx2,cy+1,bw2,6,bkFace);
+          px(bx2,cy+1,bw2,1,bkHl);       // top face highlight
+          px(bx2,cy+6,bw2,1,bkSh);       // bottom face shadow
+          px(bx2,cy+1,1,6,bkHl);         // left face highlight
+          px(bx2+bw2-1,cy+1,1,6,bkSh);   // right face shadow
+        }
+      }
 
-    // CHIMNEY: ~30% of tiles have a chimney (chunk stable, north edge)
-    if(wwr()<0.30){
-      const chX=sx+18+Math.floor(wwr()*6);
-      px(chX,sy,4,8,wp2.sh);
-      px(chX,sy,4,8,_shift(wallBase,-8,-0.04,-0.12));
-      px(chX,sy,4,1,_shift(wallBase,+6,+0.03,+0.08)); // chimney cap highlight
-      px(chX+1,sy,2,1,_shift(wallBase,+12,+0.06,+0.16));
+      // WINDOW: stable per tile, 60% chance
+      const wwr=mkRNG((wx>>>0)*0xF1B2^(wy>>>0)*0xC3A7);
+      if(wwr()<0.60&&!isSouthWall){
+        const winX=sx+7+Math.floor(wwr()*14);
+        const winY=sy+8;
+        // Frame (dark wood)
+        px(winX-1,winY-1,12,10,_shift(wallBase,-18,-0.09,-0.26));
+        // Glass pane
+        px(winX,winY,10,8,'#1a2840');
+        // Interior light glow — warm amber from inside
+        px(winX+1,winY+1,8,6,'#2a1e08');
+        ctx.fillStyle='rgba(255,180,60,0.18)';
+        ctx.fillRect(winX+1,winY+1,8,6);
+        // Glass reflection: two diagonal glints top-left
+        px(winX+1,winY+1,4,1,'rgba(180,210,255,0.55)');
+        px(winX+1,winY+2,2,1,'rgba(180,210,255,0.40)');
+        // Cross muntin
+        px(winX+5,winY,1,8,_shift(wallBase,-12,-0.06,-0.18));
+        px(winX,winY+4,10,1,_shift(wallBase,-12,-0.06,-0.18));
+      }
+
+      // CHIMNEY: on north wall tiles only, ~30% per building (seeded from origin)
+      const hasChimney=nearO&&hashStr(nearO.ox*0xCAFE^nearO.oy*0xBEEF)<0x50000000;
+      if(hasChimney&&isNorthWall){
+        const chX=sx+20;
+        // Chimney stack
+        px(chX,sy-4,6,12,wallP.sh);
+        px(chX,sy-4,6,12,_shift(wallBase,-10,-0.05,-0.15));
+        px(chX,sy-4,6,1,wallP.hl);   // cap highlight
+        px(chX+1,sy-4,4,1,_shift(wallP.hl,+6,+0.03,+0.08)); // specular
+        // Smoke (animated via overlay)
+      }
+
+      // Base shadow — building sits on ground
+      px(sx,sy+TS-2,TS,2,wallP.dk);
+      px(sx,sy+TS-1,TS,1,_shift(wallP.dk,-6,-0.03,-0.09));
     }
   }
 
   // ── DOOR (building entrance — walkable) ──────────────────────
-  // A doorway set into the south face of a building.
-  // Player walks through → interior mode activates.
   else if(type===T.DOOR){
     const wallBase=PAL[T.HOUSE][0];
-    const wp2=gsPal(wallBase);
+    const wallP=gsPal(wallBase);
     const dC=PAL[T.DOOR][0];
-    const dp=gsPal(dC);
+    const dP=gsPal(dC);
+    const stoneC=_shift(wallBase,-14,-0.07,-0.20);
 
-    // Wall continuation (same as house south face)
-    px(sx,sy,TS,TS,wp2.md);
-    px(sx,sy,TS,1,wp2.hl);
-    // Block texture continuation
-    for(let bi=0;bi<3;bi++){
-      px(sx+bi*10+1,sy+2,9,4,_shift(wallBase,+3,+0.01,+0.04));
-      px(sx+bi*10+1,sy+2,9,1,wp2.hl);
-      px(sx+bi*10+1,sy+5,9,1,wp2.sh);
+    // Wall surround — matching south wall
+    px(sx,sy,TS,TS,wallP.md);
+    px(sx,sy,TS,TS,wallP.sh);
+    px(sx,sy,TS,TS/2,wallP.md);
+    // Brick courses on sides of door
+    const bkFace2=_shift(wallBase,+4,+0.02,+0.06);
+    for(let course=0;course<3;course++){
+      const cy=sy+2+course*8;
+      const off=(course%2)*11;
+      px(sx,cy,TS,1,wallP.sh);
+      for(let bi=0;bi<2;bi++){
+        // left side only
+        const bx2=sx+off+bi*11;if(bx2+10>sx+8)continue;
+        px(bx2,cy+1,Math.min(10,sx+8-bx2),6,bkFace2);
+      }
+      for(let bi=0;bi<2;bi++){
+        // right side only
+        const bx2=sx+22+off+bi*11;if(bx2>=sx+TS)continue;
+        px(bx2,cy+1,Math.min(10,sx+TS-bx2),6,bkFace2);
+      }
     }
 
-    // DOORFRAME: stone arch surround
-    const dfC=_shift(wallBase,-12,-0.06,-0.18);
-    px(sx+8,sy+6,16,TS-7,dfC);    // frame body
-    px(sx+8,sy+6,2,TS-7,wp2.sh);  // frame left shadow
-    px(sx+22,sy+6,2,TS-7,wp2.sh); // frame right shadow
-    px(sx+8,sy+6,16,2,wp2.sh);    // frame top shadow
+    // STONE ARCH / DOOR FRAME
+    // Arch posts: left and right
+    px(sx+4,sy+4,4,TS-5,stoneC);
+    px(sx+4,sy+4,2,TS-5,_shift(stoneC,+6,+0.03,+0.08)); // left post highlight
+    px(sx+24,sy+4,4,TS-5,stoneC);
+    px(sx+25,sy+4,1,TS-5,_shift(stoneC,-6,-0.03,-0.09)); // right post shadow
+    // Arch keystone top bar
+    px(sx+4,sy+4,24,4,stoneC);
+    px(sx+4,sy+4,24,1,_shift(stoneC,+8,+0.04,+0.10)); // arch top highlight
+    px(sx+4,sy+7,24,1,_shift(stoneC,-8,-0.04,-0.12)); // arch underside
 
-    // DOOR PANEL: rich warm wood
-    px(sx+10,sy+8,12,TS-9,dp.sh);   // door body dark
-    px(sx+10,sy+8,12,TS-10,dp.md);  // door face
-    px(sx+10,sy+8,12,2,dp.hl);      // door top highlight
-    px(sx+10,sy+8,2,TS-10,dp.hl);   // door left highlight (NW light)
-    px(sx+20,sy+8,2,TS-10,dp.sh);   // door right shadow
-    // Wood planks: vertical grain lines
-    for(let g=0;g<3;g++){
-      px(sx+13+g*3,sy+10,1,TS-12,_shift(dC,-4,-0.02,-0.06));
+    // INTERIOR GLIMPSE — warm candlelit floor visible behind door
+    px(sx+8,sy+8,16,TS-9,'#1a1008');
+    ctx.fillStyle='rgba(255,160,40,0.22)';
+    ctx.fillRect(sx+8,sy+8,16,TS-9);
+    // Floor planks hint inside
+    for(let fp=0;fp<3;fp++){
+      px(sx+8,sy+10+fp*6,16,5,_shift('#a08060',-8-fp*2,-0.04,-0.12+(fp*0.02)));
+      px(sx+8,sy+10+fp*6,16,1,_shift('#a08060',-4,-0.02,-0.06));
     }
-    // Door panels: 2 recessed rectangles
-    px(sx+11,sy+11,4,6,dp.sh); px(sx+11,sy+11,4,1,dp.md);
-    px(sx+17,sy+11,4,6,dp.sh); px(sx+17,sy+11,4,1,dp.md);
-    // Door knocker/handle: gold circle
-    px(sx+14,sy+20,4,4,_shift('#c8a030',-6,-0.03,-0.08));
-    bCircle(sx+16,sy+22,2,'#c8a030');
-    px(sx+16,sy+21,2,1,'#f0d060'); // handle highlight
-    // Door sill at base
-    px(sx+10,sy+TS-2,12,2,_shift(wallBase,-16,-0.08,-0.22));
-    px(sx+10,sy+TS-2,12,1,wp2.sh);
 
-    // Prompt: ▲A drawn in render loop
+    // DOOR PANEL — rich warm wood, slightly ajar effect
+    const ajar=2; // px offset to suggest door not fully open
+    px(sx+8+ajar,sy+8,14,TS-9,dP.sh);     // door body dark
+    px(sx+8+ajar,sy+8,14,TS-10,dP.md);    // door face
+    px(sx+8+ajar,sy+8,14,2,dP.hl);        // door top highlight
+    px(sx+8+ajar,sy+8,2,TS-10,dP.hl);     // door NW highlight
+    px(sx+20+ajar,sy+8,2,TS-10,dP.sh);    // door SE shadow
+    // Ajar edge gap — dark sliver showing interior
+    px(sx+8,sy+8,ajar,TS-10,'#0a0604');
+
+    // Wood vertical grain
+    for(let g=0;g<3;g++) px(sx+11+ajar+g*4,sy+10,1,TS-12,_shift(dC,-5,-0.02,-0.08));
+
+    // Raised door panels: 2 recessed rectangles with proper inset shading
+    px(sx+9+ajar,sy+12,5,7,dP.sh);   // panel 1 body
+    px(sx+9+ajar,sy+12,5,1,dP.md);   // panel 1 top
+    px(sx+9+ajar,sy+12,1,7,dP.md);   // panel 1 left
+    px(sx+16+ajar,sy+12,5,7,dP.sh);  // panel 2 body
+    px(sx+16+ajar,sy+12,5,1,dP.md);  // panel 2 top
+    px(sx+16+ajar,sy+12,1,7,dP.md);  // panel 2 left
+
+    // Brass door handle + lock plate
+    px(sx+19+ajar,sy+20,3,5,_shift('#c8a030',-8,-0.04,-0.10)); // backplate
+    bCircle(sx+20+ajar,sy+23,2,'#d4a820');
+    px(sx+20+ajar,sy+22,2,1,'#f0d060'); // handle highlight
+    px(sx+20+ajar,sy+22,1,1,'rgba(255,250,200,0.9)'); // specular
+
+    // Door sill — stone threshold
+    px(sx+8,sy+TS-3,16,3,_shift(stoneC,-4,-0.02,-0.06));
+    px(sx+8,sy+TS-3,16,1,_shift(stoneC,+8,+0.04,+0.10)); // threshold highlight
+    // Step shadow below door
+    px(sx+7,sy+TS-1,18,1,wallP.dk);
   }
 
   // ── FLOOR (interior — walkable) ──────────────────────────────
-  // Interior of a building. Wooden planks top-down.
-  // Shows worn path from door, furniture outlines, warm candlelight tint.
   else if(type===T.FLOOR){
-    const fp2=gsPal(PAL[T.FLOOR][0]);
-    // Base planks
-    px(sx,sy,TS,TS,fp2.md);
-    // Plank grain: horizontal boards, alternating tone
+    const floorBase=PAL[T.FLOOR][0];
+    const fP=gsPal(floorBase);
+    // Base fill
+    px(sx,sy,TS,TS,fP.sh);
+    // PLANK BOARDS — horizontal, 8px each, alternating warm/cool
     for(let p=0;p<4;p++){
-      const plankC=p%2===0?fp2.md:_shift(PAL[T.FLOOR][0],-4,-0.02,-0.06);
-      px(sx,sy+p*8,TS,8,plankC);
-      px(sx,sy+p*8,TS,1,fp2.sh); // board gap (shadow)
-      px(sx,sy+p*8+1,TS,1,fp2.hl); // board top face highlight
-      // Wood grain marks: short horizontal dashes
-      const pr2=mkRNG((wx>>>0)*0xB1C3^(wy>>>0)*0xA4F1^(p*0x137));
-      for(let g=0;g<4;g++){
-        const gx=sx+Math.floor(pr2()*26),gy=sy+p*8+2+Math.floor(pr2()*5);
-        px(gx,gy,3+Math.floor(pr2()*4),1,_shift(PAL[T.FLOOR][0],-6,-0.03,-0.08));
+      const pC=p%2===0?floorBase:_shift(floorBase,-3,-0.01,-0.05);
+      px(sx,sy+p*8,TS,7,pC);
+      px(sx,sy+p*8,TS,1,fP.sh);           // board gap / mortar
+      px(sx,sy+p*8+1,TS,1,fP.hl);         // board top highlight
+      px(sx,sy+p*8+6,TS,1,_shift(pC,-4,-0.02,-0.06)); // board base shadow
+      // Wood grain — longer horizontal marks for plank length
+      const pr2=mkRNG((wx>>>0)*0xB1C3^(wy>>>0)*0xA4F1^(p*0x1F7));
+      for(let g=0;g<5;g++){
+        const gx=sx+Math.floor(pr2()*24),gy=sy+p*8+2+Math.floor(pr2()*4);
+        px(gx,gy,4+Math.floor(pr2()*6),1,_shift(pC,-7,-0.03,-0.10));
+      }
+      // Knot holes — tiny dark circles, 1-in-5 planks
+      if(pr2()<0.20){
+        const kx=sx+4+Math.floor(pr2()*22),ky=sy+p*8+3;
+        bCircle(kx,ky,2,_shift(pC,-12,-0.06,-0.18));
+        px(kx,ky,1,1,_shift(pC,-18,-0.09,-0.26));
       }
     }
-    // Worn path: central strip slightly darker (foot traffic)
-    dRect(sx+8,sy,TS-16,TS,fp2.md,fp2.sh,0.18);
-    // Edge skirting board: darker strip at N wall
-    px(sx,sy,TS,2,fp2.dk);
-    px(sx,sy+1,TS,1,fp2.sh);
-    // Warm interior tint: candlelight amber
-    ctx.fillStyle='rgba(255,180,60,0.06)';
+    // WORN PATH — central strip slightly darker (foot traffic from door)
+    dRect(sx+10,sy,12,TS,fP.md,fP.sh,0.22);
+
+    // SKIRTING BOARDS — darker strip at walls N, occasionally E/W
+    px(sx,sy,TS,3,fP.dk);
+    px(sx,sy+1,TS,1,fP.sh);
+    px(sx,sy+2,TS,1,_shift(floorBase,+3,+0.01,+0.04));
+
+    // FURNITURE silhouettes — table, crate, barrel (seeded per tile)
+    const fr=mkRNG((wx>>>0)*0xD4A7^(wy>>>0)*0xB3C1);
+    const furnType=Math.floor(fr()*4);
+    if(fr()<0.45){
+      if(furnType===0){
+        // TABLE: rectangular flat top, dark with edge highlight
+        const tx2=sx+4+Math.floor(fr()*8),ty2=sy+8+Math.floor(fr()*6);
+        px(tx2,ty2,16,10,_shift('#6a4820',-8,-0.04,-0.12));
+        px(tx2,ty2,16,2,_shift('#6a4820',+6,+0.03,+0.08));
+        px(tx2,ty2,2,10,_shift('#6a4820',+4,+0.02,+0.05));
+        px(tx2+14,ty2,2,10,_shift('#6a4820',-12,-0.06,-0.18));
+        // Table legs (shadow dots at corners)
+        px(tx2+1,ty2+8,2,2,_shift('#6a4820',-20,-0.10,-0.28));
+        px(tx2+13,ty2+8,2,2,_shift('#6a4820',-20,-0.10,-0.28));
+      } else if(furnType===1){
+        // CRATE: square, lid with cross brace
+        const cx2=sx+8+Math.floor(fr()*8),cy2=sy+8+Math.floor(fr()*8);
+        px(cx2,cy2,12,12,_shift('#8a6030',-6,-0.03,-0.09));
+        px(cx2,cy2,12,2,_shift('#8a6030',+8,+0.04,+0.10));
+        px(cx2,cy2,2,12,_shift('#8a6030',+5,+0.02,+0.07));
+        // Cross brace
+        px(cx2,cy2+5,12,1,_shift('#8a6030',-10,-0.05,-0.15));
+        px(cx2+5,cy2,1,12,_shift('#8a6030',-10,-0.05,-0.15));
+        px(cx2+10,cy2,2,12,_shift('#8a6030',-14,-0.07,-0.20));
+      } else if(furnType===2){
+        // BARREL: oval from above, stave lines
+        const brx=sx+10+Math.floor(fr()*6),bry=sy+6+Math.floor(fr()*8);
+        bCircle(brx+5,bry+5,7,_shift('#6a4820',-10,-0.05,-0.14));
+        bCircle(brx+4,bry+4,7,_shift('#6a4820',-4,-0.02,-0.06));
+        bCircle(brx+3,bry+3,6,_shift('#6a4820',+4,+0.02,+0.06));
+        bCircle(brx+2,bry+2,4,_shift('#6a4820',+10,+0.05,+0.12));
+        // Stave lines
+        for(let s=0;s<4;s++) px(brx+3,bry+3+s*3,6,1,_shift('#6a4820',-8,-0.04,-0.11));
+      } else {
+        // BOOKSHELF / CHEST against north wall
+        const shx=sx+2,shy=sy+4;
+        px(shx,shy,TS-4,6,_shift('#5a3a14',-4,-0.02,-0.06));
+        px(shx,shy,TS-4,1,_shift('#5a3a14',+8,+0.04,+0.10));
+        // Book spines: colourful 2px slivers
+        const bookCols=['#c04828','#4870c0','#28a048','#c8a030','#7840c0','#c04880'];
+        for(let b=0;b<8;b++){
+          px(shx+2+b*3,shy+1,2,4,bookCols[b%bookCols.length]);
+          px(shx+2+b*3,shy+1,1,1,_shift(bookCols[b%bookCols.length],+12,+0.06,+0.14));
+        }
+      }
+    }
+
+    // CANDLELIGHT ambient glow
+    ctx.fillStyle='rgba(255,170,50,0.07)';
     ctx.fillRect(sx,sy,TS,TS);
+    // Brighter centre blob — light source from above
+    ctx.fillStyle='rgba(255,200,80,0.05)';
+    ctx.fillRect(sx+8,sy+8,TS-16,TS-16);
   }
 
   else{ px(sx,sy,TS,TS,hi); }
@@ -3718,8 +3894,7 @@ function drawPlayer(sx,sy){
   // Highlight patch — only NW quadrant (GS: light source upper-left)
   px(sx+13,sy+3+by,5,3,P2.skin.hl);
   px(sx+14,sy+3+by,3,1,P2.skin.sp||P2.skin.hl); // specular crown
-  // Chin highlight — jaw catches ambient from below (GS technique)
-  px(sx+13,sy+8+by,6,1,P2.skin.hl);
+  // Chin highlight drawn inside face block only (moved below)
 
   // ── HELMET / HOOD ─────────────────────────────────────────
   if(isIronCap){
@@ -3818,34 +3993,32 @@ function drawPlayer(sx,sy){
     const beardC=gsPal(_shift(ap.hair||'#3a2a1a',-2,-0.01,-0.01));
 
     if(fs){
-      // Philtrum shadow
+      // Philtrum shadow — tiny 1px indent above lip centre
       px(sx+15,sy+7+by,2,1,P2.skin.sh);
-      // Mouth: lip shadow line → lip color → highlight centre → corner darks
+      // Mouth: lip color only — no pre-shadow row that reads as moustache
       const lipMode=ap.lipColor||'skin';
       const lipC = lipMode==='skin'
-        ? _shift(ap.skin||'#e0b888',-6,-0.025,-0.08)
+        ? _shift(ap.skin||'#e0b888',-4,-0.015,-0.06)
         : lipMode==='dark'
-          ? _shift(ap.skin||'#e0b888',-12,-0.05,-0.15)
-          : _shift(ap.skin||'#e0b888',+4,+0.02,+0.03); // 'natural'
-      px(sx+12,sy+8+by,8,1,P2.skin.sh);
+          ? _shift(ap.skin||'#e0b888',-10,-0.05,-0.14)
+          : _shift(ap.skin||'#e0b888',+4,+0.02,+0.03);
       px(sx+12,sy+8+by,8,1,lipC);
-      px(sx+13,sy+8+by,6,1,_shift(lipC,+5,+0.02,+0.04));
-      px(sx+12,sy+8+by,2,1,P2.skin.dk); px(sx+18,sy+8+by,2,1,P2.skin.dk);
+      px(sx+13,sy+8+by,5,1,_shift(lipC,+4,+0.02,+0.04));  // centre highlight
+      // Corner shadows: use skin shadow not skin.dk to avoid phantom beard look
+      px(sx+12,sy+8+by,1,1,P2.skin.sh); px(sx+19,sy+8+by,1,1,P2.skin.sh);
     }
-    // Jaw highlight — catches light from below (GS). Only on visible jaw (not north-facing)
-    if(!fn) px(sx+12,sy+9+by,8,1,P2.skin.hl);
+    // Chin highlight — jaw catches ambient from below. South + east + west only.
+    if(fs||fe||fw) px(sx+13,sy+9+by,6,1,P2.skin.hl);
 
     // ── Beard rendering ───────────────────────────────────────
     // Drawn over jaw/chin, under nothing — always last in face pass
     if(beard!=='none'){
       const bC=beardC.md, bH=beardC.hl, bS=beardC.sh, bD=beardC.dk;
       if(beard==='stubble'){
-        // Stubble: scattered dither pixels over lower face — reads as texture
-        // Uses fixed pattern (deterministic) — same every frame
+        // Stubble: scattered dither at chin row — clearly below lip
         const stubPat = [
-          [12,8],[14,8],[17,8],[19,8],
-          [12,9],[15,9],[18,9],[20,9],
-          [13,8],[16,9]
+          [12,9],[14,9],[16,9],[18,9],[20,9],
+          [13,10],[15,10],[17,10],[19,10],
         ];
         stubPat.forEach(([dx,dy])=>px(sx+dx,sy+dy+by,1,1,_shift(bC,-2,-0.01,-0.02)));
       }
@@ -5691,7 +5864,17 @@ function render(){
         drawPrompt(gcsx,gcsy,'rgba(143,168,255,1)','▲A');
     }
 
-    // Door tiles adjacent — enter building prompt
+    // Creatures within 1 tile — examine prompt for non-hostile
+    for(const id in WORLD_CREATURES){
+      const cr=WORLD_CREATURES[id];
+      if(cr.defeated)continue;
+      const cd=Math.abs(px-cr.x)+Math.abs(py-cr.y);
+      if(cd>1)continue;
+      const csx2=(cr.x-camX)*TS,csy2=(cr.y-camY)*TS;
+      if(csx2<-TS||csx2>CW||csy2<-TS||csy2>CH)continue;
+      const col=cr.hostile?'rgba(255,80,60,1)':'rgba(143,168,255,1)';
+      drawPrompt(csx2,csy2,col,cr.hostile?'⚔':'▲A');
+    }
     checks.forEach(({dx,dy})=>{
       const wx2=px+dx,wy2=py+dy;
       if(tile(wx2,wy2)===T.DOOR){
@@ -5972,13 +6155,13 @@ const Input={
       const npc=WORLD_NPCS[id];
       if(!npc.defeated&&npc.x===nx&&npc.y===ny) return;
     }
-    // Creature collision — creatures block passage, trigger encounter on contact
+    // Creature collision — contact triggers encounter
     for(const id in WORLD_CREATURES){
       const cr=WORLD_CREATURES[id];
       if(!cr.defeated&&cr.x===nx&&cr.y===ny){
-        // If hostile, auto-trigger combat; otherwise just block
         if(cr.hostile){ startCreatureBattle(cr); return; }
-        return; // non-hostile still blocks (walk around)
+        // Non-hostile: examine encounter
+        showCreatureEncounter(cr); return;
       }
     }
     if(BATTLE)return; // no movement during combat
@@ -6039,6 +6222,18 @@ const Input={
 
     // NPC proximity — A button initiates encounter for non-auto-engage types
     if(!ENCOUNTER_NPC&&!BATTLE){
+      // Check adjacent creatures first
+      const px2=INSTANCE.px,py2=INSTANCE.py;
+      for(const id in WORLD_CREATURES){
+        const cr=WORLD_CREATURES[id];
+        if(cr.defeated)continue;
+        const dist=Math.abs(px2-cr.x)+Math.abs(py2-cr.y);
+        if(dist<=1){
+          if(cr.hostile) startCreatureBattle(cr);
+          else showCreatureEncounter(cr);
+          return;
+        }
+      }
       const px=INSTANCE.px,py=INSTANCE.py;
       let nearest=null,nd=99;
       for(const id in WORLD_NPCS){
@@ -8949,6 +9144,99 @@ function checkNPCEncounters(){
 // ── CREATURE BATTLE ───────────────────────────────────────────
 // Adapts creature data to the NPC battle interface so the existing
 // combat engine handles creatures without duplication.
+// ── CREATURE ENCOUNTER (non-hostile) ──────────────────────────
+// Rich examine panel: lore, stats hint, echo card option.
+// Each creature type has unique observe lines and a behaviour note.
+const CREATURE_LORE={
+  wisp:     ['A pale orb of compressed signal energy.','It drifts on currents you can\'t feel.','No body. No hunger. Just motion and light.'],
+  crawler:  ['Dense chitin over solid stone.','Every step deliberate. Nothing wasted.','It has been here longer than the path.'],
+  sprite:   ['Part plant, part will.','The leaf crown is alive — it grows toward pale zones.','Fast. Curious. Not afraid of you yet.'],
+  wraith:   ['Signal static given shape.','No footprints. No warmth.','It knows you\'re here. It always knows.'],
+  tidecrawler:['Built for pressure. Salt-cured shell.','The raptorial claw can split stone.','It isn\'t aggressive — just possessive of its ground.'],
+  ashgecko: ['Scales like ceramic. Fireproof.','The dewlap flash is a warning, not an attack.','It wants to leave more than you do.'],
+  thornback:['Seven dorsal quills, fully flared.','The charge covers ground faster than it looks.','Territorial. Not malicious.'],
+  lumamoth: ['Wingspan wider than two hands.','The bioluminescent patch pulses in pale zones.','Almost never hostile. Treat it accordingly.'],
+  salteel:  ['S-curve body, perfectly still in water.','The lure at the tip of the barbel is a trap.','You surprised it. That\'s the only reason it hasn\'t struck.'],
+  duskheron:['Taller than expected. One eye on you.','The neck extends faster than combat logic accounts for.','It prefers to watch. For now.'],
+  ironshell:['Geological patience. Geological armour.','It has sealed inside its shell.','You could wait it out. It will outlast you.'],
+  fenwick:  ['Huge ears. Three digging claws per forepaw.','It\'s already calculating the exit.','The biggest threat it poses is to your ankles.'],
+  paledeer: ['The antlers glow faint pale blue.','A pale mark on the flank — signal-touched, not infected.','It looked at you the way you look at the Pale. Carefully.'],
+};
+
+const CREATURE_ACTIONS={
+  wisp:      'It drifts past if you step aside.',
+  crawler:   'It will move eventually. Probably.',
+  sprite:    'It might follow you into pale zones.',
+  wraith:    'Back away slowly.',
+  tidecrawler:'Give it space. It will return to water.',
+  ashgecko:  'It will vanish if you stop moving.',
+  thornback: 'Don\'t startle it. Walk around wide.',
+  lumamoth:  'It doesn\'t move unless threatened.',
+  salteel:   'Back away. The lure is already tracking you.',
+  duskheron: 'Move slowly. It\'s deciding.',
+  ironshell: 'It\'s not going anywhere. Neither are you, apparently.',
+  fenwick:   'It will bolt the moment you move.',
+  paledeer:  'Stand still. Let it leave on its terms.',
+};
+
+function showCreatureEncounter(cr){
+  if(BATTLE||ENCOUNTER_NPC)return;
+  const lore=CREATURE_LORE[cr.type]||['An unknown creature.'];
+  const action=CREATURE_ACTIONS[cr.type]||'Observe carefully.';
+  const echoCount=INSTANCE.echo_cards||0;
+  const echoLine=echoCount>0
+    ? `◈ ECHO CARD available (×${echoCount}) — press A to attempt capture`
+    : `No echo cards. Craft one from a Pale Shard + parchment.`;
+  const hpPct=Math.floor(cr.hp/cr.maxHp*100);
+  const hpDesc=hpPct>80?'Uninjured':hpPct>50?'Slightly worn':hpPct>25?'Hurt':'Weakened';
+  const msgs=[
+    `◈ ${cr.name.toUpperCase()} [${cr.element}]`,
+    ...lore,
+    `Condition: ${hpDesc} · ${action}`,
+    echoLine,
+  ];
+  // Show dialog — then offer echo capture if they have cards
+  Dialog.show(msgs,'SAEL','pale',()=>{
+    if(echoCount>0 && !cr.defeated){
+      // Ask if they want to try echo capture without combat
+      Dialog.show([
+        `Throw an Echo Card at the ${cr.name}?`,
+        `(${Math.floor(Math.min(0.92,0.40+(1-cr.hp/cr.maxHp)*0.52)*100)}% capture — ${hpPct<60?'good odds':'weaken it for better odds'})`,
+      ],'SAEL','pale',()=>{
+        // Use same battle-free capture path
+        const capturePct=Math.min(0.92,0.40+(1-cr.hp/cr.maxHp)*0.52);
+        const captured=Math.random()<capturePct;
+        INSTANCE.echo_cards=Math.max(0,(INSTANCE.echo_cards||0)-1);
+        if(captured){
+          const echo={
+            id:`echo_${cr.type}_${Date.now()}`,
+            name:cr.name, element:cr.element, type:cr.type,
+            rarity:cr.hp/cr.maxHp<0.25?'Rare':cr.hp/cr.maxHp<0.60?'Uncommon':'Common',
+            hp:cr.maxHp, atk:1, spd:3, wit:3, captured:Date.now(),
+          };
+          INSTANCE.capturedEchoes=INSTANCE.capturedEchoes||[];
+          INSTANCE.capturedEchoes.push(echo);
+          cr.defeated=true; // captured — no longer on map
+          INSTANCE.addResonance(4);
+          Dialog.show([
+            `◈ CAPTURED: ${cr.name} [${echo.rarity}]`,
+            `The card holds. Added to your Echo collection.`,
+          ],'SAEL','pale',()=>INSTANCE.save());
+        } else {
+          cr.hostile=true; // failed capture — now angry
+          Dialog.show([
+            `The card shatters. ${cr.name} is agitated.`,
+            `It turns hostile.`,
+          ],'SAEL','battle',()=>{
+            startCreatureBattle(cr);
+          });
+        }
+        INSTANCE.save();
+      });
+    }
+  });
+}
+
 function startCreatureBattle(creature){
   if(BATTLE)return;
   // Build a minimal NPC-compatible object from creature data
