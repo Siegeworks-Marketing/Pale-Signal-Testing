@@ -473,6 +473,56 @@ body{
 .new-recipe-hint{font-size:13px;color:var(--text-mid);line-height:1.7;padding:0 2px 4px}
 .new-btn{background:rgba(143,168,255,.1);border:1px solid var(--pale-dim);color:var(--pale);font-family:'Share Tech Mono',monospace;font-size:13px;padding:7px 12px;border-radius:10px;cursor:pointer;letter-spacing:1px}
 
+/* ── SURVIVE ─────────────────────────────────────────────── */
+.survive-scroll{overflow-y:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch}
+.survive-scroll::-webkit-scrollbar{width:2px}
+.survive-scroll::-webkit-scrollbar-thumb{background:rgba(255,100,80,0.4)}
+.survive-tabs-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;flex-shrink:0;border-bottom:1px solid #111820}
+.survive-tabs-bar::-webkit-scrollbar{height:2px}
+.survive-tabs-bar::-webkit-scrollbar-thumb{background:rgba(255,100,80,0.3)}
+.surv-entry{margin:6px 10px;border:1px solid #131820;border-radius:6px;overflow:hidden}
+.surv-entry-head{display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;background:#06080e;user-select:none}
+.surv-entry-head:active{background:#0a0e18}
+.surv-badge{font-family:'Press Start 2P',monospace;font-size:4px;padding:3px 6px;border-radius:3px;letter-spacing:1px;flex-shrink:0;white-space:nowrap}
+.surv-badge.minutes{background:rgba(220,60,60,.22);color:#ff7060;border:1px solid rgba(220,60,60,.35)}
+.surv-badge.hours  {background:rgba(255,200,60,.16);color:#ffcc44;border:1px solid rgba(255,200,60,.28)}
+.surv-badge.days   {background:rgba(143,168,255,.13);color:var(--pale);border:1px solid rgba(143,168,255,.25)}
+.surv-badge.weeks  {background:rgba(68,200,100,.10);color:#44cc66;border:1px solid rgba(68,200,100,.22)}
+.surv-entry-title{font-family:'Press Start 2P',monospace;font-size:5px;color:var(--text);letter-spacing:1px;flex:1;line-height:1.6}
+.surv-caret{font-size:9px;color:var(--pale-dim);transition:transform .18s;flex-shrink:0;line-height:1}
+.surv-body{display:none;padding:8px 12px 12px;border-top:1px solid #0e1420;background:#040609}
+.surv-body.open{display:block}
+.surv-principle{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--text-mid);line-height:1.65;margin-bottom:9px}
+.surv-steps{list-style:none;margin:0 0 9px;padding:0}
+.surv-steps li{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--text);line-height:1.75;padding:2px 0 2px 14px;position:relative;border-bottom:1px solid #080c14}
+.surv-steps li:last-child{border-bottom:none}
+.surv-steps li::before{content:'·';position:absolute;left:3px;color:var(--pale-dim);font-size:14px;line-height:1.4}
+.surv-flavor{font-family:'Press Start 2P',monospace;font-size:4px;color:rgba(143,168,255,0.45);letter-spacing:1px;margin-top:9px;padding-top:7px;border-top:1px solid #0d1020;line-height:1.9}
+.surv-hero{margin:8px 10px 4px;padding:10px 12px;border:1px solid rgba(143,168,255,.18);border-radius:8px;background:rgba(143,168,255,.03)}
+.surv-hero-title{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--pale);letter-spacing:2px;margin-bottom:10px;text-align:center}
+.surv-threes{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px}
+.surv-three-card{padding:8px 6px;border-radius:5px;text-align:center}
+.surv-three-card.m{background:rgba(220,60,60,.12);border:1px solid rgba(220,60,60,.22)}
+.surv-three-card.h{background:rgba(255,200,60,.09);border:1px solid rgba(255,200,60,.18)}
+.surv-three-card.d{background:rgba(143,168,255,.09);border:1px solid rgba(143,168,255,.18)}
+.surv-three-card.w{background:rgba(68,200,100,.07);border:1px solid rgba(68,200,100,.15)}
+.surv-three-num{font-family:'Press Start 2P',monospace;font-size:8px;letter-spacing:1px;margin-bottom:4px}
+.surv-three-card.m .surv-three-num{color:#ff7060}
+.surv-three-card.h .surv-three-num{color:#ffcc44}
+.surv-three-card.d .surv-three-num{color:var(--pale)}
+.surv-three-card.w .surv-three-num{color:#44cc66}
+.surv-three-label{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text-dim)}
+.surv-stop-grid{display:grid;grid-template-columns:28px 1fr;gap:4px 8px;margin:8px 0}
+.surv-stop-letter{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--gold);text-align:center;padding-top:2px}
+.surv-stop-def{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--text-mid);line-height:1.6}
+.surv-stop-name{font-family:'Press Start 2P',monospace;font-size:5px;color:var(--text);display:block;margin-bottom:3px;letter-spacing:1px}
+.surv-priority-list{margin:6px 0}
+.surv-priority-row{display:flex;align-items:flex-start;gap:10px;padding:5px 0;border-bottom:1px solid #080c14}
+.surv-priority-row:last-child{border-bottom:none}
+.surv-priority-num{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--gold);width:18px;flex-shrink:0;padding-top:3px;text-align:center}
+.surv-priority-text{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--text);line-height:1.5}
+.surv-section-note{font-family:'Press Start 2P',monospace;font-size:4px;color:rgba(143,168,255,0.35);letter-spacing:1px;padding:8px 10px;text-align:center}
+
 /* ── CARE ──────────────────────────────────────────────────────── */
 .care-tabs{display:flex;gap:2px;padding:8px 10px 0;border-bottom:1px solid #111820;flex-shrink:0;background:var(--screen-bg)}
 .care-tab{font-family:'Press Start 2P',monospace;font-size:4px;padding:6px 10px;border-radius:6px 6px 0 0;cursor:pointer;letter-spacing:1px;color:var(--text-dim);background:transparent;border:none;-webkit-tap-highlight-color:transparent;transition:all .1s}
@@ -638,7 +688,7 @@ body{
 </div>
 <div id="shell">
   <div class="shell-top">
-    <div class="shell-label">PALE SIGNAL · HUB v2.0 · SK v7.12</div>
+    <div class="shell-label">PALE SIGNAL · HUB v2.0 · SK v7.16</div>
     <div class="power-led"></div>
   </div>
   <div class="shell-body">
@@ -652,6 +702,7 @@ body{
           <div class="dock-btn"        id="nav-sael"  onclick="nav('sael')">◎ SAEL</div>
           <div class="dock-btn"        id="nav-cook"  onclick="nav('cook')">⊛ COOK</div>
           <div class="dock-btn"        id="nav-care"  onclick="nav('care')">♡ CARE</div>
+          <div class="dock-btn"        id="nav-survive" onclick="nav('survive')">▲ SURVIVE</div>
         </div>
 
         <!-- HOME PANE -->
@@ -675,12 +726,12 @@ body{
               <div class="home-card" onclick="launchRPG()">
                 <span class="home-icon">⚔</span>
                 <div class="home-name">PALE SIGNAL RPG</div>
-                <div class="home-desc">v3.16 · Buildings. Creature encounters. NPC interiors.</div>
+                <div class="home-desc">v3.18 · Ruins. Alpine. Salt. Room transitions.</div>
               </div>
               <div class="home-card" onclick="launchTCG()">
                 <span class="home-icon">◰</span>
                 <div class="home-name">PALE SIGNAL TCG</div>
-                <div class="home-desc">v1.2 · Pixel Echo portraits. Scan. Build. Battle.</div>
+                <div class="home-desc">v1.3 · Echo sync from RPG. Scan. Build. Battle.</div>
               </div>
               <div class="home-card" onclick="launchArt()">
                 <span class="home-icon">🎨</span>
@@ -716,6 +767,11 @@ body{
                 <span class="home-icon">🗄</span>
                 <div class="home-name">YOUR DATA</div>
                 <div class="home-desc">All local. Nothing uploaded. View + export.</div>
+              </div>
+              <div class="home-card" style="border-color:rgba(255,100,80,0.35);background:rgba(255,80,60,0.06)" onclick="nav('survive')">
+                <span class="home-icon">▲</span>
+                <div class="home-name">SURVIVE</div>
+                <div class="home-desc">Field manual. Fire, water, shelter, medical, signal.</div>
               </div>
             </div>
             <!-- HOME CALCULATOR MODAL -->
@@ -932,6 +988,75 @@ body{
               <!-- rows rendered by JS -->
             </div>
           </div>
+        </div>
+
+
+        <!-- SURVIVE PANE -->
+        <div class="pane" id="pane-survive">
+          <div class="survive-tabs-bar">
+            <div style="display:flex">
+              <button class="care-tab active" id="stab-rules"   onclick="switchSurviveTab('rules')">RULES</button>
+              <button class="care-tab"        id="stab-fire"    onclick="switchSurviveTab('fire')">FIRE</button>
+              <button class="care-tab"        id="stab-water"   onclick="switchSurviveTab('water')">WATER</button>
+              <button class="care-tab"        id="stab-shelter" onclick="switchSurviveTab('shelter')">SHELTER</button>
+              <button class="care-tab"        id="stab-food"    onclick="switchSurviveTab('food')">FOOD</button>
+              <button class="care-tab"        id="stab-medical" onclick="switchSurviveTab('medical')">MEDICAL</button>
+              <button class="care-tab"        id="stab-signal"  onclick="switchSurviveTab('signal')">SIGNAL</button>
+            </div>
+          </div>
+          <div class="care-section show" id="ssec-rules">
+            <div class="survive-scroll">
+              <div class="surv-hero">
+                <div class="surv-hero-title">◈ THE RULE OF THREES</div>
+                <div class="surv-threes">
+                  <div class="surv-three-card m"><div class="surv-three-num">3 MIN</div><div class="surv-three-label">Without air</div></div>
+                  <div class="surv-three-card h"><div class="surv-three-num">3 HRS</div><div class="surv-three-label">Extreme exposure</div></div>
+                  <div class="surv-three-card d"><div class="surv-three-num">3 DAYS</div><div class="surv-three-label">Without water</div></div>
+                  <div class="surv-three-card w"><div class="surv-three-num">3 WKS</div><div class="surv-three-label">Without food</div></div>
+                </div>
+                <div class="surv-principle">Address threats in this exact order. Every survival mistake traces back to inverting this sequence. Hunger is uncomfortable. Exposure is immediately dangerous.</div>
+              </div>
+              <div class="surv-entry">
+                <div class="surv-entry-head" onclick="toggleSurvEntry(this)">
+                  <span class="surv-badge hours">FIRST</span>
+                  <span class="surv-entry-title">STOP PROTOCOL</span>
+                  <span class="surv-caret">▼</span>
+                </div>
+                <div class="surv-body open">
+                  <div class="surv-stop-grid">
+                    <div class="surv-stop-letter">S</div><div class="surv-stop-def"><span class="surv-stop-name">STOP</span>Cease movement. Sit down if safe. The body's first instinct is to move. Resist it.</div>
+                    <div class="surv-stop-letter">T</div><div class="surv-stop-def"><span class="surv-stop-name">THINK</span>What do you know for certain? What resources do you have? What time remains before dark?</div>
+                    <div class="surv-stop-letter">O</div><div class="surv-stop-def"><span class="surv-stop-name">OBSERVE</span>Full 360° survey. Weather, terrain, water, shelter potential, sound. Look up. Look down.</div>
+                    <div class="surv-stop-letter">P</div><div class="surv-stop-def"><span class="surv-stop-name">PLAN</span>One action at a time. Execute fully. Reassess before chaining actions.</div>
+                  </div>
+                  <div class="surv-flavor">◈ PALE SIGNAL · The oracle reads the environment before speaking. STOP is the oracle&#39;s first move.</div>
+                </div>
+              </div>
+              <div class="surv-entry">
+                <div class="surv-entry-head" onclick="toggleSurvEntry(this)">
+                  <span class="surv-badge hours">PRIORITY</span>
+                  <span class="surv-entry-title">DECISION ORDER</span>
+                  <span class="surv-caret">▼</span>
+                </div>
+                <div class="surv-body">
+                  <div class="surv-priority-list">
+                    <div class="surv-priority-row"><div class="surv-priority-num">1</div><div class="surv-priority-text">Shelter from immediate exposure (cold, heat, rain)</div></div>
+                    <div class="surv-priority-row"><div class="surv-priority-num">2</div><div class="surv-priority-text">Signal for rescue — do this early, while energy is high</div></div>
+                    <div class="surv-priority-row"><div class="surv-priority-num">3</div><div class="surv-priority-text">Water — find and purify before drinking</div></div>
+                    <div class="surv-priority-row"><div class="surv-priority-num">4</div><div class="surv-priority-text">Fire — warmth, water purification, signal, morale</div></div>
+                    <div class="surv-priority-row"><div class="surv-priority-num">5</div><div class="surv-priority-text">Food — only after 1 through 4 are stable</div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="surv-section-note">WILL TO SURVIVE PRECEDES ALL TECHNICAL SKILL · KL-10</div>
+            </div>
+          </div>
+          <div class="care-section" id="ssec-fire"><div class="survive-scroll"><div id="surv-list-fire"></div></div></div>
+          <div class="care-section" id="ssec-water"><div class="survive-scroll"><div id="surv-list-water"></div></div></div>
+          <div class="care-section" id="ssec-shelter"><div class="survive-scroll"><div id="surv-list-shelter"></div></div></div>
+          <div class="care-section" id="ssec-food"><div class="survive-scroll"><div id="surv-list-food"></div></div></div>
+          <div class="care-section" id="ssec-medical"><div class="survive-scroll"><div id="surv-list-medical"></div></div></div>
+          <div class="care-section" id="ssec-signal"><div class="survive-scroll"><div id="surv-list-signal"></div></div></div>
         </div>
 
       </div><!-- #screen -->
@@ -1255,6 +1380,7 @@ function nav(id){
   if(id==='quest') renderQuests();
   if(id==='cook')  renderCookbook();
   if(id==='care')  { renderFinch(); renderJournal(); }
+  if(id==='survive') { switchSurviveTab('rules'); }
   if(id==='sael')  {
     if(!saelReady && !saelLoading) initSael();
     // Deliver long return message on first Sael open
@@ -1268,8 +1394,8 @@ function nav(id){
 }
 
 // ── LAUNCHERS ─────────────────────────────────────────────────────────
-function launchRPG(){window.open('PaleSignalRPG-v3_16.html','_blank')}
-function launchTCG(){window.open('PaleSignalTCG-v1_2.html','_blank')}
+function launchRPG(){window.open('PaleSignalRPG-v3_18.html','_blank')}
+function launchTCG(){window.open('PaleSignalTCG-v1_3.html','_blank')}
 function launchArt(){window.open('pixel-engine-v1_2.html','_blank')}
 function launchChem(){window.open('chemistry-v1_1.html','_blank')}
 
@@ -1364,6 +1490,156 @@ function hcalcConvert(v){
     const r=Math.round(c.fn(v)*10000)/10000;
     return `<div class="conv-row"><span style="color:var(--text-dim)">${c.fmt}</span><span style="color:var(--pale-bright)">${r}</span></div>`;
   }).join('');
+}
+
+
+// ── SURVIVE ───────────────────────────────────────────────────────────
+const SURVIVE_DATA = {
+  fire:[
+    {badge:'hours',title:'FIRE TRIANGLE',
+     principle:'Oxygen + Fuel + Heat. Remove any one: fire dies. Build all three simultaneously. Prepare twice the tinder you think you need — your first attempt will likely fail.',
+     steps:['Tinder: dry grass, birch bark, cattail fluff, pocket lint — must ignite from single spark or match','Kindling: finger-thick dry sticks, break rather than cut to expose dry interior','Fuel: wrist-thick and larger — add only after kindling is fully burning','Never blow directly on flame — exhale slowly and steadily at the base of the coal'],
+     flavor:'◈ FIRE ELEMENT · Transformation through contact. The tinder does not fight the spark.'},
+    {badge:'hours',title:'BOW DRILL — FRICTION FIRE',
+     principle:'The most reliable primitive fire method. Requires correct wood combination and consistent technique. Both pieces must be dry, same soft wood species.',
+     steps:['Spindle: straight-grained soft dry wood (cedar, willow, cottonwood), pencil diameter, 18 inches long','Fireboard: same wood type, flat, dry, thumb-thick. Cut 45 degree notch opening to a leaf to catch ember','Bow: slightly curved branch, paracord or shoelace strung taut. Handhold: hardwood, smooth socket','Motion: 60 to 90 seconds continuous, fast and smooth, consistent downward pressure on spindle','Transfer: black smoking ember to tinder bundle — handle like a newborn, it is fragile and near 400 Celsius'],
+     flavor:'◈ WOOD ELEMENT · Patience and pressure. The wood gives what it holds.'},
+    {badge:'hours',title:'FERRO ROD + FLINT',
+     principle:'Fastest fire method when tinder is properly prepared. One strong spark is sufficient into dry tinder. Works wet.',
+     steps:['Prepare tinder bundle before striking — it must be ready to catch immediately','Hold rod at 30 degree angle, strike with spine of knife moving away from body toward tinder','For wet conditions: shave magnesium block shavings onto tinder first, then spark into the pile','Any reflective metal or flint edge works. Hardened steel spine preferred over blade edge'],
+     flavor:'◈ METAL ELEMENT · Edge meets stone. The spark is instantaneous or it is nothing.'},
+    {badge:'days',title:'FIRE SAFETY + MAINTENANCE',
+     principle:'A fire you cannot control is worse than no fire. Small fires are more efficient and safer than large ones.',
+     steps:['Clear 3 foot perimeter of all combustibles before lighting','Never build under overhanging branches or in enclosed spaces without ventilation','A fist-sized fire at arm length produces as much usable warmth as a bonfire','Never leave unattended — assign a watcher if sleeping in rotation near fire','To extinguish: drown with water, stir ash, feel with the back of hand. If warm, not out'],
+     flavor:'◈ PALE ELEMENT · The signal fire burns steady and long. Not large. Steady.'},
+  ],
+  water:[
+    {badge:'minutes',title:'HYDRATION PRIORITY',
+     principle:'You can die in 3 days without water. In desert heat or heavy exertion, potentially 1 day. Dehydration degrades judgment before any other symptom appears.',
+     steps:['First sign of dangerous dehydration: dark amber or brown urine','Second sign: headache and deteriorating decision quality — you will not feel thirsty','Third sign: confusion and disorientation — at this point you are critically impaired','A companion making irrational decisions: assume dehydration first, always'],
+     flavor:'◈ WATER ELEMENT · The signal dims without it. Everything does.'},
+    {badge:'hours',title:'FINDING WATER',
+     principle:'Moving water is safer than still. Uphill from human settlements is safer than downstream. Follow animals and birds at dawn and dusk.',
+     steps:['Running streams: best source — filter and purify before drinking','Morning dew: wipe vegetation before sunrise with cloth, wring into container — 200 to 500ml possible','Dry stream beds: dig 1 foot down at the outer bend — water persists underground','Vegetation: willow, cottonwood, cattail roots access water table — dig at base','Never drink: seawater, urine, alcohol, blood — all accelerate dehydration'],
+     flavor:'◈ EARTH ELEMENT · Follow the ground downhill. Water remembers where it belongs.'},
+    {badge:'hours',title:'PURIFICATION — IN ORDER',
+     principle:'Boiling is the gold standard. If no method is available and dehydration is acute: drink anyway. Waterborne illness kills in days. Dehydration kills in hours.',
+     steps:['Step 1 — Pre-filter: pour through bandana or clothing to remove particulate and sediment','Step 2 — Boil: 1 full rolling boil at any altitude. One minute is sufficient per WHO standard.','Step 3 — SODIS: clear water in clear plastic bottle, direct sunlight, minimum 6 hours (48h if cloudy)','Step 4 — Chemical: 2 drops unscented household bleach per liter, wait 30 minutes before drinking'],
+     flavor:'◈ PALE ELEMENT · The library purifies the same way. Filter first. Then trust.'},
+    {badge:'days',title:'TRANSPIRATION BAG',
+     principle:'Passive water collection from living vegetation. No fire, no purification needed. Set multiple bags simultaneously.',
+     steps:['Tie clear plastic bag over a leafy green branch in full sunlight — tie the opening tight','Condensation collects inside over 4 to 8 hours, yielding 100 to 500ml per bag per day','Leave a small stone in the corner of the bag to pool the water at one collection point','Works on most non-toxic vegetation — never use on known toxic plants','Run 4 to 6 bags simultaneously for meaningful daily yield'],
+     flavor:'◈ WOOD ELEMENT · The tree shares what it draws. It asks nothing back.'},
+  ],
+  shelter:[
+    {badge:'minutes',title:'HYPOTHERMIA — FIRST THREAT',
+     principle:'Wet plus wind kills faster than cold alone. Hypothermia can develop at 50°F with wet clothing and wind. Core temperature drops roughly 2°F per hour in these conditions.',
+     steps:['Priority 1: stop wind exposure immediately — even a tarp on the windward side helps','Priority 2: get dry — wet clothing conducts cold 25 times faster than dry clothing','Priority 3: insulate from ground — ground draws heat faster than air does','Priority 4: cover head — 30 to 40 percent of heat loss occurs through an unprotected head','Below 95°F core temp: judgment is impaired. You will feel sleepy, not cold. This is the danger.'],
+     flavor:'◈ WIND ELEMENT · The cold that kills is invisible. The wind is the vector.'},
+    {badge:'hours',title:'DEBRIS HUT — BEST PRIMITIVE SHELTER',
+     principle:'Most effective single-person primitive shelter. Built in 2 to 4 hours. Effective near freezing with no fire when insulation depth is sufficient.',
+     steps:['Ridge pole: find a branch as long as your body plus 2 feet. Rest one end on a stump 3 feet high.','Ribs: lean branches against both sides at 45 degrees, arm-width apart down the full length','Debris: pile dry leaves, needles, grass — minimum 3 feet deep on all sides. Air pockets equal insulation.','Interior: fill with 2 to 3 feet of dry debris before entering. You warm the air, the air warms you.','Size: just large enough to turn over in. Every extra cubic foot of air requires reheating by your body.'],
+     flavor:'◈ EARTH ELEMENT · The earth gives back what you pack into it.'},
+    {badge:'hours',title:'LEAN-TO',
+     principle:'Fastest build — 45 minutes. Less insulating than debris hut. Works well paired with a small fire reflected back from the opening.',
+     steps:['Three uprights: branches driven or wedged into ground, 5 feet high, 5 feet apart','Crossbar: lashed between uprights at 4 foot height','Roofing: branches angled at 45 degrees from crossbar to ground behind, layered like shingles from bottom up','Cover: 4 inch layer of leaves, needles, or grass over roof branches for insulation and waterproofing','Orientation: open face toward small fire, back to prevailing wind'],
+     flavor:'◈ PALE ELEMENT · Three points of contact. Open only on one side.'},
+    {badge:'hours',title:'SITE SELECTION',
+     principle:'The wrong site kills even in a good shelter. Choose before you build. Never build first and look later.',
+     steps:['Never: flood plains, valley bottoms (cold air pools at night — 5 to 10 degrees colder)','Never: under dead trees (widow-makers fall in wind), bare exposed hilltops','Look for: natural windbreak, flat dry ground, 200 feet uphill from water source','Test ground: dig 2 inches — if damp, find higher ground before committing','Check overhead: no dead limbs, no hanging branches, no wasp nests'],
+     flavor:'◈ EARTH ELEMENT · The land tells you. It is not subtle about it.'},
+  ],
+  food:[
+    {badge:'weeks',title:'FOOD IS LAST',
+     principle:'Hunger is uncomfortable. Hunger is not immediately dangerous. You will survive 3 weeks without food. You will not survive 3 hours in extreme exposure.',
+     steps:['Foraging burns calories — do not hunt or forage until shelter, water, and signal are stable','Poor food choices can kill faster than no food: toxic plants, botulism, food poisoning','The desire to do something often drives premature food-seeking. Recognize this impulse. Resist it.','Exception: if you know rescue is more than 7 days away, begin passive food gathering at Day 2'],
+     flavor:'◈ ALL ELEMENTS · The game teaches the same hierarchy. Foundation before capstone. Always.'},
+    {badge:'days',title:'UNIVERSAL EDIBILITY TEST',
+     principle:'Test one plant part at a time. The full test takes 24 hours. Done correctly it eliminates most toxic plants. Never skip a step.',
+     steps:['Separate plant into parts: leaves, stem, root, fruit, seed — test only one part per 24 hours','Smell: bitter almond smell or harsh chemical odor — STOP. Do not continue.','Skin contact: crush and rub on inner wrist. Wait 15 minutes. Rash or burning — STOP.','Lip contact: hold small piece on lower lip 3 minutes. Burning or numbing — STOP.','Tongue tip: taste without swallowing, wait 15 minutes. Swallow a small amount. Wait 8 hours. Any reaction — STOP.'],
+     flavor:'◈ PALE ELEMENT · The test is patience. Most mistakes come from skipping a step.'},
+    {badge:'days',title:'UNIVERSAL AVOIDANCE RULES',
+     principle:'When in doubt, do not eat. These rules eliminate the most dangerous plants without requiring identification.',
+     steps:['White or yellow berries: 90 percent toxic worldwide. Default: never eat.','Umbrella-shaped flower clusters (Queen Anne Lace look-alikes): includes some of the most toxic plants known','Bitter almond smell anywhere in the plant: hydrogen cyanide. Leave immediately.','Milky or discolored sap anywhere in the plant: high probability of toxicity','Red berries: 50/50 — test everything. Blue and black berries are statistically safer.'],
+     flavor:'◈ FIRE ELEMENT · What burns you once teaches you forever. Some plants do not offer a second lesson.'},
+    {badge:'days',title:'INSECTS — HIGHEST CALORIE DENSITY',
+     principle:'Insects are the most abundant high-protein food source in most environments. The barrier is cultural, not practical.',
+     steps:['Grubs (white, found under bark and in rotting logs): safe raw, over 200 calories per 100 grams','Grasshoppers and crickets: remove wings and hind legs. Roast or boil when possible.','Ants: edible. Formic acid harmless in small amounts. Wood ants have a citrus flavor.','Earthworms: squeeze out gut contents, then boil. High protein, low flavor.','Avoid: brightly colored insects (warning coloration), hairy caterpillars, anything that stings or bites'],
+     flavor:'◈ EARTH ELEMENT · Beneath the surface. Where the real resources always are.'},
+  ],
+  medical:[
+    {badge:'minutes',title:'ABC — EVERY EMERGENCY',
+     principle:'Before any other intervention: Airway, Breathing, Circulation. In this exact order. Always. A trauma patient with an airway problem dies before you stop the bleeding.',
+     steps:['A — AIRWAY: Is it open? Tilt head back, lift chin. Remove visible obstructions. Look for chest rise.','B — BREATHING: Are they breathing? If not: 2 rescue breaths, check for response.','C — CIRCULATION: Is there severe bleeding? This takes priority once airway is confirmed open.','Check all three before beginning any specific treatment. Sequence is not negotiable.'],
+     flavor:'◈ WIND ELEMENT · First: the breath. Then the signal. Then the body.'},
+    {badge:'minutes',title:'SEVERE BLEEDING',
+     principle:'Uncontrolled hemorrhage is the leading cause of preventable death in trauma. Direct pressure works. Apply it immediately and do not remove it.',
+     steps:['Direct pressure: full palm on wound, apply and hold for 10 minutes continuous. No checking.','Elevation: raise injured limb above heart level while maintaining pressure','Wound packing: for deep cavity wounds, pack cloth directly into wound and hold firm','Tourniquet: 2 to 3 inches above wound on limb only. Tighten until bleeding stops. Note exact time.','Once tourniquet is applied in field: do not remove it. Hospital only. Mark the time on skin nearby.'],
+     flavor:'◈ METAL ELEMENT · Hard pressure. Hold it. The shaking will stop.'},
+    {badge:'minutes',title:'HYPOTHERMIA TREATMENT',
+     principle:'Rubbing or massaging cold limbs is wrong and dangerous. Rewarm from the core outward. Handle gently — the hypothermic heart is susceptible to arrhythmia.',
+     steps:['Remove wet clothing entirely before any warming attempt','Cover head and torso first — core before extremities','If conscious and able to swallow: warm liquids with sugar. Not alcohol. Not hot.','Body-to-body contact in shared sleeping bag is the most effective field rewarming method','If person is not shivering and is confused: severe hypothermia. Evacuate by any means.'],
+     flavor:'◈ FIRE ELEMENT · The warmth returns to the center first. Then outward.'},
+    {badge:'hours',title:'WOUND CARE + FRACTURES',
+     principle:'In field conditions, the goal is stabilization until evacuation — not treatment. Do not attempt to repair what you cannot properly repair.',
+     steps:['Clean all wounds: irrigate with clean water under pressure. Not hydrogen peroxide — it damages tissue.','Cover loosely with clean cloth. Change every 24 hours. Watch for infection.','Infection signs at 24 to 48 hours: red streaking away from wound, increasing warmth, pus, fever over 101F','Fracture rule: splint above AND below the fracture. Do not attempt to straighten or reset.','Impaled objects: stabilize in place with padding. Never remove — it may be controlling hemorrhage.'],
+     flavor:'◈ EARTH ELEMENT · The bone remembers its shape. Your job is only to keep it still.'},
+  ],
+  signal:[
+    {badge:'hours',title:'STAY PUT vs MOVE',
+     principle:'Search and rescue can find a stationary person. A moving person in unknown terrain dramatically reduces detection probability. Stay put unless you have a specific destination you are certain of.',
+     steps:['Stay if: someone knows your last position, you have water, and you can signal','Stay if: vehicle or aircraft is nearby — searchers begin at the last known point','Move only if: you know exactly where you are going and have water for the entire route','Move only if: 72 hours have passed with zero sign of search activity','If you must move: leave a written note or rock message at departure point with direction, date, time'],
+     flavor:'◈ PALE ELEMENT · The signal is strongest from a fixed point. It diffracts when the source moves.'},
+    {badge:'hours',title:'RULE OF THREES — SIGNAL',
+     principle:'Three signals in any pattern is the universal distress code. Recognized by all rescue services worldwide. Two signals can be mistaken for natural or coincidental. Three is unambiguous.',
+     steps:['3 fires in a triangle visible from air and adjacent ridges','3 whistle blasts — pause one minute — repeat every 10 minutes','3 mirror flashes toward any aircraft or toward the horizon at sun angle','3 rock cairns spaced along a trail to indicate direction of travel','3 gunshots spaced evenly if available — the international distress signal'],
+     flavor:'◈ PALE ELEMENT · The oracle speaks in threes. The call, the echo, the confirmation.'},
+    {badge:'hours',title:'MIRROR SIGNAL',
+     principle:'The most powerful passive signal method. Visible 10 or more miles in daylight, potentially 50 miles in optimal conditions.',
+     steps:['Any reflective surface works: signal mirror, phone screen, watch face, CD, foil wrapper, mylar','Hold reflective surface at arm length, tilt to catch sun reflection onto nearby surface first','Aim the reflected spot toward aircraft, ridge, or distant high ground — flash by tilting repeatedly','At night: use flashlight in the same 3-flash pattern toward lights, aircraft, or any visible source','Signal on the hour every hour — rescue aircraft often fly systematic timed grid patterns'],
+     flavor:'\u25C8 PALE ELEMENT · Light sent. Received without knowing it was sent. The foil catches the light.'},
+    {badge:'days',title:'GROUND-TO-AIR SIGNALS',
+     principle:'Large symbols visible from aircraft. Build with maximum contrast against the ground. Minimum 10 feet per character — larger is always better.',
+     steps:['V = need assistance (most common — use this first)','X = need medical attention','Arrow = traveling in this direction','N = no or negative, Y = yes or affirmative','Build in open flat elevated ground: clearings, beaches, ridgelines, meadows, snowfields','Use rocks, logs, clothing, dug earth — whatever creates highest contrast with surrounding terrain'],
+     flavor:'\u25C8 EARTH ELEMENT · The message written in the ground. Patient. It does not need to be seen today.'},
+  ],
+};
+
+function switchSurviveTab(id){
+  document.querySelectorAll('#pane-survive .care-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#pane-survive .care-section').forEach(s=>s.classList.remove('show'));
+  const tabEl = document.getElementById('stab-'+id);
+  const secEl = document.getElementById('ssec-'+id);
+  if(tabEl) tabEl.classList.add('active');
+  if(secEl) secEl.classList.add('show');
+  if(id !== 'rules') renderSurviveSection(id);
+}
+
+function renderSurviveSection(id){
+  const el = document.getElementById('surv-list-'+id);
+  if(!el || el.dataset.rendered) return;
+  const entries = SURVIVE_DATA[id] || [];
+  el.innerHTML = entries.map((e,i) => `
+    <div class="surv-entry">
+      <div class="surv-entry-head" onclick="toggleSurvEntry(this)">
+        <span class="surv-badge ${e.badge}">${e.badge.toUpperCase()}</span>
+        <span class="surv-entry-title">${e.title}</span>
+        <span class="surv-caret">&#9660;</span>
+      </div>
+      <div class="surv-body${i===0?' open':''}">
+        <div class="surv-principle">${e.principle}</div>
+        <ul class="surv-steps">${e.steps.map(s=>`<li>${s}</li>`).join('')}</ul>
+        <div class="surv-flavor">${e.flavor}</div>
+      </div>
+    </div>`).join('');
+  el.dataset.rendered = '1';
+}
+
+function toggleSurvEntry(head){
+  const body = head.nextElementSibling;
+  const caret = head.querySelector('.surv-caret');
+  const open = body.classList.toggle('open');
+  caret.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
 }
 
 // ── QUEST TRACKER ─────────────────────────────────────────────────────

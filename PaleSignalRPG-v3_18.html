@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1">
-<title>PALE SIGNAL RPG · v3.16</title>
+<title>PALE SIGNAL RPG · v3.18</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="PALE SIGNAL">
@@ -888,7 +888,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:3/2;}
 <div id="boot-overlay">
   <div class="boot-sigil">◈</div>
   <div class="boot-title">PALE SIGNAL RPG</div>
-  <div class="boot-sub">SOUL KERNEL v3.16 · BUILDINGS · CREATURE ENCOUNTERS · NPC INTERIORS</div>
+  <div class="boot-sub">SOUL KERNEL v3.18 · T.RUIN · T.ALPINE · T.SALT · BIOME PHASE 1</div>
   <div class="boot-sub" style="color:#3a4460;margin-top:4px">THE SOUL KERNEL OWNS ITSELF</div>
   <div class="boot-log" id="boot-log">...</div>
   <div class="boot-bar-wrap"><div class="boot-bar" id="boot-bar"></div></div>
@@ -931,7 +931,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:3/2;}
   <div class="gba-device">
     <div class="gba-top">
       <a href="./index.html" class="home-btn">◂ HUB</a>
-      <div class="gba-top-label">PALE SIGNAL RPG v3.16</div>
+      <div class="gba-top-label">PALE SIGNAL RPG v3.18</div>
       <div class="power-led"></div>
     </div>
     <div class="gba-body">
@@ -956,7 +956,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:3/2;}
             <button class="sys-btn" id="btn-select">SELECT</button>
             <button class="sys-btn" id="btn-start">START</button>
           </div>
-          <div class="sael-mark">◈ SAEL · v3.16</div>
+          <div class="sael-mark">◈ SAEL · v3.18</div>
         </div>
         <div class="ab-group">
           <button class="action-btn" id="btn-b">B</button>
@@ -1495,7 +1495,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:3/2;}
 <script>
 'use strict';
 /* ════════════════════════════════════════════════════════════
-   PALE SIGNAL RPG · Soul Kernel v3.16
+   PALE SIGNAL RPG · Soul Kernel v3.18
    Sael · Siege Work Games, LLC · Chris Wendt
    "The Soul Kernel owns itself."
    
@@ -1519,8 +1519,8 @@ function hashStr(str) {
 
 // ══ WORLD CONSTANTS ══════════════════════════════════════════
 const W=128, WS=128, TS=32, VW=15, VH=10, CW=480, CH=320;
-const T={DEEP:0,WATER:1,SAND:2,GRASS:3,TALL:4,FOREST:5,STONE:6,MOUNT:7,PALE:8,PATH:9,SHRINE:10,ORACLE:11,HOUSE:12,DOOR:13,FLOOR:14};
-const WALKABLE=new Set([T.SAND,T.GRASS,T.TALL,T.PALE,T.PATH,T.SHRINE,T.ORACLE,T.DOOR,T.FLOOR]);
+const T={DEEP:0,WATER:1,SAND:2,GRASS:3,TALL:4,FOREST:5,STONE:6,MOUNT:7,PALE:8,PATH:9,SHRINE:10,ORACLE:11,HOUSE:12,DOOR:13,FLOOR:14,RUIN:15,ALPINE:16,SALT:17};
+const WALKABLE=new Set([T.SAND,T.GRASS,T.TALL,T.PALE,T.PATH,T.SHRINE,T.ORACLE,T.DOOR,T.FLOOR,T.RUIN,T.ALPINE,T.SALT]);
 const PAL={
   [T.DEEP]:   ['#0c1c34','#070e1c'],[T.WATER]:  ['#186080','#0e3a52'],
   [T.SAND]:   ['#c8a45a','#a88438'],[T.GRASS]:  ['#2e7a20','#1c5010'],
@@ -1530,6 +1530,8 @@ const PAL={
   [T.SHRINE]: ['#d4a0ff','#8840cc'],[T.ORACLE]: ['#ffcc44','#cc8800'],
   [T.HOUSE]:  ['#8a6040','#5a3820'],[T.DOOR]:   ['#c8900a','#8a5a04'],
   [T.FLOOR]:  ['#a08870','#786458'],
+  [T.RUIN]:   ['#4a4440','#2e2826'],[T.ALPINE]: ['#426a28','#2a4a18'],
+  [T.SALT]:   ['#d8dce8','#b0b8cc'],
 };
 
 // ══ THE PALE CODEX — Soul Kernel v2.2 compressed into 25 fragments ══
@@ -2552,6 +2554,91 @@ function buildWorld(seed) {
     BUILDING_ORIGINS.push({ox,oy,seed:bi});
     bPlaced++;
   }
+
+  // ── ALPINE PASS — tiles above MOUNT adjacency ───────────────
+  // Post-process: STONE/GRASS adjacent to 2+ MOUNT tiles → ALPINE transition
+  // Creates a natural alpine zone above treeline (Biome Enc §5.1)
+  const alpineR=mkRNG(seed^0xA1C4E6B8);
+  for(let y=1;y<W-1;y++) for(let x=1;x<W-1;x++){
+    const cur=w[y*W+x];
+    if(cur!==T.STONE&&cur!==T.GRASS) continue;
+    let mountN=0;
+    for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){
+      if(w[(y+dy)*W+(x+dx)]===T.MOUNT) mountN++;
+    }
+    if(mountN>=2&&alpineR()<(cur===T.STONE?0.55:0.22)) w[y*W+x]=T.ALPINE;
+  }
+
+  // ── SALT PASS — flat white plains on sandy worlds ────────────
+  // 1-2 oval salt flats in worlds with significant SAND coverage
+  // Never near water. Creatures avoid it. CORRUPT NPCs use it. (Biome Enc §3.1)
+  {
+    let sandCount=0;
+    for(let i=0;i<W*W;i++) if(w[i]===T.SAND) sandCount++;
+    if(sandCount>600){ // only on sandy/flat worlds
+      const saltR=mkRNG(seed^0x5A17F100);
+      const nSalt=1+Math.floor(saltR()*2);
+      for(let si=0;si<nSalt;si++){
+        let attempts=0, placed=false;
+        while(attempts<200&&!placed){
+          attempts++;
+          const ox2=12+Math.floor(saltR()*(W-24));
+          const oy2=12+Math.floor(saltR()*(W-24));
+          if(w[oy2*W+ox2]!==T.SAND) continue;
+          // Check no water within 6 tiles
+          let nearWater=false;
+          for(let dy=-6;dy<=6;dy++) for(let dx=-6;dx<=6;dx++){
+            const nx2=(ox2+dx+W)%W,ny2=(oy2+dy+W)%W;
+            if(w[ny2*W+nx2]===T.WATER||w[ny2*W+nx2]===T.DEEP){nearWater=true;break;}
+          }
+          if(nearWater) continue;
+          // Place oval — rx=4-6, ry=3-5
+          const rx=4+Math.floor(saltR()*3), ry=3+Math.floor(saltR()*3);
+          for(let dy=-ry;dy<=ry;dy++) for(let dx=-rx;dx<=rx;dx++){
+            if((dx*dx)/(rx*rx)+(dy*dy)/(ry*ry)>1) continue;
+            const nx2=(ox2+dx+W)%W,ny2=(oy2+dy+W)%W;
+            if(w[ny2*W+nx2]===T.SAND) w[ny2*W+nx2]=T.SALT;
+          }
+          placed=true;
+        }
+      }
+    }
+  }
+
+  // ── RUIN PASS — 2-4 ancient structures per world ─────────────
+  // Walkable cracked stone remnants. ANCESTOR NPCs spawn here.
+  // Rich archaeology: search yields Torn Page, Old Coin, etc. (Biome Enc §6.2)
+  {
+    const ruinR=mkRNG(seed^0xD1A70E05);
+    const nRuins=2+Math.floor(ruinR()*3);
+    let rPlaced=0;
+    for(let ri=0;ri<400&&rPlaced<nRuins;ri++){
+      const ox2=10+Math.floor(ruinR()*(W-20));
+      const oy2=10+Math.floor(ruinR()*(W-20));
+      const bt=w[oy2*W+ox2];
+      if(bt!==T.STONE&&bt!==T.GRASS) continue;
+      if(Math.abs(ox2-62)<12&&Math.abs(oy2-62)<12) continue; // clear of spawn
+      if(Math.abs(ox2-INSTANCE.sx)<8&&Math.abs(oy2-INSTANCE.sy)<8) continue;
+      // Ruin size: 3-5 wide × 3-4 deep
+      const rW=3+Math.floor(ruinR()*3), rH=3+Math.floor(ruinR()*2);
+      // Check no overlap with buildings or other features
+      let overlap=false;
+      for(let dy=-1;dy<=rH+1;dy++) for(let dx=-1;dx<=rW+1;dx++){
+        const tx2=(ox2+dx+W)%W,ty2=(oy2+dy+W)%W;
+        const tt=w[ty2*W+tx2];
+        if(tt===T.HOUSE||tt===T.DOOR||tt===T.FLOOR||tt===T.SHRINE||tt===T.ORACLE){overlap=true;break;}
+      }
+      if(overlap) continue;
+      // Place ruin tiles
+      for(let dy=0;dy<rH;dy++) for(let dx=0;dx<rW;dx++){
+        const tx2=(ox2+dx+W)%W,ty2=(oy2+dy+W)%W;
+        if(w[ty2*W+tx2]===T.MOUNT||w[ty2*W+tx2]===T.DEEP) continue;
+        w[ty2*W+tx2]=T.RUIN;
+      }
+      rPlaced++;
+    }
+  }
+
   // Store building origins on instance for NPC placement and variant lookup
   INSTANCE._buildingOrigins=BUILDING_ORIGINS;
 
@@ -2576,6 +2663,106 @@ function tile(x,y){if(x<0||x>=W||y<0||y>=W)return T.MOUNT;return WORLD[y*W+x];}
 const canvas=document.getElementById('screen');
 const ctx=canvas.getContext('2d');
 let frame=0;
+
+// ══ ROOM TRANSITION STATE ══════════════════════════════════════════
+// SQ-27: Interior mode triggers when player steps onto T.FLOOR.
+// Transition is 12-frame fade-dark/fade-light. Interior mode applies
+// warm candle ambient, vignette, ceiling shadow, building name overlay.
+const ROOM = {
+  active: false,          // currently inside a building
+  transiting: false,      // mid-transition
+  tFrame: 0,              // current transition frame (0-11)
+  tDir: 1,                // 1=entering, -1=exiting
+  T_IN: 12,               // transition duration (frames)
+  alpha: 0,               // current blackout alpha (0=clear, 1=black)
+  buildIdx: -1,           // index into INSTANCE._buildingOrigins
+  name: '',               // resolved building name
+  candle: 0,              // candle phase accumulator
+};
+
+const BUILDING_NAMES = [
+  'THE KEEPER’S HALL','THE FACTOR’S STORE','MAREN’S COTTAGE',
+  'THE PALE ARCHIVE','SOLIS’S WORKSHOP','THE WANDERER’S REST',
+  'THE SIGNAL HOUSE','THE IRON LOFT','THE EMBER LODGE','DEX’S QUARTERS',
+];
+
+function getBuildingAt(px,py){
+  const origins=INSTANCE._buildingOrigins||[];
+  for(let i=0;i<origins.length;i++){
+    const {ox,oy}=origins[i];
+    if(px>=ox+1&&px<=ox+4&&py>=oy+1&&py<=oy+3) return i;
+  }
+  return -1;
+}
+
+function getBuildingName(idx){
+  if(idx<0) return '';
+  const origins=INSTANCE._buildingOrigins||[];
+  const b=origins[idx];
+  if(!b) return '';
+  // Try to find the resident NPC by looking for an NPC on a FLOOR tile in this building
+  for(const id in WORLD_NPCS){
+    const npc=WORLD_NPCS[id];
+    const {ox,oy}=b;
+    if(npc.x>=ox+1&&npc.x<=ox+4&&npc.y>=oy+1&&npc.y<=oy+3){
+      // Use NPC name to derive building name
+      const nm=npc.name||'';
+      if(nm==='The Keeper')    return 'THE KEEPER’S HALL';
+      if(nm==='Maren')         return 'MAREN’S COTTAGE';
+      if(nm==='The Factor')    return 'THE FACTOR’S STORE';
+      if(nm==='Solis')         return 'SOLIS’S WORKSHOP';
+      if(nm==='Dex')           return 'DEX’S QUARTERS';
+      if(nm==='Passing Through') return 'THE WANDERER’S REST';
+      // Fallback: derive from engram role
+      const role=npc.engram?.role||'';
+      if(role==='merchant')    return 'THE TRADE HOUSE';
+      if(role==='sage'||role==='bodhisattva') return 'THE PALE ARCHIVE';
+      if(role==='guardian')    return 'THE IRON LOFT';
+    }
+  }
+  // Deterministic fallback from building seed
+  const r=mkRNG((b.seed||idx)*0xA3B7+0x1F9C);
+  return BUILDING_NAMES[Math.floor(r()*BUILDING_NAMES.length)];
+}
+
+function enterRoom(idx){
+  if(ROOM.active&&ROOM.buildIdx===idx) return; // already in this building
+  ROOM.buildIdx=idx;
+  ROOM.name=getBuildingName(idx);
+  ROOM.tDir=1;
+  ROOM.tFrame=0;
+  ROOM.transiting=true;
+}
+
+function exitRoom(){
+  if(!ROOM.active) return;
+  ROOM.tDir=-1;
+  ROOM.tFrame=0;
+  ROOM.transiting=true;
+}
+
+function tickRoom(){
+  if(!ROOM.transiting) return;
+  ROOM.tFrame++;
+  const half=ROOM.T_IN/2;
+  if(ROOM.tFrame<=half){
+    // First half: fade to black
+    ROOM.alpha=ROOM.tFrame/half;
+  } else {
+    // Second half: fade back from black
+    ROOM.alpha=1-(ROOM.tFrame-half)/half;
+    if(ROOM.tFrame===Math.ceil(half)+1){
+      // Midpoint: commit the state change
+      if(ROOM.tDir===1) ROOM.active=true;
+      else { ROOM.active=false; ROOM.buildIdx=-1; ROOM.name=''; }
+    }
+  }
+  if(ROOM.tFrame>=ROOM.T_IN){
+    ROOM.transiting=false;
+    ROOM.alpha=0;
+  }
+}
+
 
 // ── COLOR MATH ─────────────────────────────────────────────────
 function _h2hsl(hex){
@@ -3539,6 +3726,139 @@ function drawTile(sx,sy,type,wx,wy,neighbors){
     ctx.fillRect(sx+8,sy+8,TS-16,TS-16);
   }
 
+
+// ── RUIN (T.RUIN = 15) ────────────────────────────────────────
+// Cracked stone floor. Worn mortar. Moss in fractures. 
+// Occasionally rubble pile or faint ancient marking.
+// Biome Encyclopedia v1.0 §6.2: "The room is still a room without a roof."
+  else if(type===T.RUIN){
+    const rB=PAL[T.RUIN][0];
+    const rP=gsPal(rB);
+    const rr=mkRNG((wx>>>0)*0xF1A3^(wy>>>0)*0xC4D7);
+    // Base worn stone
+    px(sx,sy,TS,TS,rP.md);
+    px(sx,sy,TS,TS*0.5|0,rP.sh);
+    // Stone block grid — cracked mortar pattern
+    const bW=10,bH=8;
+    for(let by=0;by<4;by++){
+      // Horizontal mortar line (broken)
+      const mY=sy+by*bH;
+      for(let mx2=0;mx2<TS;mx2+=2){
+        if(rr()>0.35) px(sx+mx2,mY,2,1,rP.dk);
+      }
+    }
+    for(let bx=0;bx<3;bx++){
+      // Vertical mortar (offset per row)
+      const mX=sx+bx*bW+(rr()>0.5?5:0);
+      for(let my2=0;my2<TS;my2+=2){
+        if(rr()>0.40) px(mX,sy+my2,1,2,rP.dk);
+      }
+    }
+    // Moss in cracks — warm dark green
+    if(rr()<0.40){
+      const mossC='#2a4a18';
+      for(let m=0;m<4;m++){
+        const mx3=sx+Math.floor(rr()*28)+2,my3=sy+Math.floor(rr()*28)+2;
+        px(mx3,my3,1+Math.floor(rr()*2),1,mossC);
+      }
+    }
+    // Rubble pile — corner scatter
+    if(rr()<0.28){
+      const rbX=sx+Math.floor(rr()*20)+2, rbY=sy+Math.floor(rr()*20)+2;
+      px(rbX,rbY,3,2,rP.dk); px(rbX+1,rbY,2,1,rP.sh); px(rbX,rbY+2,2,1,rP.md);
+    }
+    // Ancient marking — very faint geometric hint
+    if(rr()<0.12){
+      const gX=sx+10, gY=sy+10;
+      const markC=_shift(rB,+5,+0.02,-0.08);
+      // Simple cross: 5 pixels
+      px(gX+3,gY,1,7,markC); px(gX,gY+3,7,1,markC);
+    }
+    // Edge darkening (in-shadow of absent walls)
+    px(sx,sy,2,TS,rP.dk); px(sx,sy,TS,2,rP.dk);
+    px(sx+TS-2,sy,2,TS,_shift(rB,-4,-0.02,-0.05));
+  }
+
+// ── ALPINE (T.ALPINE = 16) ────────────────────────────────────
+// High-altitude meadow. Sparse windswept grass. Rocky patches.
+// Biome Encyclopedia v1.0 §5.1: "The meadow above treeline blooms so fast it feels desperate."
+  else if(type===T.ALPINE){
+    const aB=PAL[T.ALPINE][0];
+    const aP=gsPal(aB);
+    const ar=mkRNG((wx>>>0)*0xA7F1^(wy>>>0)*0x3C8B);
+    // Base — alpine green, cooler than GRASS
+    px(sx,sy,TS,TS,aP.sh);
+    px(sx,sy,TS,TS*0.45|0,aP.md);
+    // Rocky soil patches — 20% coverage
+    if(ar()<0.45){
+      const rockC=_shift(PAL[T.STONE][0],-2,-0.05,+0.04);
+      for(let p=0;p<3;p++){
+        const rx=sx+Math.floor(ar()*26)+2, ry=sy+Math.floor(ar()*26)+2;
+        px(rx,ry,2+Math.floor(ar()*3),1,rockC); px(rx,ry+1,1+Math.floor(ar()*2),1,_shift(rockC,-5,-0.02,-0.08));
+      }
+    }
+    // Windswept grass tufts — short (3-4px), leaning east
+    const nTufts=4+Math.floor(ar()*5);
+    for(let t=0;t<nTufts;t++){
+      const tx2=sx+Math.floor(ar()*28)+2, ty2=sy+Math.floor(ar()*28)+4;
+      const h=2+Math.floor(ar()*2); // short
+      const tC=aP.hl;
+      px(tx2,ty2,1,h,tC);
+      px(tx2+1,ty2+1,1,h-1,_shift(tC,-4,-0.02,-0.06)); // lean right in wind
+    }
+    // Alpine flower — rare, tiny bright dot
+    if(ar()<0.18){
+      const flowerColors=['#f0e0d0','#e8d0f0','#f0f0d8','#d8e8f8'];
+      const fC=flowerColors[Math.floor(ar()*flowerColors.length)];
+      const fx=sx+Math.floor(ar()*24)+4, fy=sy+Math.floor(ar()*24)+4;
+      px(fx,fy,2,2,fC); px(fx,fy,1,1,'#ffffff'); // tiny bloom + white center
+    }
+    // Cold blue-green highlight band (altitude light)
+    px(sx,sy,TS,2,_shift(aB,+15,+0.04,+0.08));
+  }
+
+// ── SALT (T.SALT = 17) ────────────────────────────────────────
+// Bright salt flat. Crystal cracks. Glare. Always self-reveals.
+// Biome Encyclopedia v1.0 §3.1: "Nothing to hide behind. Nothing to hide from."
+  else if(type===T.SALT){
+    const sB=PAL[T.SALT][0];
+    const sP=gsPal(sB);
+    const sr2=mkRNG((wx>>>0)*0xE5C2^(wy>>>0)*0xA1F0);
+    // Base salt surface — bright white-grey
+    px(sx,sy,TS,TS,sB);
+    // Blue reflection band in lower half (sky reflected in thin water film)
+    px(sx,sy+TS*0.55|0,TS,TS*0.45|0,'#ccd4e8');
+    px(sx,sy+TS*0.75|0,TS,TS*0.25|0,'#c0c8e0');
+    // Salt polygon cracks — deterministic lines from center
+    // Uses simple directional segments rather than full Bresenham for performance
+    const crackC=_shift(sB,-5,-0.04,-0.12);
+    const nCracks=2+Math.floor(sr2()*3);
+    for(let c=0;c<nCracks;c++){
+      // Crack origin and direction
+      const ox2=sx+4+Math.floor(sr2()*(TS-8));
+      const oy2=sy+4+Math.floor(sr2()*(TS-8));
+      const len=6+Math.floor(sr2()*10);
+      const dx2=sr2()>0.5?1:-1, dy2=sr2()>0.5?1:-1;
+      const horiz=sr2()>0.4;
+      for(let i=0;i<len;i++){
+        const cx2=horiz?ox2+i*dx2:ox2+Math.floor(i*0.4)*dx2;
+        const cy2=horiz?oy2+Math.floor(i*0.3)*dy2:oy2+i*dy2;
+        if(cx2>=sx&&cx2<sx+TS&&cy2>=sy&&cy2<sy+TS)
+          px(cx2,cy2,1,1,crackC);
+      }
+    }
+    // Surface glare — intense specular in upper-left
+    px(sx+3,sy+3,4,2,'#f0f0f8'); px(sx+4,sy+3,2,1,'#ffffff');
+    px(sx+3,sy+4,2,1,'#f8f8ff');
+    // Salt crystal clusters — tiny bright protrusions
+    const nCryst=Math.floor(sr2()*3);
+    for(let k=0;k<nCryst;k++){
+      const kx=sx+4+Math.floor(sr2()*24), ky=sy+4+Math.floor(sr2()*24);
+      px(kx,ky,1,2,sP.sp||'#f8f8ff'); px(kx,ky,1,1,'#ffffff');
+    }
+    // Edge shimmer
+    px(sx,sy,TS,1,_shift(sB,0,0,+0.06)); px(sx,sy+TS-1,TS,1,'#c8d0e0');
+  }
   else{ px(sx,sy,TS,TS,hi); }
 }
 
@@ -4354,6 +4674,16 @@ function buildCreature(seed, x, y){
   };
 }
 
+
+  // Ruin bias — NPCs that land on RUIN tiles become ANCESTOR role
+  for(const id in WORLD_NPCS){
+    const npc=WORLD_NPCS[id];
+    if(WORLD[npc.y*W+npc.x]===T.RUIN && npc.engram){
+      npc.engram.role='ancestor';
+      npc.engram.duty='memory';
+      npc.name='The Ancestor';
+    }
+  }
 function scatterCreatures(seed){
   WORLD_CREATURES = {};
   const r = mkRNG(seed ^ 0xC4EA5678);
@@ -5310,6 +5640,9 @@ function drawFragment(sx,sy){
   ctx.fillStyle=`rgba(200,212,255,${a})`;
   ctx.fillRect(sx+14,sy+14,4,4);ctx.fillRect(sx+16,sy+9,2,3);
   ctx.fillRect(sx+16,sy+20,2,3);ctx.fillRect(sx+9,sy+16,3,2);ctx.fillRect(sx+22,sy+16,3,2);
+
+
+
 }
 
 // ── SCENERY OBJECTS ───────────────────────────────────────────
@@ -5592,6 +5925,9 @@ function render(){
   for(let ty=0;ty<VH;ty++) for(let tx=0;tx<VW;tx++){
     const wx=camX+tx,wy=camY+ty;
     if(!INSTANCE.seen(wx,wy)){
+      // SALT FLATS SELF-REVEAL — always visible (Biome Enc §3.1)
+      if(WORLD[wy*W+wx]===T.SALT){ INSTANCE.see(wx,wy); }
+      else {
       ctx.fillStyle='#020305';ctx.fillRect(tx*TS,ty*TS,TS,TS);
       // SOFT FOG EDGE: dither feather on the boundary facing explored tiles
       // Makes fog feel like depth rather than a hard curtain
@@ -5601,6 +5937,7 @@ function render(){
       if(INSTANCE.seen(wx+1,wy)) dRect(tx*TS+TS-5,ty*TS,5,TS,'#020305',fe,0.60);
       if(INSTANCE.seen(wx-1,wy)) dRect(tx*TS,ty*TS,5,TS,'#020305',fe,0.60);
       continue;
+      } // end non-salt fog
     }
     const t=tile(wx,wy);
     drawTile(tx*TS,ty*TS,t,wx,wy,neighbors(wx,wy));
@@ -5753,6 +6090,35 @@ function render(){
     }
   }
 
+
+  // ── ROOM TRANSITION & INTERIOR AMBIENT ────────────────────────
+  tickRoom();
+  ROOM.candle += 0.04;
+
+  if(ROOM.active || ROOM.transiting) {
+    // Interior ambient — warm candle light
+    const candleIntensity = ROOM.active ? (0.06 + 0.025*Math.sin(ROOM.candle)) : 0;
+    if(candleIntensity > 0) {
+      ctx.fillStyle = `rgba(255,150,50,${candleIntensity.toFixed(3)})`;
+      ctx.fillRect(0,0,CW,CH);
+    }
+
+    // Vignette — dark corners radial, stronger when fully inside
+    if(ROOM.active) {
+      const vig = ctx.createRadialGradient(CW/2,CH/2,CW*0.25, CW/2,CH/2,CW*0.75);
+      vig.addColorStop(0, 'rgba(0,0,0,0)');
+      vig.addColorStop(1, 'rgba(0,0,0,0.38)');
+      ctx.fillStyle = vig;
+      ctx.fillRect(0,0,CW,CH);
+    }
+  }
+
+  // Blackout overlay for transition
+  if(ROOM.alpha > 0.005) {
+    ctx.fillStyle = `rgba(0,0,0,${ROOM.alpha.toFixed(3)})`;
+    ctx.fillRect(0,0,CW,CH);
+  }
+
   for(const id in WORLD_NPCS){
     const npc=WORLD_NPCS[id];if(npc.defeated||!INSTANCE.seen(npc.x,npc.y))continue;
     const nsx=(npc.x-camX)*TS,nsy=(npc.y-camY)*TS;
@@ -5891,6 +6257,17 @@ function render(){
 
   ctx.fillStyle='rgba(143,168,255,0.40)';ctx.font='8px monospace';
   ctx.fillText(`${INSTANCE.px},${INSTANCE.py}`,4,14);
+  // Building name HUD — shown when inside
+  if(ROOM.active && ROOM.name){
+    const nameAlpha = ROOM.transiting ? 0 : (0.70 + 0.25*Math.sin(ROOM.candle*0.5));
+    ctx.font='5px monospace';
+    const nw=ctx.measureText(ROOM.name).width;
+    ctx.fillStyle=`rgba(0,0,0,0.55)`;
+    ctx.fillRect(CW/2-nw/2-4, 2, nw+8, 10);
+    ctx.fillStyle=`rgba(255,200,120,${nameAlpha.toFixed(2)})`;
+    ctx.fillText(ROOM.name, CW/2-nw/2, 10);
+  }
+
   const ct=tile(INSTANCE.px,INSTANCE.py);
   if(ct===T.PALE){ctx.fillStyle='rgba(143,168,255,0.80)';ctx.fillText('◈ PALE',CW/2-24,14);}
   if(ct===T.SHRINE){ctx.fillStyle='rgba(212,160,255,0.90)';ctx.fillText('◈ SHRINE',CW/2-34,14);}
@@ -6166,6 +6543,22 @@ const Input={
     }
     if(BATTLE)return; // no movement during combat
     INSTANCE.px=nx;INSTANCE.py=ny;
+
+    // ── ROOM TRANSITION CHECK ──────────────────────────────────
+    // Entering: stepped onto FLOOR tile from non-FLOOR
+    // Exiting: stepped off FLOOR tile onto non-FLOOR
+    {
+      const prevWasFloor = tile(INSTANCE.px-dx, INSTANCE.py-dy) === T.FLOOR ||
+                           (INSTANCE._prevTile === T.FLOOR);
+      const nowIsFloor   = tile(INSTANCE.px, INSTANCE.py) === T.FLOOR;
+      INSTANCE._prevTile = tile(INSTANCE.px, INSTANCE.py);
+      if(!prevWasFloor && nowIsFloor){
+        const bIdx = getBuildingAt(INSTANCE.px, INSTANCE.py);
+        if(bIdx >= 0) enterRoom(bIdx);
+      } else if(prevWasFloor && !nowIsFloor && ROOM.active){
+        exitRoom();
+      }
+    }
     INSTANCE.steps++;
     // Passive stamina drain on walk
     if(INSTANCE.stamina>0)INSTANCE.stamina=Math.max(0,INSTANCE.stamina-.1|0);
@@ -6383,6 +6776,43 @@ const Input={
       return;
     }
 
+
+    // RUIN — archaeological search
+    if(t===T.RUIN){
+      const key='ruin_'+INSTANCE.px+'_'+INSTANCE.py;
+      if(!INSTANCE.codexFound.includes(key)){
+        INSTANCE.codexFound.push(key);
+        const RUIN_LOOT=['TORN PAGE','OLD COIN','NAMED OBJECT','PALE SHARD','IRON FRAGMENT'];
+        const lootIdx=Math.floor(mkRNG(INSTANCE.px*773+INSTANCE.py*331)()*RUIN_LOOT.length);
+        const loot=RUIN_LOOT[lootIdx];
+        INSTANCE.inventory=INSTANCE.inventory||[];
+        INSTANCE.inventory.push({id:'ruin_'+INSTANCE.px+'_'+INSTANCE.py,name:loot,
+          desc:'Found in the ruins. The old intention is still present.',type:'misc',qty:1});
+        INSTANCE.addResonance(1);
+        Dialog.show(['\u25C8 YOU SEARCH THE RUINS',
+          'Beneath the rubble: '+loot+'.',
+          'The geometry of the old intention is still present.\nSomeone built this with care.'],'THE PALE','');
+      } else {
+        Dialog.show(['\u25C8 THE RUINS',
+          'Already searched.\nThe room is still a room\neven without a roof.'],'THE PALE','');
+      }
+      return;
+    }
+
+    // SALT — awareness message
+    if(t===T.SALT){
+      Dialog.show(['\u25C8 THE SALT FLAT',
+        'Nothing to hide behind.\nNothing to hide from.\nYou are completely visible.',
+        'Any hostile presence within 5 tiles will see you clearly.'],'THE PALE','');
+      return;
+    }
+
+    // ALPINE — brief note
+    if(t===T.ALPINE){
+      Dialog.show(['\u25C8 ALPINE MEADOW',
+        'Above the treeline.\nThe forest admitted it could not continue.\nSomething else took over.'],'THE PALE','');
+      return;
+    }
     Dialog.show([D.idle[Math.floor(Math.random()*D.idle.length)]],'SAEL','');
   }
 };
@@ -8607,6 +9037,9 @@ function drawBattleBg(biome){
     8:{sky:['#080d1a','#10183a'],ground:['#4050a0','#5870cc'],acc:'#8fa8ff'},  // PALE
     1:{sky:['#060c18','#0e1830'],ground:['#0e3050','#186080'],acc:'#40a8d0'},  // WATER
    14:{sky:['#0a0806','#181210'],ground:['#5a4030','#7a5840'],acc:'#c89060'},  // FLOOR
+   15:{sky:['#0a0c08','#141c10'],ground:['#2e2826','#4a3830'],acc:'#6a8050'},  // RUIN
+   16:{sky:['#0a1808','#101e0c'],ground:['#2a4a18','#3a6020'],acc:'#90c060'},  // ALPINE
+   17:{sky:['#141824','#1c2030'],ground:['#b0b8cc','#c8d0e0'],acc:'#f0f4ff'},  // SALT
   };
   const th=themes[biome]||themes[3];
   // Sky
