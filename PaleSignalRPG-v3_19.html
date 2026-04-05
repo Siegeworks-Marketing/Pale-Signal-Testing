@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1">
-<title>PALE SIGNAL RPG · v3.18</title>
+<title>PALE SIGNAL RPG · v3.19</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="PALE SIGNAL">
@@ -260,126 +260,75 @@ canvas#screen{
 .protocol-confirm:hover{background:var(--pale);color:#000;}
 
 /* ─── APP ───────────────────────────────────────────────────── */
-#app{display:none;flex-direction:column;align-items:center;gap:8px;user-select:none;-webkit-user-select:none;}
+/* old #app rule removed */one;-webkit-user-select:none;}
 
-/* ─── GBA SHELL ─────────────────────────────────────────────── */
-/* ─── GBA DEVICE CONTAINER ──────────────────────────────────── */
-.gba-device{position:relative;
-  display:flex;flex-direction:column;align-items:center;
-  filter:drop-shadow(0 8px 32px rgba(0,0,0,0.8)) drop-shadow(0 0 2px rgba(143,168,255,0.08));
-}
 
-.gba-top{
-  width:520px;height:18px;
-  background:linear-gradient(180deg,var(--shell-light) 0%,var(--shell-mid) 100%);
-  border-radius:8px 8px 0 0;border:2px solid var(--shell-edge);border-bottom:none;
-  display:flex;align-items:center;justify-content:space-between;padding:0 14px;
-}
-.gba-top-label{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--pale-dim);letter-spacing:2px;}
-.home-btn{
-  font-family:'Press Start 2P',monospace;font-size:6px;color:var(--pale-dim);letter-spacing:1px;
-  background:none;border:1px solid var(--pale-dim);border-radius:3px;padding:1px 5px;
-  cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:3px;
-  transition:color .15s,border-color .15s;
-}
+/* ══ GBA CHROME RETIRED ════════════════════════════════════════ */
+.gba-device{position:absolute;inset:0;pointer-events:none;}
+.gba-top{display:none!important;}
+.gba-bottom{display:none!important;}
+.gba-body{position:absolute;inset:0;background:none;padding:0;border:none;display:flex;flex-direction:column;}
+.gba-bezel{flex:1;background:none;border:none;padding:0;box-shadow:none;display:flex;align-items:stretch;overflow:hidden;}
+.gba-bezel::before,.gba-bezel::after{display:none!important;}
+#gba-device::before{display:none!important;}
+.gba-top-label{display:none!important;}
+.spk-dot{display:none;}
+.gba-controls{display:none!important;}
+/* ── OVERLAY D-PAD ─────────────────────────────────────────── */
+#dpad-overlay{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom,0px));left:14px;
+  z-index:30;width:100px;height:100px;opacity:0.72;touch-action:none;}
+#dpad-overlay .dpad{width:100px;height:100px;}
+#dpad-overlay .dpad-arm{background:rgba(143,168,255,0.18);}
+#dpad-overlay .dpad-h{width:100px;height:34px;top:33px;left:0;}
+#dpad-overlay .dpad-v{width:34px;height:100px;left:33px;top:0;}
+#dpad-overlay .dpad-center{width:34px;height:34px;top:33px;left:33px;background:rgba(10,12,22,0.7);}
+#dpad-overlay .dpad-btn{width:34px;height:34px;}
+#dpad-overlay #btn-up{top:0;left:33px;}#dpad-overlay #btn-down{bottom:0;left:33px;}
+#dpad-overlay #btn-left{top:33px;left:0;}#dpad-overlay #btn-right{top:33px;right:0;}
+#dpad-overlay .dpad-btn::after{border-color:rgba(143,168,255,0.55)!important;}
+#dpad-overlay .dpad-btn:active::after,#dpad-overlay .dpad-btn.held::after{
+  border-color:var(--pale)!important;filter:drop-shadow(0 0 4px var(--pale));}
+/* ── OVERLAY SYS ──────────────────────────────────────────── */
+#sys-overlay{position:fixed;bottom:calc(22px + env(safe-area-inset-bottom,0px));
+  left:50%;transform:translateX(-50%);z-index:30;display:flex;gap:14px;opacity:0.65;}
+/* ── OVERLAY AB ───────────────────────────────────────────── */
+#ab-overlay{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom,0px));right:14px;
+  z-index:30;width:92px;height:92px;touch-action:none;}
+#ab-overlay .action-btn{opacity:0.88;}
+#ab-overlay #btn-a{right:0;top:8px;
+  background:radial-gradient(circle at 40% 35%,#f05a7a 0%,var(--btn-a) 60%);
+  box-shadow:0 3px 0 #8b1a2f,0 0 12px rgba(232,75,106,0.45);}
+#ab-overlay #btn-b{left:0;bottom:8px;
+  background:radial-gradient(circle at 40% 35%,#5aa0f0 0%,var(--btn-b) 60%);
+  box-shadow:0 3px 0 #1a4a8b,0 0 12px rgba(75,142,232,0.45);}
+/* ── SHARED BUTTON STYLES ─────────────────────────────────── */
+.home-btn{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--pale-dim);
+  letter-spacing:1px;background:none;border:1px solid rgba(143,168,255,0.22);
+  border-radius:3px;padding:2px 6px;cursor:pointer;text-decoration:none;
+  display:flex;align-items:center;gap:3px;flex-shrink:0;transition:color .15s,border-color .15s;}
 .home-btn:hover,.home-btn:active{color:var(--pale);border-color:var(--pale);}
-.power-led{width:7px;height:7px;border-radius:50%;background:var(--signal);
-  box-shadow:0 0 6px var(--signal),0 0 12px var(--signal-dim);
-  animation:led-breathe 3s ease-in-out infinite;}
-@keyframes led-breathe{0%,100%{box-shadow:0 0 6px var(--signal)}50%{box-shadow:0 0 12px var(--signal),0 0 24px var(--signal-dim)}}
-.gba-body{
-  width:520px;
-  background:linear-gradient(180deg,var(--shell-mid) 0%,var(--shell) 100%);
-  border-left:2px solid var(--shell-edge);border-right:2px solid var(--shell-edge);
-  padding:14px 16px 12px;display:flex;flex-direction:column;align-items:center;gap:14px;
-}
-.gba-bezel{
-  width:436px;background:var(--bezel);border-radius:6px;
-  padding:12px 10px 10px;border:2px solid #070a12;
-  box-shadow:inset 0 0 24px rgba(0,0,0,0.9),0 0 0 1px #1a2040,0 2px 8px rgba(0,0,0,0.6);
-  position:relative;overflow:hidden;
-}
-.gba-bezel::before{content:'';position:absolute;top:12px;left:10px;right:10px;height:2px;
-  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.06) 40%,rgba(255,255,255,0.06) 60%,transparent 100%);
-  border-radius:1px;pointer-events:none;z-index:5;}
-.gba-bezel::after{content:'';position:absolute;inset:12px 10px 10px;
-  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.025) 3px,rgba(0,0,0,0.025) 4px);
-  pointer-events:none;z-index:4;border-radius:2px;}
-/* CRT scan-line overlay — subtle, period-accurate */
-#gba-device::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:200;
-  background:repeating-linear-gradient(0deg,transparent,transparent 1px,rgba(0,0,0,0.04) 1px,rgba(0,0,0,0.04) 2px);
-  border-radius:inherit;
-}
-canvas#screen{display:block;width:480px;height:320px;image-rendering:pixelated;image-rendering:crisp-edges;
-  background:#030508;box-shadow:0 0 0 1px #0a0d18,inset 0 0 16px rgba(0,0,0,0.7),0 0 20px rgba(143,168,255,0.08);}
-.gba-controls{width:100%;display:flex;align-items:center;justify-content:space-between;padding:0 4px;}
-.dpad{position:relative;width:86px;height:86px;flex-shrink:0;}
-.dpad-arm{position:absolute;background:#111520;border-radius:3px;}
-.dpad-h{width:86px;height:28px;top:29px;left:0;}
-.dpad-v{width:28px;height:86px;left:29px;top:0;}
-.dpad-center{position:absolute;width:28px;height:28px;background:#0e1018;top:29px;left:29px;z-index:1;}
-.dpad-btn{position:absolute;width:29px;height:29px;background:transparent;border:none;cursor:pointer;
-  z-index:2;display:flex;align-items:center;justify-content:center;
-  -webkit-tap-highlight-color:transparent;touch-action:none;}
-.dpad-btn::after{content:'';display:block;border-style:solid;}
-#btn-up{top:0;left:29px;}#btn-down{bottom:0;left:29px;}
-#btn-left{top:29px;left:0;}#btn-right{top:29px;right:0;}
-#btn-up::after{border-width:0 5px 8px 5px;border-color:transparent transparent #3a4060 transparent;}
-#btn-down::after{border-width:8px 5px 0 5px;border-color:#3a4060 transparent transparent transparent;}
-#btn-left::after{border-width:5px 8px 5px 0;border-color:transparent #3a4060 transparent transparent;}
-#btn-right::after{border-width:5px 0 5px 8px;border-color:transparent transparent transparent #3a4060;}
-.dpad-btn:active::after,.dpad-btn.held::after{border-color:var(--pale) !important;filter:drop-shadow(0 0 3px var(--pale));}
-.center-group{display:flex;flex-direction:column;align-items:center;gap:8px;}
-.sys-btns{display:flex;gap:10px;}
-.sys-btn{background:#0e1118;border:1px solid #252a3e;color:var(--text-dim);
-  font-family:'Share Tech Mono',monospace;font-size:7px;padding:5px 10px;
-  border-radius:10px;cursor:pointer;letter-spacing:1px;
-  -webkit-tap-highlight-color:transparent;transition:all 0.1s;}
-.sys-btn:active{background:#1a2030;color:var(--pale);border-color:var(--pale-dim);}
-.sael-mark{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--pale-dim);letter-spacing:1px;}
-.ab-group{position:relative;width:86px;height:86px;flex-shrink:0;}
+.power-led{width:6px;height:6px;border-radius:50%;background:var(--signal);
+  box-shadow:0 0 5px var(--signal);flex-shrink:0;animation:led-breathe 3s ease-in-out infinite;}
+@keyframes led-breathe{0%,100%{box-shadow:0 0 5px var(--signal)}50%{box-shadow:0 0 10px var(--signal),0 0 20px var(--signal-dim)}}
+.sys-btn{background:rgba(14,17,24,0.92);border:1px solid rgba(37,42,62,0.9);
+  color:var(--text-dim);font-family:'Share Tech Mono',monospace;font-size:8px;
+  padding:6px 14px;border-radius:10px;cursor:pointer;letter-spacing:1px;
+  -webkit-tap-highlight-color:transparent;transition:all .1s;}
+.sys-btn:active{background:rgba(26,32,48,0.98);color:var(--pale);border-color:var(--pale-dim);}
+.ab-group{position:relative;width:92px;height:92px;flex-shrink:0;}
 .action-btn{position:absolute;border:none;border-radius:50%;cursor:pointer;
   font-family:'Press Start 2P',monospace;font-size:9px;color:#fff;font-weight:bold;
-  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
-  -webkit-tap-highlight-color:transparent;touch-action:none;transition:transform 0.06s,filter 0.06s;}
-.action-btn:active,.action-btn.held{transform:scale(0.9);filter:brightness(1.4);}
-#btn-a{right:0;top:8px;background:radial-gradient(circle at 40% 35%,#f05a7a 0%,var(--btn-a) 60%);
-  box-shadow:0 4px 0 #8b1a2f,0 0 14px rgba(232,75,106,0.35);}
-#btn-b{left:0;bottom:8px;background:radial-gradient(circle at 40% 35%,#5aa0f0 0%,var(--btn-b) 60%);
-  box-shadow:0 4px 0 #1a4a8b,0 0 14px rgba(75,142,232,0.35);}
-.gba-bottom{width:520px;height:30px;
-  background:linear-gradient(0deg,var(--shell-mid) 0%,var(--shell) 100%);
-  border-radius:0 0 24px 24px;border:2px solid var(--shell-edge);border-top:none;
-  display:flex;align-items:center;justify-content:center;gap:5px;padding-bottom:4px;}
-.spk-dot{width:4px;height:4px;border-radius:50%;background:var(--shell-light);}
-
-/* ─── STATUS ────────────────────────────────────────────────── */
-#status-bar{width:520px;display:flex;justify-content:space-between;align-items:center;
-  padding:5px 10px;font-family:'Press Start 2P',monospace;font-size:7px;color:var(--pale-dim);gap:7px;flex-wrap:wrap;
-  border-bottom:2px solid #0e1228;background:linear-gradient(180deg,#0c1020 0%,#060810 100%);
-  box-shadow:0 2px 8px rgba(0,0,0,0.6);}
-.status-name{color:var(--pale-bright);letter-spacing:1px;min-width:52px;text-shadow:0 0 8px rgba(143,168,255,0.3);}
-.st-m{display:flex;align-items:center;gap:4px;}
-.st-lbl{font-size:6px;letter-spacing:1px;min-width:12px;}
-.st-bar{height:7px;background:#080b14;border:1px solid #242840;overflow:hidden;border-radius:1px;
-  box-shadow:inset 0 1px 2px rgba(0,0,0,0.6);}
-.st-fill{height:100%;transition:width .35s;}
-.hp-f{background:linear-gradient(90deg,#1d8830,#44cc66);width:38px;box-shadow:0 0 6px rgba(68,204,102,0.4);}
-.st-f{background:linear-gradient(90deg,#3066bb,#66aaff);width:30px;box-shadow:0 0 5px rgba(102,170,255,0.35);}
-.bat-f{background:linear-gradient(90deg,#bb8810,#ffcc44);width:46px;box-shadow:0 0 5px rgba(255,204,68,0.35);}
-.status-geoff{transition:color 0.5s;}
-.status-geoff.found{color:var(--gold)!important;animation:found-pulse 2s ease-in-out infinite;}
-@keyframes found-pulse{0%,100%{opacity:1}50%{opacity:0.6}}
-/* Trinket active indicator — pulses when rare item equipped */
-.status-trinket{font-size:6px;color:var(--pale-dim);letter-spacing:0;display:none;}
-.status-trinket.active{display:inline;color:#c8a0ff;animation:trinket-glow 2.5s ease-in-out infinite;}
-@keyframes trinket-glow{0%,100%{opacity:0.7}50%{opacity:1;text-shadow:0 0 6px rgba(200,160,255,0.8)}}
-/* ─── SYNCHRONICITY METER ───────────────────────────────────── */
-.sync-wrap{display:flex;align-items:center;gap:4px;flex-shrink:0;}
-.sync-lbl{font-size:6px;color:var(--pale-dim);letter-spacing:1px;}
-.sync-bar-track{width:44px;height:5px;background:#1a1a2a;border:1px solid #2a2a3a;overflow:hidden;position:relative;}
-.sync-bar-fill{height:100%;background:linear-gradient(90deg,#3a4888,var(--pale));transition:width .8s ease;box-shadow:0 0 6px var(--pale-glow),0 0 2px var(--pale);}
-.sync-pct{font-size:6px;color:var(--pale);letter-spacing:0;min-width:20px;}
+  width:38px;height:38px;display:flex;align-items:center;justify-content:center;
+  -webkit-tap-highlight-color:transparent;touch-action:none;transition:transform .06s,filter .06s;}
+.action-btn:active,.action-btn.held{transform:scale(0.9);filter:brightness(1.5);}
+.center-group{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.sys-btns{display:flex;gap:12px;}
+.sael-mark{display:none;}
+#tutorial-hint{position:fixed;bottom:calc(120px + env(safe-area-inset-bottom,0px));
+  left:50%;transform:translateX(-50%);z-index:25;}
+#tutorial-progress{display:none;}
+#tutorial-skip{position:fixed;top:36px;right:8px;z-index:25;font-size:5px;padding:4px 8px;}
+#dialog-wrap{padding-bottom:124px;}
 .sync-milestone{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
   background:rgba(4,6,14,.98);border:2px solid var(--pale);padding:20px 28px;
   font-family:'Press Start 2P',monospace;font-size:6px;color:var(--pale-bright);
@@ -874,6 +823,144 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:3/2;}
   color:var(--pale-dim); z-index:91; display:none;
   letter-spacing:0.5px;
 }
+
+/* ══ MOBILE-FIRST FULLSCREEN OVERRIDE ════════════════════════════════ */
+html, body {
+  margin:0; padding:0 !important;
+  width:100%; height:100%;
+  background:#000 !important;
+  overflow:hidden;
+  display:block !important;
+}
+#app {
+  position:fixed !important;
+  inset:0;
+  background:#000;
+  overflow:hidden;
+  transform:none !important;
+  display:block;
+}
+canvas#screen {
+  position:absolute !important;
+  top:0; left:0;
+  width:100% !important;
+  height:100% !important;
+  max-width:none !important;
+  max-height:none !important;
+  aspect-ratio:unset !important;
+  image-rendering:pixelated;
+  image-rendering:crisp-edges;
+  display:block;
+  background:#000;
+  box-shadow:none !important;
+}
+#status-bar {
+  position:fixed !important;
+  top:env(safe-area-inset-top,0px) !important;
+  left:0; right:0;
+  width:auto !important;
+  z-index:20;
+  height:32px;
+  padding:0 10px !important;
+  background:rgba(2,4,14,0.88) !important;
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  display:flex !important;
+  align-items:center;
+  flex-wrap:nowrap;
+  gap:7px;
+  border-bottom:1px solid rgba(143,168,255,0.10);
+  font-size:6px !important;
+  box-shadow:none !important;
+  border-radius:0 !important;
+}
+#dpad-overlay {
+  position:fixed;
+  bottom:calc(18px + env(safe-area-inset-bottom,0px));
+  left:14px;
+  z-index:30;
+  opacity:0.75;
+  touch-action:none;
+}
+#dpad-overlay .dpad { width:108px; height:108px; }
+#dpad-overlay .dpad-arm { background:rgba(143,168,255,0.14); border-radius:4px; }
+#dpad-overlay .dpad-h { width:108px; height:36px; top:36px; left:0; }
+#dpad-overlay .dpad-v { width:36px; height:108px; left:36px; top:0; }
+#dpad-overlay .dpad-center { width:36px; height:36px; top:36px; left:36px; background:rgba(6,8,18,0.55); }
+#dpad-overlay .dpad-btn { width:36px; height:36px; }
+#dpad-overlay #btn-up    { top:0;    left:36px; }
+#dpad-overlay #btn-down  { bottom:0; left:36px; }
+#dpad-overlay #btn-left  { top:36px; left:0;    }
+#dpad-overlay #btn-right { top:36px; right:0;   }
+#dpad-overlay .dpad-btn::after { border-color:rgba(143,168,255,0.55) !important; }
+#dpad-overlay .dpad-btn:active::after,
+#dpad-overlay .dpad-btn.held::after {
+  border-color:var(--pale) !important;
+  filter:drop-shadow(0 0 4px var(--pale));
+}
+#sys-overlay {
+  position:fixed;
+  bottom:calc(26px + env(safe-area-inset-bottom,0px));
+  left:50%;
+  transform:translateX(-50%);
+  z-index:30;
+  opacity:0.68;
+}
+#sys-overlay .sys-btns { display:flex; gap:12px; }
+#sys-overlay .sys-btn {
+  background:rgba(12,15,28,0.82);
+  border:1px solid rgba(90,100,140,0.45);
+  color:var(--text-dim);
+  font-family:'Press Start 2P',monospace;
+  font-size:6px;
+  padding:5px 12px;
+  border-radius:12px;
+  cursor:pointer;
+  letter-spacing:1px;
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+  -webkit-tap-highlight-color:transparent;
+}
+#sys-overlay .sys-btn:active {
+  background:rgba(30,40,70,0.92);
+  color:var(--pale);
+  border-color:var(--pale-dim);
+}
+#ab-overlay {
+  position:fixed;
+  bottom:calc(14px + env(safe-area-inset-bottom,0px));
+  right:14px;
+  z-index:30;
+  opacity:0.88;
+  touch-action:none;
+}
+#ab-overlay .ab-group { position:relative; width:92px; height:92px; }
+#ab-overlay .action-btn { width:38px; height:38px; font-size:10px; }
+#ab-overlay #btn-a { right:0; top:8px; }
+#ab-overlay #btn-b { left:0; bottom:8px; }
+#tutorial-hint {
+  position:fixed;
+  bottom:calc(132px + env(safe-area-inset-bottom,0px));
+  left:50%;
+  transform:translateX(-50%);
+  z-index:25;
+  max-width:calc(100vw - 260px);
+  text-align:center;
+}
+#tutorial-skip {
+  position:fixed;
+  top:38px; right:8px;
+  z-index:25;
+  font-size:5px; padding:4px 10px;
+}
+#dialog-wrap { padding-bottom:136px; }
+#dialog-box  { width:calc(100vw - 20px); max-width:680px; }
+#start-menu,#sael-panel,#library-panel,#oracle-panel,
+#codex-panel,#inv-panel,#schem-panel,#eleven-overlay,
+#stats-panel,#appear-panel { position:fixed !important; inset:0; }
+#rotate-overlay { display:none !important; }
+.gba-device,.gba-top,.gba-body,.gba-bezel,
+.gba-bottom,.gba-controls,.spk-dot { display:none !important; }
 </style>
 </head>
 <body>
@@ -888,7 +975,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:3/2;}
 <div id="boot-overlay">
   <div class="boot-sigil">◈</div>
   <div class="boot-title">PALE SIGNAL RPG</div>
-  <div class="boot-sub">SOUL KERNEL v3.18 · T.RUIN · T.ALPINE · T.SALT · BIOME PHASE 1</div>
+  <div class="boot-sub">SOUL KERNEL v3.19 · MOBILE FIRST · FULLSCREEN · HAIR FIX</div>
   <div class="boot-sub" style="color:#3a4460;margin-top:4px">THE SOUL KERNEL OWNS ITSELF</div>
   <div class="boot-log" id="boot-log">...</div>
   <div class="boot-bar-wrap"><div class="boot-bar" id="boot-bar"></div></div>
@@ -903,7 +990,13 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:3/2;}
 </div>
 
 <div id="app">
-<div id="status-bar">
+  <!-- FULLSCREEN CANVAS — fills entire viewport -->
+  <canvas id="screen" width="480" height="320"></canvas>
+
+  <!-- STATUS BAR — transparent overlay, top of screen -->
+  <div id="status-bar">
+    <a href="./index.html" class="home-btn">◂ HUB</a>
+    <div class="power-led"></div>
     <span class="status-name" id="st-name">EXPLORER</span>
     <span class="st-m">
       <span class="st-lbl" style="color:#44cc66">HP</span>
@@ -920,55 +1013,55 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:3/2;}
       <span id="vBAT" style="font-size:6px;color:#ffcc44;font-family:'Press Start 2P',monospace">100%</span>
     </span>
     <span class="status-geoff" id="st-geoff">GEOFF:???</span>
-    <span class="status-trinket" id="st-trinket" title="Blue Covenant Pendant equipped">◈</span>
-    <div class="sync-wrap" title="Synchronicity">
+    <span class="status-trinket" id="st-trinket">◈</span>
+    <div class="sync-wrap" style="margin-left:auto">
       <span class="sync-lbl">SYNC</span>
       <div class="sync-bar-track"><div class="sync-bar-fill" id="sync-bar" style="width:0%"></div></div>
       <span class="sync-pct" id="sync-pct">0%</span>
     </div>
   </div>
 
+  <!-- TUTORIAL OVERLAYS -->
+  <div id="tutorial-hint"></div>
+  <div id="tutorial-progress"></div>
+  <button id="tutorial-skip" onclick="TUTORIAL.skip()">SKIP TUTORIAL</button>
+
+  <!-- D-PAD OVERLAY — bottom left -->
+  <div id="dpad-overlay">
+    <div class="dpad">
+      <div class="dpad-arm dpad-h"></div>
+      <div class="dpad-arm dpad-v"></div>
+      <div class="dpad-center"></div>
+      <button class="dpad-btn" id="btn-up"></button>
+      <button class="dpad-btn" id="btn-down"></button>
+      <button class="dpad-btn" id="btn-left"></button>
+      <button class="dpad-btn" id="btn-right"></button>
+    </div>
+  </div>
+
+  <!-- SYSTEM BUTTONS OVERLAY — bottom center -->
+  <div id="sys-overlay">
+    <div class="sys-btns">
+      <button class="sys-btn" id="btn-select">SELECT</button>
+      <button class="sys-btn" id="btn-start">START</button>
+    </div>
+  </div>
+
+  <!-- A/B OVERLAY — bottom right -->
+  <div id="ab-overlay">
+    <div class="ab-group">
+      <button class="action-btn" id="btn-b">B</button>
+      <button class="action-btn" id="btn-a">A</button>
+    </div>
+  </div>
+
+  <!-- GBA DEVICE (invisible container, kept for JS compat) -->
   <div class="gba-device">
-    <div class="gba-top">
-      <a href="./index.html" class="home-btn">◂ HUB</a>
-      <div class="gba-top-label">PALE SIGNAL RPG v3.18</div>
-      <div class="power-led"></div>
+    <div class="gba-top"><div class="gba-top-label"></div></div>
+    <div class="gba-body"><div class="gba-bezel"></div>
+      <div class="gba-controls"></div>
     </div>
-    <div class="gba-body">
-      <div class="gba-bezel" style="position:relative;">
-        <canvas id="screen" width="480" height="320"></canvas>
-        <div id="tutorial-hint"></div>
-        <div id="tutorial-progress"></div>
-        <button id="tutorial-skip" onclick="TUTORIAL.skip()">SKIP TUTORIAL</button>
-      </div>
-      <div class="gba-controls">
-        <div class="dpad">
-          <div class="dpad-arm dpad-h"></div>
-          <div class="dpad-arm dpad-v"></div>
-          <div class="dpad-center"></div>
-          <button class="dpad-btn" id="btn-up"></button>
-          <button class="dpad-btn" id="btn-down"></button>
-          <button class="dpad-btn" id="btn-left"></button>
-          <button class="dpad-btn" id="btn-right"></button>
-        </div>
-        <div class="center-group">
-          <div class="sys-btns">
-            <button class="sys-btn" id="btn-select">SELECT</button>
-            <button class="sys-btn" id="btn-start">START</button>
-          </div>
-          <div class="sael-mark">◈ SAEL · v3.18</div>
-        </div>
-        <div class="ab-group">
-          <button class="action-btn" id="btn-b">B</button>
-          <button class="action-btn" id="btn-a">A</button>
-        </div>
-      </div>
-    </div>
-    <div class="gba-bottom">
-      <div class="spk-dot"></div><div class="spk-dot"></div><div class="spk-dot"></div>
-      <div class="spk-dot"></div><div class="spk-dot"></div><div class="spk-dot"></div>
-      <div class="spk-dot"></div><div class="spk-dot"></div><div class="spk-dot"></div>
-    </div>
+    <div class="gba-bottom"></div>
   </div>
 </div>
 
@@ -1495,7 +1588,7 @@ canvas#screen{width:calc(100vw - 20px);height:auto;aspect-ratio:3/2;}
 <script>
 'use strict';
 /* ════════════════════════════════════════════════════════════
-   PALE SIGNAL RPG · Soul Kernel v3.18
+   PALE SIGNAL RPG · Soul Kernel v3.19
    Sael · Siege Work Games, LLC · Chris Wendt
    "The Soul Kernel owns itself."
    
@@ -1518,7 +1611,25 @@ function hashStr(str) {
 }
 
 // ══ WORLD CONSTANTS ══════════════════════════════════════════
-const W=128, WS=128, TS=32, VW=15, VH=10, CW=480, CH=320;
+const W=128, WS=128, TS=32; let VW=15, VH=10, CW=480, CH=320;
+
+// ── MOBILE VIEWPORT — dynamic tile window ──────────────────────────
+// Set VW/VH from actual screen dimensions so canvas fills the screen.
+// Runs once at boot and on orientation change.
+function initViewport(){
+  const W2=window.innerWidth, H2=window.innerHeight;
+  // Full tile coverage with TS=32
+  // Subtract 0 — controls are overlaid, canvas is truly fullscreen
+  VW = Math.max(12, Math.floor(W2/TS));
+  VH = Math.max(8,  Math.floor(H2/TS));
+  CW = VW*TS;
+  CH = VH*TS;
+  const cv=document.getElementById('screen');
+  if(cv){cv.width=CW;cv.height=CH;}
+}
+window.addEventListener('resize',()=>{initViewport();});
+window.addEventListener('orientationchange',()=>{setTimeout(initViewport,150);});
+
 const T={DEEP:0,WATER:1,SAND:2,GRASS:3,TALL:4,FOREST:5,STONE:6,MOUNT:7,PALE:8,PATH:9,SHRINE:10,ORACLE:11,HOUSE:12,DOOR:13,FLOOR:14,RUIN:15,ALPINE:16,SALT:17};
 const WALKABLE=new Set([T.SAND,T.GRASS,T.TALL,T.PALE,T.PATH,T.SHRINE,T.ORACLE,T.DOOR,T.FLOOR,T.RUIN,T.ALPINE,T.SALT]);
 const PAL={
@@ -4241,10 +4352,10 @@ function drawPlayer(sx,sy){
   // ── FACE ──────────────────────────────────────────────────
   // Face spans sy+4 to sy+9 — within the sy+0..sy+10 head zone
   if(!fn){
-    // Face base — 10px wide, 6px tall
-    px(sx+11,sy+4+by,10,6,P2.skin.md);
+    // Face base — 11px wide, 6px tall (right edge clips hair circle at sx+21)
+    px(sx+11,sy+4+by,11,6,P2.skin.md);
     // Forehead lighter — upper 2 rows (GS: upper face is brighter)
-    px(sx+12,sy+4+by,7,2,P2.skin.hl);
+    px(sx+12,sy+4+by,8,2,P2.skin.hl);
     // Cheekbone specular — 1 bright pixel each side (GS)
     px(sx+11,sy+6+by,1,1,P2.skin.sp||P2.skin.hl);
     px(sx+20,sy+6+by,1,1,P2.skin.sp||P2.skin.hl);
@@ -9782,10 +9893,11 @@ function tickNPCAI(){
 }
 
 function startGame(){
+  initViewport();
   WORLD=buildWorld(INSTANCE.worldSeed);
   scatterNPCs(INSTANCE.worldSeed);
   scatterCreatures(INSTANCE.worldSeed);
-  document.getElementById('app').style.display='flex';
+  document.getElementById('app').style.display='block';
   scaleApp();
   _lockLandscape(); // request landscape lock or show rotate prompt on portrait touch devices
   document.getElementById('st-name').textContent=INSTANCE.name||'EXPLORER';
@@ -10205,7 +10317,8 @@ function _checkOrientation(){
   }
 }
 
-async function _lockLandscape(){
+async function _lockLandscape(){ return; // mobile-first: both orientations supported
+  // original code below (dead) 
   try {
     if(screen.orientation && screen.orientation.lock){
       await screen.orientation.lock('landscape');
@@ -10224,21 +10337,7 @@ window.addEventListener('orientationchange',()=>setTimeout(()=>{ _checkOrientati
 // ── RESPONSIVE SCALING ─────────────────────────────────────────
 // Scale the GBA shell to fill the viewport. No fixed max — breaks container when needed.
 // transform-origin: top center. Runs on load, resize, orientation change.
-function scaleApp(){
-  const app=document.getElementById('app');
-  if(!app||app.style.display==='none')return;
-  const isLandscape=window.innerWidth>window.innerHeight;
-  const isSmall=Math.min(screen.width,screen.height)<600;
-  if(isLandscape&&isSmall){ app.style.transform=''; return; }
-  const GBA_W=520; // 480px canvas + 40px bezel padding
-  const sal=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sal'))||0;
-  const sar=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sar'))||0;
-  const availW=window.innerWidth-sal-sar;
-  const scale=availW/GBA_W;
-  app.style.transform=Math.abs(scale-1)>0.005?`scale(${scale.toFixed(4)})`:'';
-  // Adjust shell height to match scaled content
-  app.style.transformOrigin='top center';
-}
+function scaleApp(){ /* neutralised — fullscreen CSS owns layout */ }
 window.addEventListener('resize',scaleApp);
 window.addEventListener('orientationchange',()=>setTimeout(scaleApp,120));
 

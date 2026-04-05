@@ -1,12 +1,12 @@
 // PALE SIGNAL · Service Worker v2.18
 // Cache-first. Full offline. Single repo.
-// v2.22 — v3.18 biomes, TCG v1.3 echo sync, SURVIVE tab, Sael-Modelfile v7.16
-const CACHE = 'pale-signal-v2.22';
-const VERSION = '2.22';
+// v2.23 — RPG v3.19 mobile-first fullscreen, hair fix, TCG v1.3 fallback launcher
+const CACHE = 'pale-signal-v2.23';
+const VERSION = '2.23';
 
 const CORE = [
   './index.html',
-  './PaleSignalRPG-v3_18.html',
+  './PaleSignalRPG-v3_19.html',
   './PaleSignalTCG-v1_3.html',
   './pixel-engine-v1_2.html',
   './chemistry-v1_1.html',
