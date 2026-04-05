@@ -975,7 +975,7 @@ canvas#screen {
 <div id="boot-overlay">
   <div class="boot-sigil">◈</div>
   <div class="boot-title">PALE SIGNAL RPG</div>
-  <div class="boot-sub">SOUL KERNEL v3.19 · MOBILE FIRST · FULLSCREEN · HAIR FIX</div>
+  <div class="boot-sub">SOUL KERNEL v3.19 · HAIR FIX · FULLSCREEN · STATUS BAR FIX</div>
   <div class="boot-sub" style="color:#3a4460;margin-top:4px">THE SOUL KERNEL OWNS ITSELF</div>
   <div class="boot-log" id="boot-log">...</div>
   <div class="boot-bar-wrap"><div class="boot-bar" id="boot-bar"></div></div>
@@ -1618,10 +1618,10 @@ const W=128, WS=128, TS=32; let VW=15, VH=10, CW=480, CH=320;
 // Runs once at boot and on orientation change.
 function initViewport(){
   const W2=window.innerWidth, H2=window.innerHeight;
-  // Full tile coverage with TS=32
-  // Subtract 0 — controls are overlaid, canvas is truly fullscreen
+  // Status bar is 32px fixed overlay at top — subtract so top tile is fully visible
+  const STATUS_H = 32;
   VW = Math.max(12, Math.floor(W2/TS));
-  VH = Math.max(8,  Math.floor(H2/TS));
+  VH = Math.max(8,  Math.floor((H2-STATUS_H)/TS));
   CW = VW*TS;
   CH = VH*TS;
   const cv=document.getElementById('screen');
@@ -4352,10 +4352,10 @@ function drawPlayer(sx,sy){
   // ── FACE ──────────────────────────────────────────────────
   // Face spans sy+4 to sy+9 — within the sy+0..sy+10 head zone
   if(!fn){
-    // Face base — 11px wide, 6px tall (right edge clips hair circle at sx+21)
-    px(sx+11,sy+4+by,11,6,P2.skin.md);
+    // Face base — 12px wide starting sx+10 (covers NW hair highlight bleed at sx+10)
+    px(sx+10,sy+4+by,12,6,P2.skin.md);
     // Forehead lighter — upper 2 rows (GS: upper face is brighter)
-    px(sx+12,sy+4+by,8,2,P2.skin.hl);
+    px(sx+11,sy+4+by,9,2,P2.skin.hl);
     // Cheekbone specular — 1 bright pixel each side (GS)
     px(sx+11,sy+6+by,1,1,P2.skin.sp||P2.skin.hl);
     px(sx+20,sy+6+by,1,1,P2.skin.sp||P2.skin.hl);

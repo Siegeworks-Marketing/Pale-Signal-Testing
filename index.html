@@ -2055,7 +2055,7 @@ async function testOllama(){
 // ── Auto-detect on boot ────────────────────────────────────────
 // localhost:11434 is the universal handshake.
 // On desktop: standard Ollama.
-// On iPhone 15 Pro+ with ai.local: same endpoint, fully on-device.
+// On iPhone with wllama: model runs in-browser via WASM, no external app needed.
 // The game does not care which — same API, same call.
 async function initSael(){
   if(saelLoading)return;
@@ -2125,10 +2125,10 @@ function showOnboardCard(){
       <div id="onboard-steps" style="display:none;font-size:11px;color:var(--text-dim);
         line-height:1.9;border-top:1px solid #1a2040;padding-top:10px;margin-bottom:10px">
         <div style="font-family:'Press Start 2P',monospace;font-size:4px;color:var(--pale-dim);
-          letter-spacing:1px;margin-bottom:8px">OPTION A — ON-DEVICE · iPhone 15 Pro or newer</div>
-        1. Install <span style="color:var(--pale)">ai.local</span> from the App Store (free)<br>
-        2. Open ai.local → pick a model → download it once on WiFi<br>
-        3. Come back here — Sael will detect it automatically<br><br>
+          letter-spacing:1px;margin-bottom:8px">OPTION A — ON-DEVICE · any iPhone 12+</div>
+        1. Tap <span style="color:var(--pale)">◈ MODEL</span> above<br>
+        2. Select <span style="color:var(--pale)">Llama 3.2 · 1B</span> → tap LOAD MODEL<br>
+        3. WiFi download once (~700MB) → runs offline forever after<br><br>
         <div style="font-family:'Press Start 2P',monospace;font-size:4px;color:var(--pale-dim);
           letter-spacing:1px;margin-bottom:8px">OPTION B — VIA YOUR PC · any iPhone</div>
         1. Install Ollama on your Windows PC (ollama.com, free)<br>
