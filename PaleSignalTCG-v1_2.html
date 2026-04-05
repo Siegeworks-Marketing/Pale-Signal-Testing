@@ -3,156 +3,24 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>PALE SIGNAL TCG v1.3 — SIEGEWORKS</title>
+<title>PALE SIGNAL TCG v1.2 — SIEGEWORKS</title>
 <!-- Fonts: system stack — offline compliant. Cinzel→serif, ShareTechMono→monospace -->
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{
-  --bg:#04080e;--deep:#02050a;--surface:#0c1520;--card:#0e1a28;
-  --border:#1a2d40;--muted:#4a6a85;--dim:#8aaec8;--text:#d8ecfc;
-  --accent:#38bdf8;--gold:#f59e0b;--danger:#f87171;
-  --success:#34d399;--purple:#a78bfa;--orange:#fb923c;
-  --pixel:'"Press Start 2P",monospace';
-  --mono:'"Share Tech Mono",monospace';
-  --serif:'Georgia,"Times New Roman",serif';
-}
-body{background:var(--bg);color:var(--text);font-family:var(--mono);overscroll-behavior:none;min-height:100vh}
-button{cursor:pointer;font-family:inherit;border:none;background:none}
-@keyframes breath{0%,100%{opacity:.85;transform:scaleY(1)}50%{opacity:1;transform:scaleY(1.02)}}
-@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
-@keyframes scanline{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
-/* ── NAV BAR ─────────────────────────────────────────────────────────── */
-.nav-bar{
-  position:fixed;bottom:0;left:0;right:0;
-  background:rgba(4,8,14,.96);
-  border-top:1px solid var(--border);
-  display:flex;z-index:100;
-  padding-bottom:env(safe-area-inset-bottom,0);
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-}
-.nav-btn{
-  flex:1;padding:12px 4px 10px;
-  display:flex;flex-direction:column;align-items:center;gap:3px;
-  font-family:var(--pixel);font-size:5px;letter-spacing:.5px;
-  color:var(--muted);transition:color .15s;border-top:2px solid transparent;
-}
-.nav-btn.active{color:var(--accent);border-top-color:var(--accent)}
-.nav-btn svg{width:16px;height:16px;opacity:.7}
-.nav-btn.active svg{opacity:1}
-/* ── CARDS ───────────────────────────────────────────────────────────── */
-.echo-card{
-  position:relative;border-radius:8px;overflow:hidden;
-  cursor:pointer;transition:transform .12s,box-shadow .12s;
-  animation:fadeIn .2s ease;
-}
-.echo-card:active{transform:scale(.97)}
-.echo-card-inner{padding:8px;height:100%}
-.echo-card.selected{transform:scale(1.02)}
-/* Card portrait area */
-.card-portrait{
-  position:relative;width:100%;aspect-ratio:1;
-  background:#03080f;border-radius:4px;overflow:hidden;
-  margin-bottom:6px;display:flex;align-items:center;justify-content:center;
-}
-.card-portrait canvas{image-rendering:pixelated;image-rendering:crisp-edges}
-/* Card scanline overlay */
-.card-portrait::after{
-  content:'';position:absolute;inset:0;
-  background:repeating-linear-gradient(0deg,transparent,transparent 1px,rgba(0,0,0,.06) 1px,rgba(0,0,0,.06) 2px);
-  pointer-events:none;
-}
-/* ── STAT BARS ───────────────────────────────────────────────────────── */
-.stat-bar-track{height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
-.stat-bar-fill{height:100%;border-radius:2px;transition:width .3s}
-/* ── RARITY BADGES ───────────────────────────────────────────────────── */
-.badge{
-  display:inline-flex;align-items:center;gap:3px;
-  font-family:var(--pixel);font-size:5px;letter-spacing:.5px;
-  padding:2px 5px;border-radius:2px;
-}
-/* ── PIXEL ART ITEM ICON (canvas-based) ─────────────────────────────── */
-.item-icon{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
-/* ── HOME SCREEN ─────────────────────────────────────────────────────── */
-.home-hero{
-  text-align:center;padding:40px 20px 28px;
-  position:relative;
-}
-.home-hero::before{
-  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
-  width:1px;height:40px;background:linear-gradient(to bottom,transparent,var(--accent));
-  opacity:.3;
-}
-.scan-btn,.rival-btn{
-  flex:1;padding:16px 12px;border-radius:8px;
-  font-family:var(--pixel);font-size:7px;letter-spacing:1px;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  transition:all .15s;position:relative;overflow:hidden;
-}
-.scan-btn{
-  background:rgba(56,189,248,.08);
-  border:1px solid rgba(56,189,248,.3);
-  color:var(--accent);
-}
-.scan-btn:active{background:rgba(56,189,248,.18)}
-.rival-btn{
-  background:rgba(248,113,113,.06);
-  border:1px solid rgba(248,113,113,.25);
-  color:var(--danger);
-}
-.rival-btn:active{background:rgba(248,113,113,.14)}
-/* ── STAMINA PANEL ────────────────────────────────────────────────────── */
-.stamina-panel{
-  margin:0 16px 16px;
-  background:rgba(12,21,32,.8);
-  border:1px solid var(--border);
-  border-radius:8px;padding:12px 14px;
-}
-.stamina-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.stamina-row:last-child{margin-bottom:0}
-.stamina-label{font-family:var(--pixel);font-size:5px;color:var(--muted);letter-spacing:1px;width:72px;flex-shrink:0}
-.stamina-pips{display:flex;gap:3px;flex:1}
-.stamina-pip{height:4px;flex:1;border-radius:1px;background:rgba(255,255,255,.06)}
-.stamina-pip.filled-blue{background:var(--accent)}
-.stamina-pip.filled-red{background:var(--danger)}
-/* ── SECTION BUTTONS ─────────────────────────────────────────────────── */
-.section-btns{display:flex;gap:8px;padding:0 16px;margin-bottom:16px}
-.section-btn{
-  flex:1;padding:10px 4px;
-  border-radius:6px;border:1px solid var(--border);
-  background:rgba(12,21,32,.6);
-  font-family:var(--pixel);font-size:5px;letter-spacing:.5px;
-  color:var(--muted);transition:all .15s;
-  display:flex;align-items:center;justify-content:center;gap:4px;
-}
-.section-btn:active{background:rgba(56,189,248,.08);color:var(--accent);border-color:rgba(56,189,248,.3)}
-/* ── LEGIONBUILDER ────────────────────────────────────────────────────── */
-.legion-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 12px}
-/* ── EQUIPMENT GRID ──────────────────────────────────────────────────── */
-.equip-grid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:0 12px 12px}
-.equip-slot{
-  display:flex;flex-direction:column;align-items:center;gap:4px;
-  padding:8px;border-radius:6px;
-  background:rgba(12,21,32,.7);border:1px solid var(--border);
-  min-width:72px;transition:border-color .15s;
-}
-.equip-slot:active{border-color:var(--accent)}
-.equip-slot-name{font-family:var(--pixel);font-size:4px;color:var(--muted);letter-spacing:.5px;text-align:center}
-.equip-slot-action{font-family:var(--pixel);font-size:4px;color:var(--dim);letter-spacing:.5px}
-/* ── PAGE HEADER ─────────────────────────────────────────────────────── */
-.page-header{
-  padding:12px 16px;
-  display:flex;align-items:center;justify-content:space-between;
-  border-bottom:1px solid var(--border);
-  position:sticky;top:0;background:rgba(4,8,14,.95);z-index:10;
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-}
-.page-title{font-family:var(--pixel);font-size:8px;color:var(--accent);letter-spacing:2px}
-/* ── SCROLL CONTAINER ────────────────────────────────────────────────── */
-.scroll-content{
-  overflow-y:auto;padding-bottom:calc(72px + env(safe-area-inset-bottom,0px));
-}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:#04080e;}::-webkit-scrollbar-thumb{background:#182030;}
+html,body,#root{background:#04080e;min-height:100vh;width:100%;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes rise{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
+@keyframes breath{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
+@keyframes flicker{0%,100%{opacity:1}33%{opacity:.55}66%{opacity:.85}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes scanline{from{top:-2px}to{top:100%}}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+@keyframes hexring{0%{transform:scale(.5);opacity:0}60%{opacity:.7}100%{transform:scale(1.8);opacity:0}}
+@keyframes shimmer{from{transform:translateX(-100%)}to{transform:translateX(200%)}}
+@keyframes typechar{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
 </style>
 </head>
 <body>
@@ -462,7 +330,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
 })();
 
 </script>
-<!-- Pale Signal TCG v1.3 — Echo sync from RPG, compiled, no Babel, self-contained -->
+<!-- Pale Signal TCG v1.2 — compiled, no Babel, self-contained -->
 <script>
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 const {
@@ -474,158 +342,24 @@ const {
 
 // ── DESIGN TOKENS ───────────────────────────────────────────────────────────────
 const C = {
-  bg: "#030710",
-  deep: "#020509",
-  surface: "#080f1c",
-  surfaceHigh: "#0e1828",
-  card: "#0a1422",
-  cardHigh: "#0f1c2e",
-  border: "#121f30",
-  borderHigh: "#1e3048",
-  muted: "#3d5a75",
-  dim: "#7a98b4",
-  text: "#d0e8f8",
-  textBright: "#e8f4ff",
+  bg: "#04080e",
+  deep: "#02050a",
+  surface: "#0c1520",
+  card: "#0f1e2e",
+  border: "#162030",
+  muted: "#4a6a85",
+  dim: "#8aA8c0",
+  text: "#d8ecfc",
   accent: "#38bdf8",
-  accentDim: "#1e7aaa",
-  gold: "#f0b020",
-  goldDim: "#8a6810",
-  danger: "#f06060",
-  success: "#38c860",
-  purple: "#b070f0",
-  orange: "#e87830",
-  light: "#f0b020",
-  dark: "#7080e0",
-  neutral: "#88a0b8",
-  pale: "#8fa8ff",
-  paleDim: "#3a4a88"
+  gold: "#fbbf24",
+  danger: "#f87171",
+  success: "#4ade80",
+  purple: "#c084fc",
+  orange: "#fb923c",
+  light: "#fbbf24",
+  dark: "#818cf8",
+  neutral: "#94a3b8"
 };
-
-// ── ELEMENT ICON COMPONENTS ────────────────────────────────────────────────────
-// Pixel art element icons drawn on small canvas — no emojis.
-// Each icon is a unique symbolic shape in the element's color.
-function ElementIcon({ element, size = 16, style: extraStyle }) {
-  const ref = React.useRef(null);
-  const el = EL[element] || EL_NULL;
-  React.useEffect(() => {
-    const cv = ref.current; if (!cv) return;
-    const ctx = cv.getContext('2d');
-    ctx.clearRect(0, 0, size, size);
-    const c = el.c, s = size, h = Math.floor(s/2);
-    // Dark background circle
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
-    ctx.beginPath(); ctx.arc(h,h,h-1,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle = c;
-    switch(element) {
-      case 'water':
-        // Teardrop shape
-        ctx.beginPath();
-        ctx.moveTo(h, 2);
-        ctx.bezierCurveTo(h+s*0.35, h*0.8, h+s*0.38, s*0.7, h, s-2);
-        ctx.bezierCurveTo(h-s*0.38, s*0.7, h-s*0.35, h*0.8, h, 2);
-        ctx.fill();
-        ctx.fillStyle = 'rgba(255,255,255,0.35)';
-        ctx.fillRect(h-1, 3, 2, Math.floor(s*0.3));
-        break;
-      case 'fire':
-        // Flame — 3 overlapping teardrop curves
-        for (let i=0; i<3; i++) {
-          const ox = (i-1)*Math.floor(s*0.18);
-          ctx.fillStyle = i===1 ? c : _shift(c, i===0?-10:10, 0, i===0?-0.1:0.1);
-          ctx.beginPath();
-          ctx.moveTo(h+ox, s-2);
-          ctx.bezierCurveTo(h+ox+s*0.2, s*0.6, h+ox+s*0.18, s*0.3, h+ox, 2+i*2);
-          ctx.bezierCurveTo(h+ox-s*0.18, s*0.3, h+ox-s*0.2, s*0.6, h+ox, s-2);
-          ctx.fill();
-        }
-        ctx.fillStyle = 'rgba(255,240,100,0.5)';
-        ctx.fillRect(h-1, Math.floor(s*0.3), 2, Math.floor(s*0.3));
-        break;
-      case 'wood':
-        // Leaf shape
-        ctx.beginPath();
-        ctx.moveTo(h, 2);
-        ctx.bezierCurveTo(s-2, h-s*0.1, s-2, s*0.65, h, s-2);
-        ctx.bezierCurveTo(2, s*0.65, 2, h-s*0.1, h, 2);
-        ctx.fill();
-        // Vein
-        ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-        ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(h, 3); ctx.lineTo(h, s-3); ctx.stroke();
-        ctx.fillStyle = 'rgba(255,255,255,0.25)';
-        ctx.fillRect(h-1, 3, 1, Math.floor(s*0.45));
-        break;
-      case 'earth':
-        // Diamond / gem
-        ctx.beginPath();
-        ctx.moveTo(h, 2); ctx.lineTo(s-2, h); ctx.lineTo(h, s-2); ctx.lineTo(2, h);
-        ctx.closePath(); ctx.fill();
-        ctx.fillStyle = 'rgba(255,255,255,0.2)';
-        ctx.beginPath();
-        ctx.moveTo(h, 2); ctx.lineTo(s-2, h); ctx.lineTo(h, h); ctx.closePath(); ctx.fill();
-        break;
-      case 'metal':
-        // Hexagon (gear-like)
-        ctx.beginPath();
-        for (let i=0; i<6; i++) {
-          const a = (i/6)*Math.PI*2 - Math.PI/6;
-          const r = h-2;
-          if(i===0) ctx.moveTo(h+r*Math.cos(a), h+r*Math.sin(a));
-          else ctx.lineTo(h+r*Math.cos(a), h+r*Math.sin(a));
-        }
-        ctx.closePath(); ctx.fill();
-        ctx.fillStyle = 'rgba(0,0,0,0.3)';
-        ctx.beginPath();
-        for (let i=0; i<6; i++) {
-          const a = (i/6)*Math.PI*2 - Math.PI/6;
-          const r = h-4;
-          if(i===0) ctx.moveTo(h+r*Math.cos(a), h+r*Math.sin(a));
-          else ctx.lineTo(h+r*Math.cos(a), h+r*Math.sin(a));
-        }
-        ctx.closePath(); ctx.fill();
-        ctx.fillStyle = 'rgba(255,255,255,0.3)';
-        ctx.fillRect(h-1, 3, 2, Math.floor(s*0.4));
-        break;
-      case 'wind':
-        // Spiral / swirl
-        ctx.strokeStyle = c; ctx.lineWidth = Math.max(1.5, s/10);
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        for (let t=0; t<=Math.PI*2.5; t+=0.08) {
-          const r = 1 + t * (h-3) / (Math.PI*2.5);
-          const x = h + r*Math.cos(t-Math.PI/2);
-          const y = h + r*Math.sin(t-Math.PI/2);
-          if(t===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-        }
-        ctx.stroke();
-        break;
-      case 'pale':
-        // ◈ diamond with inner diamond
-        ctx.beginPath();
-        ctx.moveTo(h, 2); ctx.lineTo(s-2, h); ctx.lineTo(h, s-2); ctx.lineTo(2, h);
-        ctx.closePath(); ctx.fill();
-        ctx.fillStyle = C.bg;
-        const ip = Math.floor(s*0.22);
-        ctx.beginPath();
-        ctx.moveTo(h, 2+ip); ctx.lineTo(s-2-ip, h); ctx.lineTo(h, s-2-ip); ctx.lineTo(2+ip, h);
-        ctx.closePath(); ctx.fill();
-        ctx.fillStyle = c;
-        ctx.fillRect(h-1, h-1, 2, 2);
-        break;
-      default:
-        // Null — circle with X
-        ctx.strokeStyle = c; ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.arc(h,h,h-3,0,Math.PI*2); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(h-3,h-3); ctx.lineTo(h+3,h+3); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(h+3,h-3); ctx.lineTo(h-3,h+3); ctx.stroke();
-    }
-  }, [element, size]);
-  return React.createElement('canvas', {
-    ref, width: size, height: size,
-    style: { imageRendering:'pixelated', display:'inline-block', verticalAlign:'middle', ...extraStyle }
-  });
-}
-
 const F = {
   d: "'Georgia', 'Times New Roman', serif,serif",
   b: "'Georgia', serif,serif",
@@ -638,7 +372,7 @@ const EL = {
   water: {
     c: "#38bdf8",
     g: "rgba(56,189,248,.3)",
-    i: "◈W",
+    i: "💧",
     name: "Water",
     beats: "fire",
     align: "dark",
@@ -647,7 +381,7 @@ const EL = {
   fire: {
     c: "#fb923c",
     g: "rgba(251,146,60,.3)",
-    i: "^",
+    i: "🔥",
     name: "Fire",
     beats: "wood",
     align: "light",
@@ -656,7 +390,7 @@ const EL = {
   wood: {
     c: "#86efac",
     g: "rgba(134,239,172,.28)",
-    i: "¥",
+    i: "🌿",
     name: "Wood",
     beats: "earth",
     align: "light",
@@ -665,7 +399,7 @@ const EL = {
   earth: {
     c: "#a3836b",
     g: "rgba(163,131,107,.28)",
-    i: "■",
+    i: "🪨",
     name: "Earth",
     beats: "metal",
     align: "dark",
@@ -674,7 +408,7 @@ const EL = {
   metal: {
     c: "#cbd5e1",
     g: "rgba(203,213,225,.22)",
-    i: "✦",
+    i: "⚙",
     name: "Metal",
     beats: "wind",
     align: "dark",
@@ -683,7 +417,7 @@ const EL = {
   wind: {
     c: "#bfdbfe",
     g: "rgba(191,219,254,.22)",
-    i: "≋",
+    i: "🌪",
     name: "Wind",
     beats: "water",
     align: "light",
@@ -1073,7 +807,6 @@ const STARTER_ECHOES = [{
   rarity: "Common",
   isAberrant: false,
   isResonant: false,
-  ability: { trigger: "DEFEND", effect: "Restore 8 HP", color: "#38bdf8" },
   trait: "Tidal Guard: First hit received each battle is reduced by 5 damage."
 }, {
   id: "sh",
@@ -1087,7 +820,6 @@ const STARTER_ECHOES = [{
   rarity: "Common",
   isAberrant: false,
   isResonant: false,
-  ability: { trigger: "TURN START", effect: "+12 Speed this turn", color: "#80ccff" },
   trait: "Call Storm: Gains +15 Speed permanently after surviving any combat."
 }, {
   id: "ec",
@@ -1101,7 +833,6 @@ const STARTER_ECHOES = [{
   rarity: "Common",
   isAberrant: false,
   isResonant: false,
-  ability: { trigger: "ATTACK", effect: "Burn: +3 damage next hit", color: "#fb923c" },
   trait: "Burning Maw: Double Strike deals +10 bonus damage on each individual hit."
 }, {
   id: "wr",
@@ -1115,7 +846,6 @@ const STARTER_ECHOES = [{
   rarity: "Common",
   isAberrant: false,
   isResonant: false,
-  ability: { trigger: "TURN START", effect: "+2 Power (stacks)", color: "#44cc66" },
   trait: "Growth Pulse: On deploy, restore 3 HP to all adjacent allied Echoes."
 }, {
   id: "ib",
@@ -1129,7 +859,6 @@ const STARTER_ECHOES = [{
   rarity: "Uncommon",
   isAberrant: false,
   isResonant: false,
-  ability: { trigger: "HIT", effect: "Reflect 25% to attacker", color: "#c0c8e0" },
   trait: "Refined Edge: +10 Power when attacking Echoes with higher Defense."
 }, {
   id: "gg",
@@ -1143,7 +872,6 @@ const STARTER_ECHOES = [{
   rarity: "Uncommon",
   isAberrant: false,
   isResonant: false,
-  ability: { trigger: "HIT TAKEN", effect: "Slow target -8 Spd", color: "#c8a040" },
   trait: "Stone Fortress: Adjacent allied Echoes gain +8 Defense during combat."
 }, {
   id: "vm",
@@ -1157,7 +885,6 @@ const STARTER_ECHOES = [{
   rarity: "Uncommon",
   isAberrant: false,
   isResonant: false,
-  ability: { trigger: "TURN END", effect: "Absorb 2 damage", color: "#6a6880" },
   trait: "Equilibrium: Completely ignores all Elemental Bonus and Penalty effects."
 }, {
   id: "fw",
@@ -1171,7 +898,6 @@ const STARTER_ECHOES = [{
   rarity: "Epic",
   isAberrant: false,
   isResonant: false,
-  ability: { trigger: "ATTACK", effect: "Burn 3 dmg + chain 2", color: "#ff6622" },
   trait: "Dual Surge: Both Fire and Wind Elemental Bonus apply, but cap at +15 total."
 }, {
   id: "tc",
@@ -1185,7 +911,6 @@ const STARTER_ECHOES = [{
   rarity: "Epic",
   isAberrant: false,
   isResonant: false,
-  ability: { trigger: "DEFEND", effect: "Counter-strike 8 dmg", color: "#4888d0" },
   trait: "Deep Current: Earth and Water Echoes adjacent gain +5 Defense."
 }, {
   id: "nf",
@@ -1199,7 +924,6 @@ const STARTER_ECHOES = [{
   rarity: "Legendary",
   isAberrant: false,
   isResonant: false,
-  ability: { trigger: "DEFEAT", effect: "Revive ally at 15% HP", color: "#8fa8ff" },
   trait: "Null Field: All elemental effects suppressed on this tile while Nullform stands."
 }];
 
@@ -1304,573 +1028,46 @@ function bCircle(ctx,cx,cy,r,col){if(r<1)return;ctx.fillStyle=col;let x=0,y=r,d=
 function outline(ctx,sx,sy,w,h,col){ctx.fillStyle=col;ctx.fillRect(sx-1,sy-1,w+2,1);ctx.fillRect(sx-1,sy+h,w+2,1);ctx.fillRect(sx-1,sy,1,h);ctx.fillRect(sx+w,sy,1,h);}
 function fillShaded(ctx,sx,sy,w,h,pal){px(ctx,sx,sy,w,h,pal.md);px(ctx,sx,sy+Math.floor(h*0.55),w,Math.ceil(h*0.45),pal.sh);px(ctx,sx,sy,Math.ceil(w*0.45),Math.ceil(h*0.4),pal.hl);}
 const ELEMENT_COLORS={water:'#4888d0',fire:'#ff6622',wood:'#44cc66',earth:'#c8a040',metal:'#c0c8e0',wind:'#80ccff',pale:'#8fa8ff',null:'#6a6880'};
-// ── ECHO PORTRAIT RENDERER ────────────────────────────────────────────
-// Draws creature portraits at any size (default 56×56 for TCG).
-// Full GS/MMBN pipeline: Bresenham circles, Bayer dither, gsPal ramps,
-// per-frame animation. Each type has unique silhouette + 4-tone shading.
-function drawEchoPortrait(ctx, element, rarity, nameSeed, frameNum, sz) {
-  sz = sz || 56;
-  const s = sz / 56; // scale factor: 1.0 at 56px, 0.57 at 32px, 1.43 at 80px
-  const sc = (v) => Math.round(v * s); // scale a pixel value
-
-  const baseColor = ELEMENT_COLORS[element] || ELEMENT_COLORS.null;
-  const r = mkRNG(hashStr(nameSeed || 'echo'));
-  const hShift = (r() - 0.5) * 18;
-  const lShift = (r() - 0.5) * 0.07;
-  const cardColor = _shift(baseColor, hShift, 0, lShift);
-  const P = gsPal(cardColor);
-
-  const type = ['water','wind','pale','null'].includes(element) ? 'wisp'
-             : ['earth','metal'].includes(element) ? 'crawler'
-             : 'sprite';
-
-  ctx.fillStyle = '#05080f';
-  ctx.fillRect(0, 0, sz, sz);
-
-  if (type === 'wisp')    _drawWisp56(ctx, P, cardColor, r, frameNum, sz, s, sc);
-  else if (type === 'crawler') _drawCrawler56(ctx, P, cardColor, r, frameNum, sz, s, sc);
-  else                     _drawSprite56(ctx, P, cardColor, r, frameNum, sz, s, sc);
-
-  // Rarity border
-  if (rarity === 'Legendary' || rarity === 'Epic') {
-    const rc = rarity === 'Legendary' ? '#c8a030' : '#c084fc';
-    const bw = Math.max(1, sc(2));
-    ctx.fillStyle = rc;
-    ctx.fillRect(0, 0, sz, bw); ctx.fillRect(0, sz-bw, sz, bw);
-    ctx.fillRect(0, 0, bw, sz); ctx.fillRect(sz-bw, 0, bw, sz);
-    // Corner accent dots
-    ctx.fillStyle = rarity === 'Legendary' ? '#fff0a0' : '#e8c8ff';
-    const d = sc(3);
-    [[0,0],[sz-d,0],[0,sz-d],[sz-d,sz-d]].forEach(([x,y]) => ctx.fillRect(x,y,d,d));
-  }
+function drawEchoPortrait(ctx,element,rarity,nameSeed,f=0){
+  const baseColor=ELEMENT_COLORS[element]||ELEMENT_COLORS.null;
+  const r=mkRNG(hashStr(nameSeed||'echo'));
+  const cardColor=_shift(baseColor,(r()-0.5)*20,0,(r()-0.5)*0.08);
+  const CP=gsPal(cardColor);
+  const type=['water','wind','pale','null'].includes(element)?'wisp':['earth','metal'].includes(element)?'crawler':'sprite';
+  ctx.fillStyle='#05080f';ctx.fillRect(0,0,32,32);
+  if(type==='wisp')_drawWisp(ctx,CP,cardColor,r,f);
+  else if(type==='crawler')_drawCrawler(ctx,CP,cardColor,r,f);
+  else _drawSprite(ctx,CP,cardColor,r,f);
+  if(rarity==='Epic'||rarity==='Legendary'){const rc=rarity==='Legendary'?'#c8a030':'#c084fc';ctx.fillStyle=rc+'50';ctx.fillRect(0,0,32,1);ctx.fillRect(0,31,32,1);ctx.fillRect(0,0,1,32);ctx.fillRect(31,0,1,32);}
 }
-
-// ── WISP — elemental orb creature ──────────────────────────────────────
-// Floating sphere of concentrated pale energy. Trails wisp-light below.
-// GS pipeline: shadow base → mid sphere → highlight patch → inner core → glow → pupils
-function _drawWisp56(ctx, P, baseColor, r, f, sz, s, sc) {
-  const cx = sc(28), cy = sc(22);
-  const bob = Math.round(Math.sin(f * 0.055) * sc(3));
-  const pulse = 0.5 + 0.5 * Math.sin(f * 0.07);
-  const R = sc(14); // main radius
-  const cy2 = cy + bob;
-
-  // ── Outer glow corona ──────────────────────────────────────────────
-  const glow = ctx.createRadialGradient(cx, cy2, R*0.6, cx, cy2, R*1.6);
-  glow.addColorStop(0, baseColor + Math.round((0.12+pulse*0.08)*255).toString(16).padStart(2,'0'));
-  glow.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = glow;
-  ctx.fillRect(cx-R*2, cy2-R*2, R*4, R*4);
-
-  // ── Trailing wisps (3 tear-drop trails) ───────────────────────────
-  const trailY = cy2 + R - sc(2);
-  for (let t = 0; t < 3; t++) {
-    const tx = cx + sc(t===0?-5:t===1?0:5);
-    const tlen = sc(t===1?14:9);
-    const tw = sc(t===1?5:3);
-    dRect(ctx, tx-Math.floor(tw/2), trailY, tw, tlen, P.sh, P.dk, 0.45+t*0.08);
-    // tail tip pixel
-    ctx.fillStyle = P.dk;
-    ctx.fillRect(tx-1, trailY+tlen, 2, sc(2));
-  }
-
-  // ── Main orb — 4-pass GS shading ──────────────────────────────────
-  // Pass 1: shadow base (SE offset)
-  bCircle(ctx, cx+sc(2), cy2+sc(2), R, P.dk);
-  // Pass 2: mid tone
-  bCircle(ctx, cx, cy2, R, P.sh);
-  // Pass 3: main colour (NW offset for depth)
-  bCircle(ctx, cx-sc(1), cy2-sc(1), R-sc(1), P.md);
-  // Pass 4: highlight patch (NW quadrant only — GS standard)
-  const hlR = Math.floor(R * 0.65);
-  bCircle(ctx, cx-sc(3), cy2-sc(3), hlR, P.hl);
-  // Pass 5: specular crown (2×2 bright spot)
-  const spW = Math.max(2, sc(4));
-  ctx.fillStyle = P.sp || P.hl;
-  ctx.fillRect(cx-sc(5), cy2-sc(5), spW, spW);
-  // Extra specular pixel for GS feel
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(cx-sc(4), cy2-sc(6), sc(2), sc(1));
-
-  // ── Inner core (bright centre) ─────────────────────────────────────
-  const coreR = Math.floor(R * 0.32);
-  bCircle(ctx, cx-sc(1), cy2-sc(1), coreR, P.sp||P.hl);
-
-  // ── Animated inner ring ────────────────────────────────────────────
-  const ringA = (0.08 + pulse * 0.10).toFixed(3);
-  ctx.fillStyle = `rgba(220,235,255,${ringA})`;
-  for (let a = 0; a < 6; a++) {
-    const angle = (a/6)*Math.PI*2 + f*0.04;
-    const rx = Math.round(cx + Math.cos(angle) * R*0.55);
-    const ry = Math.round(cy2 + Math.sin(angle) * R*0.55);
-    ctx.fillRect(rx, ry, Math.max(1,sc(2)), Math.max(1,sc(2)));
-  }
-
-  // ── Eyes — two glowing pupils with catchlights ────────────────────
-  const eyY = cy2 + sc(2);
-  const eyOff = sc(5);
-  const eyW = Math.max(2, sc(3));
-  const eyH = Math.max(2, sc(4));
-  // Eye whites/iris
-  ctx.fillStyle = '#0a0a1a';
-  ctx.fillRect(cx-eyOff-eyW, eyY, eyW*2, eyH);
-  ctx.fillRect(cx+eyOff-eyW, eyY, eyW*2, eyH);
-  // Iris colour
-  const irisA = (0.7 + pulse * 0.25).toFixed(2);
-  ctx.fillStyle = `rgba(255,255,255,${irisA})`;
-  ctx.fillRect(cx-eyOff-Math.floor(eyW/2), eyY, eyW, eyH-sc(1));
-  ctx.fillRect(cx+eyOff-Math.floor(eyW/2), eyY, eyW, eyH-sc(1));
-  // Catchlight (always top-right corner)
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(cx-eyOff+sc(1), eyY, sc(1), sc(1));
-  ctx.fillRect(cx+eyOff+sc(1), eyY, sc(1), sc(1));
+function _drawWisp(ctx,P,bc,r,f){
+  const bob=Math.round(Math.sin(f*0.06)*2),pulse=0.5+0.5*Math.sin(f*0.06*1.3);
+  dRect(ctx,14,22+bob,4,3,P.sh,P.dk,0.6);dRect(ctx,11,21+bob,3,4,P.sh,P.dk,0.5);dRect(ctx,19,21+bob,3,4,P.sh,P.dk,0.5);
+  bCircle(ctx,16,13+bob,7,P.dk);bCircle(ctx,16,12+bob,7,P.sh);bCircle(ctx,15,11+bob,5,P.md);bCircle(ctx,14,10+bob,4,P.hl);px(ctx,13,8+bob,4,2,P.sp||P.hl);
+  ctx.fillStyle=`rgba(200,220,255,${(0.12+pulse*0.16).toFixed(2)})`;ctx.fillRect(12,10+bob,6,5);
+  ctx.fillStyle=`rgba(255,255,255,${(0.6+pulse*0.4).toFixed(2)})`;ctx.fillRect(12,11+bob,2,2);ctx.fillRect(17,11+bob,2,2);
 }
-
-// ── CRAWLER — armoured hexapod ─────────────────────────────────────────
-// Heavy chitinous creature. 6 articulated legs, domed carapace, mandibles.
-// Earth/metal elements. Moves slowly; maximum defense.
-function _drawCrawler56(ctx, P, baseColor, r, f, sz, s, sc) {
-  const cx = sc(28), cy = sc(30);
-  const bob = Math.round(Math.sin(f * 0.035) * sc(2));
-  const legPhase = Math.floor(f * 0.045) % 2;
-  const cy2 = cy + bob;
-
-  // Shell colour (darker, more metallic than base)
-  const shellC = _shift(baseColor, -8, -0.06, -0.18);
-  const SP = gsPal(shellC);
-  const legC = _shift(baseColor, -14, -0.08, -0.22);
-  const LP = gsPal(legC);
-
-  // ── Ground shadow ──────────────────────────────────────────────────
-  dRect(ctx, cx-sc(16), cy2+sc(14), sc(32), sc(5), 'rgba(0,0,0,0)', 'rgba(0,0,0,0.28)', 0.65);
-
-  // ── Legs (3 per side, alternating gait) ───────────────────────────
-  // Each leg: upper segment + lower segment + foot
-  const legDefs = [
-    // [x from center, y from body, is left side, phase group]
-    [-sc(13), sc(-3), true,  0], [-sc(14), sc(3),  true,  1], [-sc(12), sc(8),  true,  0],
-    [ sc(13), sc(-3), false, 1], [ sc(14), sc(3),  false, 0], [ sc(12), sc(8),  false, 1],
-  ];
-  legDefs.forEach(([lx,ly,isLeft,pg]) => {
-    const lift = (legPhase === pg) ? sc(-2) : sc(1);
-    const bx = cx + lx, by = cy2 + ly;
-    const extX = isLeft ? -sc(7) : sc(7);
-    // Upper segment
-    ctx.fillStyle = LP.sh;
-    ctx.fillRect(Math.min(bx,bx+extX/2), by+lift, Math.abs(extX/2)+sc(2), sc(3));
-    // Lower segment
-    ctx.fillStyle = LP.md;
-    ctx.fillRect(Math.min(bx+extX/2,bx+extX), by+sc(2)+lift, Math.abs(extX/2)+sc(2), sc(3));
-    // Foot
-    ctx.fillStyle = LP.dk;
-    ctx.fillRect(bx+extX-sc(1), by+sc(4)+lift, sc(3), sc(2));
-    // Joint highlight
-    ctx.fillStyle = LP.hl;
-    ctx.fillRect(bx+Math.round(extX*0.45), by+sc(1)+lift, sc(2), sc(2));
-  });
-
-  // ── Main carapace ─────────────────────────────────────────────────
-  const bw = sc(24), bh = sc(18);
-  const bx2 = cx - bw/2, by2 = cy2 - bh*0.6;
-  // Shadow outline
-  ctx.fillStyle = SP.dk;
-  ctx.fillRect(bx2-sc(1), by2+sc(1), bw+sc(2), bh+sc(2));
-  // Shell fill
-  fillShaded(ctx, bx2, by2, bw, bh, SP);
-  // Scute pattern — 3 horizontal ridge lines
-  for (let i = 0; i < 3; i++) {
-    const ry = by2 + Math.round(bh * (0.25+i*0.25));
-    ctx.fillStyle = SP.dk;
-    ctx.fillRect(bx2+sc(2), ry, bw-sc(4), sc(1));
-    ctx.fillStyle = SP.hl;
-    ctx.fillRect(bx2+sc(2), ry+sc(1), bw-sc(4), sc(1));
-  }
-  // Centre keel highlight
-  ctx.fillStyle = SP.sp || SP.hl;
-  ctx.fillRect(cx-sc(2), by2+sc(1), sc(4), bh-sc(3));
-  // Shell specular (NW corner)
-  ctx.fillStyle = SP.sp || SP.hl;
-  ctx.fillRect(bx2+sc(2), by2+sc(1), sc(6), sc(3));
-
-  // ── Head ──────────────────────────────────────────────────────────
-  const hR = sc(9);
-  const hx = cx, hy = by2 - hR + sc(4);
-  bCircle(ctx, hx+sc(1), hy+sc(1), hR, P.dk);
-  bCircle(ctx, hx, hy, hR, P.sh);
-  bCircle(ctx, hx-sc(1), hy-sc(1), Math.max(1,hR-sc(2)), P.md);
-  ctx.fillStyle = P.hl;
-  ctx.fillRect(hx-sc(3), hy-sc(4), sc(6), sc(3));
-
-  // Mandibles
-  ctx.fillStyle = LP.dk;
-  ctx.fillRect(hx-sc(8), hy+sc(2), sc(6), sc(2));
-  ctx.fillRect(hx+sc(2), hy+sc(2), sc(6), sc(2));
-  ctx.fillStyle = LP.sh;
-  ctx.fillRect(hx-sc(9), hy+sc(3), sc(4), sc(2));
-  ctx.fillRect(hx+sc(5), hy+sc(3), sc(4), sc(2));
-
-  // Antennae
-  ctx.fillStyle = LP.md;
-  for (let a = 0; a < 2; a++) {
-    const ax = hx + (a===0?-sc(5):sc(5));
-    ctx.fillRect(ax, hy-sc(6), sc(1), sc(4));
-    ctx.fillRect(ax+(a===0?-sc(3):sc(2)), hy-sc(8), sc(3), sc(1));
-  }
-
-  // Eyes — bright dots with pupils
-  const eyW2 = Math.max(2, sc(3));
-  ctx.fillStyle = '#0a0a14';
-  ctx.fillRect(hx-sc(5)-eyW2/2, hy-sc(1), eyW2+sc(1), eyW2);
-  ctx.fillRect(hx+sc(5)-eyW2/2, hy-sc(1), eyW2+sc(1), eyW2);
-  ctx.fillStyle = P.sp || '#60c8ff';
-  ctx.fillRect(hx-sc(5), hy-sc(1), eyW2, eyW2-sc(1));
-  ctx.fillRect(hx+sc(5), hy-sc(1), eyW2, eyW2-sc(1));
-  // Catchlight
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(hx-sc(4), hy-sc(1), sc(1), sc(1));
-  ctx.fillRect(hx+sc(6), hy-sc(1), sc(1), sc(1));
+function _drawCrawler(ctx,P,bc,r,f){
+  const bob=Math.round(Math.sin(f*0.03)*1);
+  const shellC=_shift(bc,-8,-0.05,-0.15);const SP=gsPal(shellC);const legC=_shift(bc,-12,-0.06,-0.18);const lp=Math.floor(f*0.04)%2;
+  px(ctx,2,14+bob+(lp?1:0),5,2,legC);px(ctx,2,18+bob,5,2,legC);px(ctx,2,22+bob+(lp?0:1),5,2,legC);
+  px(ctx,25,14+bob+(lp?0:1),5,2,legC);px(ctx,25,18+bob,5,2,legC);px(ctx,25,22+bob+(lp?1:0),5,2,legC);
+  outline(ctx,7,12+bob,18,12,SP.dk);fillShaded(ctx,7,12+bob,18,12,SP);
+  px(ctx,8,13+bob,16,3,SP.hl);px(ctx,8,16+bob,16,1,SP.sh);px(ctx,8,17+bob,16,3,SP.md);px(ctx,9,18+bob,14,1,SP.hl);
+  bCircle(ctx,16,10+bob,4,P.dk);bCircle(ctx,16,9+bob,4,P.md);px(ctx,14,8+bob,4,2,P.hl);
+  ctx.fillStyle='#0a0a14';ctx.fillRect(13,9+bob,2,2);ctx.fillRect(17,9+bob,2,2);ctx.fillStyle='rgba(255,255,255,0.6)';ctx.fillRect(14,9+bob,1,1);ctx.fillRect(18,9+bob,1,1);
 }
-
-// ── SPRITE — wild elemental creature ───────────────────────────────────
-// Small energetic being with leaf/flame crown. Hops. Fast, fragile.
-// Wood/fire elements. High agility, lower defense.
-function _drawSprite56(ctx, P, baseColor, r, f, sz, s, sc) {
-  const cx = sc(28), bodyY = sc(34);
-  const bob   = Math.round(Math.sin(f * 0.08) * sc(2));
-  const hop   = Math.abs(Math.round(Math.sin(f * 0.055) * sc(4)));
-  const by2 = bodyY - hop + bob;
-
-  // Crown colour (shifted toward complementary)
-  const crownC = _shift(baseColor, 12, 0.09, 0.10);
-  const CP = gsPal(crownC);
-  const accentC = _shift(baseColor, -5, 0.05, -0.08);
-  const AP = gsPal(accentC);
-
-  // ── Shadow under feet ──────────────────────────────────────────────
-  const shadowH = Math.max(1, sc(3) - hop);
-  dRect(ctx, cx-sc(10), bodyY+sc(12), sc(20), shadowH, 'rgba(0,0,0,0)', 'rgba(0,0,0,0.30)', 0.7);
-
-  // ── Feet / legs ────────────────────────────────────────────────────
-  const footLift = Math.round(Math.sin(f*0.08+Math.PI)*sc(2));
-  const footR2 = Math.round(Math.sin(f*0.08)*sc(2));
-  ctx.fillStyle = P.dk;
-  ctx.fillRect(cx-sc(8), by2+sc(8)+footLift, sc(5), sc(6)-footLift);
-  ctx.fillRect(cx+sc(3), by2+sc(8)+footR2,  sc(5), sc(6)-footR2);
-  // Feet
-  ctx.fillStyle = P.sh;
-  ctx.fillRect(cx-sc(9), by2+sc(12), sc(6), sc(3));
-  ctx.fillRect(cx+sc(3), by2+sc(12), sc(6), sc(3));
-  ctx.fillStyle = P.md;
-  ctx.fillRect(cx-sc(9), by2+sc(12), sc(6), sc(1));
-  ctx.fillRect(cx+sc(3), by2+sc(12), sc(6), sc(1));
-
-  // ── Body ─────────────────────────────────────────────────────────
-  const bodyR = sc(9);
-  bCircle(ctx, cx+sc(1), by2+sc(1), bodyR, P.dk);
-  bCircle(ctx, cx, by2, bodyR, P.sh);
-  bCircle(ctx, cx-sc(1), by2-sc(1), bodyR-sc(1), P.md);
-  // Chest highlight
-  ctx.fillStyle = P.hl;
-  ctx.fillRect(cx-sc(4), by2-sc(4), sc(7), sc(5));
-  ctx.fillStyle = P.sp || P.hl;
-  ctx.fillRect(cx-sc(3), by2-sc(5), sc(5), sc(2));
-  // Belly marking
-  ctx.fillStyle = AP.md;
-  ctx.fillRect(cx-sc(3), by2+sc(2), sc(6), sc(3));
-  ctx.fillStyle = AP.hl;
-  ctx.fillRect(cx-sc(2), by2+sc(2), sc(4), sc(1));
-
-  // ── Arms (small nubs, move with hop) ───────────────────────────────
-  ctx.fillStyle = P.sh;
-  ctx.fillRect(cx-sc(10), by2-sc(2), sc(4), sc(4));
-  ctx.fillRect(cx+sc(6),  by2-sc(2), sc(4), sc(4));
-  ctx.fillStyle = P.md;
-  ctx.fillRect(cx-sc(10), by2-sc(3), sc(3), sc(2));
-  ctx.fillRect(cx+sc(7),  by2-sc(3), sc(3), sc(2));
-
-  // ── Leaf/flame crown ──────────────────────────────────────────────
-  const crownY = by2 - bodyR - sc(2);
-  // Three main cluster circles, each a "leaf mass"
-  const crownBob = Math.round(Math.sin(f*0.09)*sc(1));
-  bCircle(ctx, cx,      crownY-sc(6)+crownBob, sc(8), CP.dk);
-  bCircle(ctx, cx-sc(7),crownY-sc(2)+crownBob, sc(6), CP.sh);
-  bCircle(ctx, cx+sc(7),crownY-sc(2)+crownBob, sc(6), CP.sh);
-  bCircle(ctx, cx,      crownY-sc(7)+crownBob, sc(7), CP.sh);
-  bCircle(ctx, cx-sc(6),crownY-sc(3)+crownBob, sc(5), CP.md);
-  bCircle(ctx, cx+sc(6),crownY-sc(3)+crownBob, sc(5), CP.md);
-  bCircle(ctx, cx,      crownY-sc(8)+crownBob, sc(5), CP.md);
-  // Highlight sub-clusters (sub-circles for leaf depth illusion)
-  bCircle(ctx, cx-sc(4),crownY-sc(6)+crownBob, sc(3), CP.hl);
-  bCircle(ctx, cx+sc(4),crownY-sc(6)+crownBob, sc(3), CP.hl);
-  bCircle(ctx, cx,      crownY-sc(10)+crownBob, sc(3), CP.hl);
-  // Crown specular
-  ctx.fillStyle = CP.sp || CP.hl;
-  ctx.fillRect(cx-sc(2), crownY-sc(11)+crownBob, sc(4), sc(2));
-  // Small accent berry/fruit dot
-  if (r() > 0.4) {
-    ctx.fillStyle = AP.sp || '#ff8844';
-    ctx.fillRect(cx+sc(4), crownY-sc(4)+crownBob, sc(3), sc(3));
-    ctx.fillStyle = '#fff0a0';
-    ctx.fillRect(cx+sc(4), crownY-sc(4)+crownBob, sc(1), sc(1));
-  }
-
-  // ── Face ──────────────────────────────────────────────────────────
-  const faceY = by2 - sc(2);
-  ctx.fillStyle = P.md;
-  ctx.fillRect(cx-sc(5), faceY, sc(10), sc(6));
-  ctx.fillStyle = P.hl;
-  ctx.fillRect(cx-sc(4), faceY, sc(8), sc(2));
-
-  // Eyes
-  const eyD = Math.max(2, sc(3));
-  ctx.fillStyle = '#0a0a14';
-  ctx.fillRect(cx-sc(5), faceY+sc(1), eyD+sc(1), eyD+sc(1));
-  ctx.fillRect(cx+sc(2),  faceY+sc(1), eyD+sc(1), eyD+sc(1));
-  ctx.fillStyle = 'rgba(255,255,255,0.9)';
-  ctx.fillRect(cx-sc(4), faceY+sc(1), eyD, eyD);
-  ctx.fillRect(cx+sc(3),  faceY+sc(1), eyD, eyD);
-  // Catchlights
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(cx-sc(3), faceY+sc(1), sc(1), sc(1));
-  ctx.fillRect(cx+sc(4),  faceY+sc(1), sc(1), sc(1));
-  // Tiny mouth
-  ctx.fillStyle = P.dk;
-  ctx.fillRect(cx-sc(2), faceY+sc(4), sc(4), sc(1));
+function _drawSprite(ctx,P,bc,r,f){
+  const bob=Math.round(Math.sin(f*0.08)*2),hop=Math.round(Math.abs(Math.sin(f*0.04))*2);
+  const leafC=_shift(bc,+12,+0.08,+0.10);const LP=gsPal(leafC);
+  px(ctx,12,23-hop+bob,3,3+hop,P.dk);px(ctx,17,23-hop+bob,3,3+hop,P.dk);px(ctx,11,25-hop+bob,5,2,P.sh);px(ctx,16,25-hop+bob,5,2,P.sh);
+  bCircle(ctx,16,19-hop+bob,6,P.dk);bCircle(ctx,16,18-hop+bob,6,P.md);bCircle(ctx,15,17-hop+bob,4,P.hl);px(ctx,15,16-hop+bob,3,2,P.sp||P.hl);
+  const lb=Math.round(Math.sin(f*0.088)*1);
+  bCircle(ctx,16,10-hop+bob+lb,5,LP.sh);bCircle(ctx,13,9-hop+bob+lb,4,LP.md);bCircle(ctx,19,10-hop+bob+lb,4,LP.md);bCircle(ctx,16,7-hop+bob+lb,3,LP.hl);
+  ctx.fillStyle='#0a0a14';ctx.fillRect(13,18-hop+bob,2,2);ctx.fillRect(17,18-hop+bob,2,2);ctx.fillStyle='rgba(255,255,255,0.7)';ctx.fillRect(14,18-hop+bob,1,1);ctx.fillRect(18,18-hop+bob,1,1);
 }
-
 return{gsPal,_shift,mkRNG,hashStr,px,dRect,bCircle,outline,fillShaded,ELEMENT_COLORS,drawEchoPortrait};
 })();
-
-// TCG_VERSION=v1.3
-// ── PALE SIGNAL · ABILITY COMPONENT SYSTEM ──────────────────────────────────
-// Inspired by Card Coder's modular card programming.
-// Each Echo has component SLOTS: one trigger, one condition, one effect.
-// Players loot components from battles and slot them into echoes.
-// This transforms stat-collection into card programming.
-//
-// TRIGGER: when does the ability fire?
-// CONDITION: under what circumstance?
-// EFFECT: what happens?
-// Result: Trigger(when) + Condition(if) + Effect(do) = a unique combat ability
-
-const COMPONENT_TRIGGERS = {
-  on_play:      { id:'on_play',      label:'ON DEPLOY',   desc:'When this Echo enters the field.',      color:'#38bdf8' },
-  on_damage:    { id:'on_damage',    label:'ON STRIKE',   desc:'When this Echo deals damage.',           color:'#f87171' },
-  on_hit:       { id:'on_hit',       label:'ON IMPACT',   desc:'When this Echo takes damage.',           color:'#fb923c' },
-  turn_start:   { id:'turn_start',   label:'TURN START',  desc:'At the start of each turn.',             color:'#a78bfa' },
-  on_defeat:    { id:'on_defeat',    label:'ON FALL',     desc:'When this Echo is defeated.',            color:'#6b7280' },
-  on_scan:      { id:'on_scan',      label:'ON SCAN',     desc:'When a new Echo is scanned.',            color:'#34d399' },
-  pale_surge:   { id:'pale_surge',   label:'PALE SURGE',  desc:'When Pale Reach is at maximum.',         color:'#8fa8ff' },
-};
-
-const COMPONENT_CONDITIONS = {
-  always:       { id:'always',       label:'ALWAYS',      desc:'No condition — always triggers.',        color:'#94a3b8' },
-  enemy_wounded:{ id:'enemy_wounded',label:'FOE WOUNDED', desc:'If the target has lost HP.',             color:'#f87171' },
-  self_wounded: { id:'self_wounded', label:'SELF WOUNDED',desc:'If this Echo has lost HP.',              color:'#fb923c' },
-  outnumbered:  { id:'outnumbered',  label:'OUTNUMBERED', desc:'If the enemy has more Echoes.',          color:'#a78bfa' },
-  aligned:      { id:'aligned',      label:'ALIGNED',     desc:'If this Echo element matches.',       color:'#38bdf8' },
-  first_blood:  { id:'first_blood',  label:'FIRST BLOOD', desc:'On the first action of combat.',         color:'#fbbf24' },
-  low_reach:    { id:'low_reach',    label:'LOW REACH',   desc:'If Pale Reach is below half.',           color:'#8fa8ff' },
-};
-
-const COMPONENT_EFFECTS = {
-  damage_boost: { id:'damage_boost', label:'+POWER',      desc:'Deal +8 bonus damage.',                  color:'#f87171', stat:'power',   val:8  },
-  def_shield:   { id:'def_shield',   label:'SHIELD',      desc:'Gain +10 defense until next turn.',      color:'#38bdf8', stat:'defense', val:10 },
-  speed_pulse:  { id:'speed_pulse',  label:'SWIFT',       desc:'Attack speed +6 for this turn.',         color:'#34d399', stat:'speed',   val:6  },
-  pale_charge:  { id:'pale_charge',  label:'PALE CHARGE', desc:'Add +1 Pale Reach.',                     color:'#8fa8ff', stat:'reach',   val:1  },
-  echo_scan:    { id:'echo_scan',    label:'ECHO SCAN',   desc:'Restore +1 Scan Stamina.',               color:'#a78bfa', stat:'stamina', val:1  },
-  chain_strike: { id:'chain_strike', label:'CHAIN',       desc:'Hit all enemies once for 4 damage.',     color:'#fb923c', stat:'chain',   val:4  },
-  restore:      { id:'restore',      label:'RESTORE',     desc:'Restore 12 HP to this Echo.',            color:'#34d399', stat:'hp',      val:12 },
-  drain:        { id:'drain',        label:'DRAIN',       desc:'Steal 5 power from the target.',         color:'#c084fc', stat:'drain',   val:5  },
-};
-
-// Starter component pool — available from the beginning
-const STARTER_COMPONENTS = [
-  { slot:'trigger', id:'on_play'    },
-  { slot:'trigger', id:'on_damage'  },
-  { slot:'trigger', id:'turn_start' },
-  { slot:'condition', id:'always'   },
-  { slot:'condition', id:'enemy_wounded' },
-  { slot:'effect', id:'damage_boost'},
-  { slot:'effect', id:'def_shield'  },
-  { slot:'effect', id:'speed_pulse' },
-  { slot:'effect', id:'pale_charge' },
-];
-
-// Get component definition by slot + id
-function getComponent(slot, id) {
-  if(slot==='trigger')   return COMPONENT_TRIGGERS[id] || null;
-  if(slot==='condition') return COMPONENT_CONDITIONS[id] || null;
-  if(slot==='effect')    return COMPONENT_EFFECTS[id] || null;
-  return null;
-}
-
-// Format an echo's ability as readable text
-function formatAbility(echo) {
-  const t = getComponent('trigger',   echo.comp_trigger   || 'on_play');
-  const c = getComponent('condition', echo.comp_condition || 'always');
-  const e = getComponent('effect',    echo.comp_effect    || 'damage_boost');
-  if(!t||!c||!e) return null;
-  const cond = c.id==='always' ? '' : ` if ${c.desc.toLowerCase()}`;
-  return `${t.label}: ${e.desc}${cond}`;
-}
-
-// Assign random starter components to a newly generated echo
-function assignStarterComponents(echo) {
-  const trigs = Object.keys(COMPONENT_TRIGGERS);
-  const conds = Object.keys(COMPONENT_CONDITIONS);
-  const effs  = Object.keys(COMPONENT_EFFECTS);
-  // Bias by element
-  const el = echo.elements?.[0];
-  const triggerPick = el==='pale' ? 'pale_surge' : el==='water'||el==='wind' ? 'on_scan' :
-                      el==='fire' ? 'on_damage' : el==='earth'||el==='metal' ? 'on_hit' : 'on_play';
-  const effectPick  = el==='fire' ? 'damage_boost' : el==='water'||el==='metal' ? 'def_shield' :
-                      el==='pale' ? 'pale_charge' : el==='wood' ? 'restore' : 'damage_boost';
-  return {
-    ...echo,
-    comp_trigger:   triggerPick,
-    comp_condition: Math.random() < 0.4 ? 'always' : conds[Math.floor(Math.random()*conds.length)],
-    comp_effect:    effectPick,
-  };
-}
-
-
-// ── PIXEL ART ITEM ICON RENDERER ─────────────────────────────────────────
-function drawItemIcon(ctx, itemType, sz) {
-  sz = sz || 24;
-  const s = v => Math.round(v*sz/24);
-  ctx.clearRect(0,0,sz,sz);
-  const bg='#03070d';
-  ctx.fillStyle=bg; ctx.fillRect(0,0,sz,sz);
-
-  // Shared helpers using PalePixel
-  const P=PalePixel;
-
-  function sword(){
-    const b='#b8c4d8',sh='#5868a0',hl='#dce8ff',g='#8a6830',gs='#604820';
-    ctx.fillStyle=b;  ctx.fillRect(s(10),s(2),s(4),s(16));
-    ctx.fillStyle=hl; ctx.fillRect(s(10),s(2),s(2),s(16));
-    ctx.fillStyle=sh; ctx.fillRect(s(13),s(2),s(1),s(16));
-    ctx.fillStyle=hl; ctx.fillRect(s(11),s(1),s(2),s(1)); ctx.fillRect(s(11),s(0),s(1),s(1));
-    ctx.fillStyle=g;  ctx.fillRect(s(5),s(16),s(14),s(3));
-    ctx.fillStyle=_shift(g,+12,+0.05,+0.14); ctx.fillRect(s(5),s(16),s(14),s(1));
-    ctx.fillStyle=gs; ctx.fillRect(s(5),s(18),s(14),s(1));
-    ctx.fillStyle=g;  ctx.fillRect(s(9),s(19),s(6),s(4));
-    ctx.fillStyle=gs; ctx.fillRect(s(9),s(22),s(6),s(1));
-    ctx.fillStyle=_shift(g,+8,+0.03,+0.10); ctx.fillRect(s(10),s(19),s(3),s(1));
-  }
-  function axe(){
-    const st='#909898',sh='#505860',hl='#c8d0d8',w='#7a5030',ws='#503018';
-    ctx.fillStyle=w;  ctx.fillRect(s(11),s(3),s(3),s(19));
-    ctx.fillStyle=ws; ctx.fillRect(s(13),s(3),s(1),s(19));
-    ctx.fillStyle=_shift(w,+8,+0.03,+0.10); ctx.fillRect(s(11),s(3),s(1),s(19));
-    ctx.fillStyle=st; ctx.fillRect(s(5),s(3),s(11),s(13));
-    ctx.fillStyle=hl; ctx.fillRect(s(5),s(3),s(3),s(13));
-    ctx.fillStyle=sh; ctx.fillRect(s(14),s(3),s(2),s(13));
-    ctx.fillStyle=hl; ctx.fillRect(s(4),s(4),s(1),s(11));
-    ctx.fillStyle=sh; ctx.fillRect(s(6),s(3),s(10),s(1)); ctx.fillRect(s(6),s(15),s(10),s(1));
-  }
-  function shard(){
-    ctx.fillStyle='rgba(143,168,255,.15)'; ctx.fillRect(0,0,sz,sz);
-    const b='#6888d0',sh='#2840a0',hl='#a8c0f0',sp='rgba(220,240,255,.9)';
-    ctx.fillStyle=sh;
-    ctx.beginPath(); ctx.moveTo(s(12),s(1)); ctx.lineTo(s(19),s(9));
-    ctx.lineTo(s(16),s(22)); ctx.lineTo(s(8),s(22)); ctx.lineTo(s(5),s(9)); ctx.closePath(); ctx.fill();
-    ctx.fillStyle=b;
-    ctx.beginPath(); ctx.moveTo(s(12),s(2)); ctx.lineTo(s(18),s(10));
-    ctx.lineTo(s(15),s(21)); ctx.lineTo(s(9),s(21)); ctx.lineTo(s(6),s(10)); ctx.closePath(); ctx.fill();
-    ctx.fillStyle=hl;
-    ctx.beginPath(); ctx.moveTo(s(12),s(2)); ctx.lineTo(s(9),s(10));
-    ctx.lineTo(s(9),s(21)); ctx.lineTo(s(6),s(10)); ctx.closePath(); ctx.fill();
-    ctx.fillStyle=sp; ctx.fillRect(s(11),s(3),s(2),s(7));
-    ctx.fillStyle='rgba(143,168,255,.35)'; ctx.fillRect(s(9),s(9),s(5),s(10));
-  }
-  function helmet(){
-    const b='#606878',sh='#383e48',hl='#9098a8',sp='#c0c8d8';
-    P.bCircle(ctx,s(12),s(10),s(8),sh);
-    P.bCircle(ctx,s(12),s(9),s(7),b);
-    P.bCircle(ctx,s(11),s(8),s(5),hl);
-    ctx.fillStyle=sp; ctx.fillRect(s(10),s(3),s(4),s(3));
-    ctx.fillStyle=sh; ctx.fillRect(s(7),s(13),s(10),s(2));
-    ctx.fillStyle='#0a0a14'; ctx.fillRect(s(8),s(13),s(8),s(1));
-    ctx.fillStyle=b; ctx.fillRect(s(4),s(14),s(4),s(6)); ctx.fillRect(s(16),s(14),s(4),s(6));
-    ctx.fillStyle=sh; ctx.fillRect(s(7),s(14),s(1),s(5)); ctx.fillRect(s(16),s(14),s(1),s(5));
-    ctx.fillStyle=hl; ctx.fillRect(s(4),s(14),s(1),s(5)); ctx.fillRect(s(19),s(14),s(1),s(5));
-  }
-  function robe(){
-    const b='#3a5a8a',sh='#1a2a4a',hl='#6888b8',tr='#a07830',mk='rgba(143,168,255,.45)';
-    ctx.fillStyle=b;  ctx.fillRect(s(7),s(7),s(10),s(15));
-    ctx.fillStyle=sh; ctx.fillRect(s(14),s(7),s(3),s(15));
-    ctx.fillStyle=hl; ctx.fillRect(s(7),s(7),s(3),s(13));
-    P.bCircle(ctx,s(12),s(7),s(5),sh);
-    P.bCircle(ctx,s(11),s(6),s(4),b);
-    ctx.fillStyle=hl; ctx.fillRect(s(8),s(3),s(3),s(4));
-    ctx.fillStyle=tr; ctx.fillRect(s(7),s(7),s(10),s(1)); ctx.fillRect(s(7),s(21),s(10),s(1));
-    ctx.fillStyle=mk; ctx.fillRect(s(10),s(11),s(4),s(6));
-    ctx.fillStyle='rgba(200,220,255,.25)'; ctx.fillRect(s(11),s(12),s(2),s(4));
-  }
-  function boots(){
-    const b='#4a3820',sh='#2a2010',hl='#7a5a30',sl='#181410';
-    ctx.fillStyle=b;  ctx.fillRect(s(4),s(7),s(6),s(13)); ctx.fillRect(s(14),s(7),s(6),s(13));
-    ctx.fillStyle=hl; ctx.fillRect(s(4),s(7),s(2),s(11)); ctx.fillRect(s(14),s(7),s(2),s(11));
-    ctx.fillStyle=sh; ctx.fillRect(s(9),s(7),s(1),s(13)); ctx.fillRect(s(19),s(7),s(1),s(13));
-    ctx.fillStyle=b;  ctx.fillRect(s(2),s(17),s(8),s(5)); ctx.fillRect(s(14),s(17),s(8),s(5));
-    ctx.fillStyle=sl; ctx.fillRect(s(2),s(21),s(8),s(1)); ctx.fillRect(s(14),s(21),s(8),s(1));
-    ctx.fillStyle=hl; ctx.fillRect(s(2),s(17),s(3),s(1)); ctx.fillRect(s(14),s(17),s(3),s(1));
-  }
-  function pendant(){
-    const ch='#a07830',chs='#604820',gm='#38bdf8',gms='#1060a0',gmh='#a0e8ff';
-    ctx.fillStyle=ch;
-    for(let i=0;i<6;i++) ctx.fillRect(s(11+i%2),s(2+i*2),s(2),s(1));
-    ctx.fillStyle=ch;  ctx.fillRect(s(9),s(14),s(6),s(7));
-    ctx.fillStyle=chs; ctx.fillRect(s(13),s(14),s(2),s(7));
-    ctx.fillStyle=_shift(ch,+10,+0.04,+0.12); ctx.fillRect(s(9),s(14),s(2),s(5));
-    ctx.fillStyle=gm;  ctx.fillRect(s(10),s(15),s(4),s(4));
-    ctx.fillStyle=gms; ctx.fillRect(s(12),s(17),s(2),s(2));
-    ctx.fillStyle=gmh; ctx.fillRect(s(10),s(15),s(2),s(2));
-    ctx.fillStyle='rgba(200,240,255,.6)'; ctx.fillRect(s(11),s(15),s(1),s(1));
-  }
-  function herb(){
-    const st='#3a6020',lf='#4a8028',lfh='#78c040',lfs='#284010';
-    ctx.fillStyle=st; ctx.fillRect(s(11),s(10),s(2),s(12));
-    [[7,8],[5,13],[8,17]].forEach(([lx,ly])=>{
-      ctx.fillStyle=lfs; ctx.fillRect(s(lx-1),s(ly),s(6),s(4));
-      ctx.fillStyle=lf;  ctx.fillRect(s(lx),s(ly-1),s(5),s(3));
-      ctx.fillStyle=lfh; ctx.fillRect(s(lx),s(ly-1),s(2),s(1));
-      ctx.fillStyle=lfs; ctx.fillRect(s(23-lx-4),s(ly),s(6),s(4));
-      ctx.fillStyle=lf;  ctx.fillRect(s(23-lx-4),s(ly-1),s(5),s(3));
-    });
-    ctx.fillStyle='#f8c840'; ctx.fillRect(s(10),s(6),s(4),s(4));
-    ctx.fillStyle='#fff0a0'; ctx.fillRect(s(11),s(6),s(2),s(2));
-  }
-  function coin(){
-    const b='#c8a030',sh='#805010',hl='#f0d060',sp='#fff0a0';
-    P.bCircle(ctx,s(12),s(12),s(9),sh);
-    P.bCircle(ctx,s(12),s(11),s(8),b);
-    P.bCircle(ctx,s(11),s(10),s(6),hl);
-    ctx.fillStyle=sp; ctx.fillRect(s(9),s(7),s(4),s(2));
-    ctx.fillStyle=sh; ctx.fillRect(s(10),s(10),s(4),s(4));
-    ctx.fillStyle=b;
-    ctx.fillRect(s(11),s(10),s(2),s(1)); ctx.fillRect(s(11),s(13),s(2),s(1));
-    ctx.fillRect(s(10),s(11),s(1),s(2)); ctx.fillRect(s(13),s(11),s(1),s(2));
-  }
-
-  const typeMap = {
-    iron_bar:'sword',rusted_pipe:'sword',traders_knife:'sword',scrap_blade:'sword',
-    raiders_axe:'axe',bone_club:'axe',
-    pale_shard_w:'shard',signal_blade:'shard',pale_shard:'shard',
-    scrap_vest:'robe',pale_wrap:'robe',
-    iron_cap:'helmet',pale_hood:'helmet',
-    iron_greaves:'boots',
-    blue_covenant:'pendant',
-    herbs:'herb',hollow_coin:'coin',
-  };
-  const fn = {sword,axe,shard,helmet,robe,boots,pendant,herb,coin};
-  const key = typeMap[itemType] || (itemType in fn ? itemType : 'shard');
-  if(fn[key]) fn[key]();
-}
-window.drawItemIcon = drawItemIcon;
-
 
 // ── CARD GENERATOR ────────────────────────────────────────────────────────────────
 function generateCard(cardType, isAberrant = false, alignmentStr = "neutral") {
@@ -1888,7 +1085,7 @@ function generateCard(cardType, isAberrant = false, alignmentStr = "neutral") {
       spd = 20 + rng(0, 56);
     const names = ["Ashform", "Deepcurrent", "Ironveil", "Glasspecter", "Driftmantle", "Tidecall", "Stonewraith", "Windsorow", "Emberveil", "Veilpeak", "Hollowpeak", "Staticweave", "Paleshard", "Nullcrest", "Rimewarden", "Solarbind", "Duskmantle"];
     const traits = ["First Strike: This Echo attacks before the opponent on this tile.", "Barrier: Block 3 damage once per battle.", "Pulse: Deals 1 damage to adjacent rival Echoes on deploy.", "Leech: Gain 2 HP when this Echo deals damage.", "Phase: Ignores all terrain effects on all tiles.", "Anchor: This Echo cannot be repositioned by Command cards."];
-    const _baseEcho = {
+    return {
       id: `echo_${Date.now()}`,
       cardType: "echo",
       name: pick(names),
@@ -1902,15 +1099,11 @@ function generateCard(cardType, isAberrant = false, alignmentStr = "neutral") {
       trait: pick(traits),
       isAberrant,
       isResonant: false,
-      comp_trigger: 'on_play',
-      comp_condition: 'always',
-      comp_effect: 'damage_boost',
       ...(isAberrant ? {
         flux: rng(0, 10),
         ancient: Math.random() < 0.18
       } : {})
     };
-    return typeof assignStarterComponents !== 'undefined' ? assignStarterComponents(_baseEcho) : _baseEcho;
   }
   if (cardType === "equipment") {
     const statKeys = ["power", "defense", "speed", "majic"],
@@ -2152,8 +1345,8 @@ function EchoArt({ element, rarity, name, size, priEl, al, echo }) {
 
     function draw() {
       frameRef.current++;
-      ctx.clearRect(0, 0, sz, sz);
-      PalePixel.drawEchoPortrait(ctx, element, rarity, name, frameRef.current, sz);
+      ctx.clearRect(0, 0, 32, 32);
+      PalePixel.drawEchoPortrait(ctx, element, rarity, name, frameRef.current);
       rafRef.current = requestAnimationFrame(draw);
     }
     draw();
@@ -2176,8 +1369,8 @@ function EchoArt({ element, rarity, name, size, priEl, al, echo }) {
     // The pixel canvas — 32×32 scaled up via CSS
     React.createElement('canvas', {
       ref: canvasRef,
-      width: sz,
-      height: sz,
+      width: 32,
+      height: 32,
       style: {
         width: sz * 0.85,
         height: sz * 0.85,
@@ -2423,26 +1616,7 @@ function EchoCard({
       color: C.muted,
       flexWrap: "wrap"
     }
-  }, /*#__PURE__*/React.createElement("span", null, "P:", echo.power + getAlignmentBonus(echo)), /*#__PURE__*/React.createElement("span", null, "D:", echo.defense), /*#__PURE__*/React.createElement("span", null, "S:", echo.speed))), echo.ability && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 4,
-      padding: "3px 5px",
-      background: (echo.ability.color || "#8fa8ff") + "15",
-      borderRadius: 3,
-      borderLeft: "2px solid " + (echo.ability.color || "#8fa8ff") + "60",
-      display: "flex",
-      flexDirection: "column",
-      gap: 1
-    }
-  },
-    /*#__PURE__*/React.createElement("div", { style:{ fontFamily: "'Share Tech Mono',monospace", fontSize: 5, color: echo.ability.color || "#8fa8ff", letterSpacing: 1, opacity: 0.8 } },
-      "◈ ON " + echo.ability.trigger
-    ),
-    /*#__PURE__*/React.createElement("div", { style:{ fontFamily: "'Share Tech Mono',monospace", fontSize: 5, color: "#d8ecfc", opacity: 0.75 } },
-      echo.ability.effect
-    )
-  ),
-  modal && /*#__PURE__*/React.createElement(GModal, {
+  }, /*#__PURE__*/React.createElement("span", null, "P:", echo.power + getAlignmentBonus(echo)), /*#__PURE__*/React.createElement("span", null, "D:", echo.defense), /*#__PURE__*/React.createElement("span", null, "S:", echo.speed))), modal && /*#__PURE__*/React.createElement(GModal, {
     term: modal,
     onClose: () => setModal(null)
   }));
@@ -2583,17 +1757,7 @@ function PaleCard({
     style: {
       fontSize: lg ? 22 : 16
     }
-  }, card.cardType === "gate"
-    ? /*#__PURE__*/React.createElement("canvas", {
-        width:32,height:32,
-        style:{width:lg?28:20,height:lg?28:20,imageRendering:"pixelated"},
-        ref: el => { if(el){ const ctx=el.getContext("2d"); if(window.drawItemIcon) window.drawItemIcon(ctx,"shard",32); }}
-      })
-    : /*#__PURE__*/React.createElement("canvas", {
-        width:32,height:32,
-        style:{width:lg?28:20,height:lg?28:20,imageRendering:"pixelated"},
-        ref: el => { if(el && card.id){ const ctx=el.getContext("2d"); if(window.drawItemIcon) window.drawItemIcon(ctx,card.id,32); }}
-      })), els.length > 0 && /*#__PURE__*/React.createElement("span", {
+  }, card.cardType === "gate" ? "⬡" : priI || tm.icon), els.length > 0 && /*#__PURE__*/React.createElement("span", {
     style: {
       fontFamily: F.m,
       fontSize: 6,
@@ -3382,193 +2546,269 @@ function AlignmentSelect({
 }
 
 // ── HOME SCREEN ───────────────────────────────────────────────────────────────────
-function HomeScreen({ nav, alignment, season, echoes, scanStamina, paleReach }) {
+function HomeScreen({
+  nav,
+  alignment,
+  season,
+  echoes,
+  scanStamina,
+  paleReach
+}) {
   const al = alOf(alignment || "neutral");
-  const totalEchoes = echoes ? echoes.length : 0;
-  const MAX_STAMINA = 5;
-  const sFilled = typeof scanStamina === 'number' ? scanStamina : 2;
-  const rFilled = typeof paleReach === 'number' ? paleReach : 1;
-
-  return React.createElement("div", { style:{ minHeight:"100vh", background:C.bg, overflowX:"hidden", paddingBottom:80 } },
-
-    // ── Ambient scanlines overlay
-    React.createElement("div", { style:{
-      position:"fixed", inset:0, pointerEvents:"none", zIndex:0,
-      background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(56,189,248,0.012) 2px,rgba(56,189,248,0.012) 3px)"
-    }}),
-
-    // ── Season tag
-    React.createElement("div", { style:{
-      padding:"14px 20px 0", display:"flex", justifyContent:"space-between",
-      alignItems:"center", position:"relative", zIndex:1
-    }},
-      React.createElement("div", { style:{
-        fontFamily:F.m, fontSize:6, color:C.muted, letterSpacing:3,
-        display:"flex", alignItems:"center", gap:6
-      }},
-        React.createElement("span", { style:{
-          display:"inline-block", width:5, height:5, borderRadius:"50%",
-          background: al.c, boxShadow:`0 0 6px ${al.c}`
-        }}),
-        `SEASON: ${(season||"SIGNAL ZERO").toUpperCase()}`
-      ),
-      React.createElement("div", { style:{
-        fontFamily:F.m, fontSize:5, color:C.muted, letterSpacing:1
-      }}, `${totalEchoes} ECHO${totalEchoes!==1?"ES":""}`)
-    ),
-
-    // ── Hero
-    React.createElement("div", { style:{
-      textAlign:"center", padding:"36px 20px 28px", position:"relative", zIndex:1
-    }},
-      // Vertical accent line above title
-      React.createElement("div", { style:{
-        width:1, height:28, background:`linear-gradient(to bottom,transparent,${C.accent}60)`,
-        margin:"0 auto 16px"
-      }}),
-      React.createElement("div", { style:{
-        fontFamily:F.d, fontSize:60, fontWeight:900, color:C.accent,
-        letterSpacing:10, lineHeight:1,
-        animation:"breath 4s ease-in-out infinite",
-        textShadow:`0 0 40px ${C.accent}30`
-      }}, "PALE"),
-      React.createElement("div", { style:{
-        fontFamily:F.d, fontSize:22, fontWeight:700, color:C.text,
-        letterSpacing:12, marginBottom:8
-      }}, "SIGNAL"),
-      React.createElement("div", { style:{
-        fontFamily:F.m, fontSize:6, color:C.muted, letterSpacing:4
-      }}, "SCAN · BUILD · SEIZE THE PALE"),
-      // Horizontal accent line below subtitle
-      React.createElement("div", { style:{
-        width:60, height:1,
-        background:`linear-gradient(to right,transparent,${C.accent}50,transparent)`,
-        margin:"14px auto 0"
-      }})
-    ),
-
-    // ── Action buttons
-    React.createElement("div", { style:{ padding:"0 16px", display:"flex", gap:10, marginBottom:14, position:"relative", zIndex:1 }},
-      React.createElement("button", {
-        className:"scan-btn",
-        onClick: ()=>nav("scan"),
-        style:{flex:1, padding:"18px 0", borderRadius:8, fontSize:8, letterSpacing:2,
-               display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-               fontFamily:F.m, background:`${C.accent}0e`, border:`1px solid ${C.accent}40`,
-               color:C.accent, transition:"all .15s"}
-      },
-        React.createElement("svg",{width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2},
-          React.createElement("circle",{cx:11,cy:11,r:8}),
-          React.createElement("line",{x1:21,y1:21,x2:16.65,y2:16.65})
-        ),
-        "SCAN ECHO"
-      ),
-      React.createElement("button", {
-        onClick: ()=>nav("rivals"),
-        style:{flex:1, padding:"18px 0", borderRadius:8, fontSize:8, letterSpacing:2,
-               display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-               fontFamily:F.m, background:`${C.danger}08`, border:`1px solid ${C.danger}35`,
-               color:C.danger, transition:"all .15s"}
-      },
-        React.createElement("svg",{width:14,height:14,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2},
-          React.createElement("path",{d:"M14.5 17.5L3 6V3h3l11.5 11.5"}),
-          React.createElement("path",{d:"M13 19l6-6"}),
-          React.createElement("path",{d:"M16 16l3.5 3.5"})
-        ),
-        "CHALLENGE RIVAL"
-      )
-    ),
-
-    // ── Status panel
-    React.createElement("div", { style:{
-      margin:"0 16px 14px",
-      background:`${C.surface}cc`, border:`1px solid ${C.border}`,
-      borderRadius:8, padding:"12px 14px", position:"relative", zIndex:1
-    }},
-      // Scan Stamina
-      React.createElement("div", { style:{display:"flex", alignItems:"center", gap:10, marginBottom:8}},
-        React.createElement("div", { style:{ fontFamily:F.m, fontSize:5, color:C.muted, letterSpacing:1, width:80, flexShrink:0 }}, "SCAN STAMINA"),
-        React.createElement("div", { style:{display:"flex", gap:3, flex:1}},
-          ...[...Array(MAX_STAMINA)].map((_,i)=>
-            React.createElement("div", { key:i, style:{
-              height:4, flex:1, borderRadius:1,
-              background: i<sFilled ? C.accent : "rgba(56,189,248,0.10)",
-              boxShadow: i<sFilled ? `0 0 4px ${C.accent}60` : "none",
-              transition:"background .3s"
-            }})
-          )
-        ),
-        React.createElement("div", { style:{ fontFamily:F.m, fontSize:5, color:C.muted, marginLeft:4 }}, `${sFilled}/${MAX_STAMINA}`)
-      ),
-      // Pale Reach
-      React.createElement("div", { style:{display:"flex", alignItems:"center", gap:10}},
-        React.createElement("div", { style:{ fontFamily:F.m, fontSize:5, color:C.muted, letterSpacing:1, width:80, flexShrink:0 }}, "PALE REACH"),
-        React.createElement("div", { style:{display:"flex", gap:3, flex:1}},
-          ...[...Array(MAX_STAMINA)].map((_,i)=>
-            React.createElement("div", { key:i, style:{
-              height:4, flex:1, borderRadius:1,
-              background: i<rFilled ? C.danger : "rgba(248,113,113,0.10)",
-              boxShadow: i<rFilled ? `0 0 4px ${C.danger}60` : "none",
-              transition:"background .3s"
-            }})
-          )
-        ),
-        React.createElement("div", { style:{ fontFamily:F.m, fontSize:5, color:C.muted, marginLeft:4 }}, `${rFilled}/${MAX_STAMINA}`)
-      )
-    ),
-
-    // ── Navigation tiles
-    React.createElement("div", { style:{ display:"flex", gap:8, padding:"0 16px", marginBottom:14, position:"relative", zIndex:1 }},
-      ...[
-        { label:"ECHOES", icon:"◈", sub:`${totalEchoes} collected`, dest:"echoes", color:C.accent },
-        { label:"LEGION", icon:"⊞", sub:"build deck", dest:"legion", color:C.purple },
-        { label:"CODEX", icon:"?", sub:"field manual", dest:"codex", color:C.muted },
-      ].map(btn=>React.createElement("button", {
-        key:btn.dest,
-        onClick:()=>nav(btn.dest),
-        style:{
-          flex:1, padding:"12px 6px", borderRadius:7,
-          background:"rgba(12,21,32,0.70)", border:`1px solid ${C.border}`,
-          display:"flex", flexDirection:"column", alignItems:"center", gap:5,
-          transition:"all .15s", cursor:"pointer"
-        }
-      },
-        React.createElement("span", { style:{ fontFamily:F.m, fontSize:10, color:btn.color }}, btn.icon),
-        React.createElement("span", { style:{ fontFamily:F.m, fontSize:5, color:btn.color, letterSpacing:1 }}, btn.label),
-        React.createElement("span", { style:{ fontFamily:F.m, fontSize:5, color:C.muted }}, btn.sub)
-      ))
-    ),
-
-    // ── Recent echoes preview row
-    totalEchoes > 0 && React.createElement("div", { style:{ padding:"0 16px", position:"relative", zIndex:1 }},
-      React.createElement("div", { style:{
-        fontFamily:F.m, fontSize:5, color:C.muted, letterSpacing:2, marginBottom:8
-      }}, "RECENT ECHOES"),
-      React.createElement("div", { style:{ display:"flex", gap:8, overflowX:"auto", paddingBottom:4 }},
-        echoes.slice(-5).reverse().map(echo=>
-          React.createElement(EchoCard, { key:echo.id, echo:echo, size:"sm", onClick:()=>nav("echoes") })
-        )
-      )
-    ),
-
-    // ── Footer
-    React.createElement("div", { style:{
-      padding:"16px 20px 0", display:"flex", justifyContent:"space-between", alignItems:"center",
-      position:"relative", zIndex:1
-    }},
-      React.createElement("div", { style:{ fontFamily:F.m, fontSize:5, color:C.muted, letterSpacing:1 }},
-        `◈ ${(alignment||"NEUTRAL").toUpperCase()} · ${totalEchoes} ECHOES`
-      ),
-      React.createElement("button", {
-        onClick:()=>nav("home"),
-        style:{ fontFamily:F.m, fontSize:5, color:C.muted, background:"none", border:"none", letterSpacing:1 }
-      }, "v1.3 ← HUB")
-    ),
-    React.createElement(NavBar, { nav:nav, cur:"home" })
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      background: C.bg,
+      paddingBottom: 72,
+      maxWidth: 480,
+      margin: "0 auto",
+      position: "relative",
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      inset: 0,
+      overflow: "hidden",
+      pointerEvents: "none"
+    }
+  }, [...Array(7)].map((_, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      position: "absolute",
+      left: `${i * 16}%`,
+      top: "5%",
+      width: 1,
+      height: "90%",
+      background: C.accent,
+      opacity: .015
+    }
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "12px 20px 0",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: F.m,
+      fontSize: 7,
+      color: C.muted,
+      letterSpacing: 3
+    }
+  }, "SEASON: ", (season || "SIGNAL ZERO").toUpperCase(), " \u25CF")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      padding: "32px 20px 24px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: F.d,
+      fontSize: 54,
+      fontWeight: 900,
+      color: C.accent,
+      letterSpacing: 8,
+      lineHeight: 1,
+      animation: "breath 4s ease-in-out infinite"
+    }
+  }, "PALE"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: F.d,
+      fontSize: 24,
+      fontWeight: 700,
+      color: C.text,
+      letterSpacing: 10,
+      marginBottom: 6
+    }
+  }, "SIGNAL"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: F.m,
+      fontSize: 7,
+      color: C.muted,
+      letterSpacing: 4
+    }
+  }, "SCAN \xB7 BUILD \xB7 SEIZE THE PALE")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "0 20px",
+      display: "flex",
+      gap: 12,
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => nav("scan"),
+    style: {
+      flex: 1,
+      padding: "14px 0",
+      background: `${C.accent}12`,
+      border: `1px solid ${C.accent}44`,
+      borderRadius: 10,
+      cursor: "pointer",
+      fontFamily: F.d,
+      fontSize: 11,
+      color: C.accent,
+      letterSpacing: 2
+    }
+  }, "\u2B21 SCAN ECHO"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => nav("rivals"),
+    style: {
+      flex: 1,
+      padding: "14px 0",
+      background: `${C.danger}0a`,
+      border: `1px solid ${C.danger}33`,
+      borderRadius: 10,
+      cursor: "pointer",
+      fontFamily: F.d,
+      fontSize: 11,
+      color: C.danger,
+      letterSpacing: 2
+    }
+  }, "\u2694 CHALLENGE RIVAL")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "0 20px",
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.surface,
+      border: `1px solid ${C.border}`,
+      borderRadius: 10,
+      padding: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: F.m,
+      fontSize: 7,
+      color: C.muted,
+      letterSpacing: 3,
+      marginBottom: 8
+    }
+  }, "SCAN STAMINA"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 6,
+      marginBottom: 12
+    }
+  }, [0, 1].map(i => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      flex: 1,
+      height: 6,
+      borderRadius: 3,
+      background: i < scanStamina ? C.accent : C.border
+    }
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: F.m,
+      fontSize: 7,
+      color: C.muted,
+      letterSpacing: 3,
+      marginBottom: 8
+    }
+  }, "PALE REACH"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 4
+    }
+  }, [0, 1, 2, 3, 4].map(i => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      flex: 1,
+      height: 6,
+      borderRadius: 3,
+      background: i < paleReach ? C.danger : C.border
+    }
+  }))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "0 20px",
+      display: "flex",
+      gap: 8,
+      marginBottom: 20
+    }
+  }, [{
+    icon: "◈",
+    label: "ECHOES",
+    screen: "library"
+  }, {
+    icon: "⊞",
+    label: "LEGION",
+    screen: "deck"
+  }, {
+    icon: "?",
+    label: "CODEX",
+    screen: "glossary"
+  }].map(({
+    icon,
+    label,
+    screen
+  }) => /*#__PURE__*/React.createElement("button", {
+    key: screen,
+    onClick: () => nav(screen),
+    style: {
+      flex: 1,
+      padding: "10px 0",
+      background: C.surface,
+      border: `1px solid ${C.border}`,
+      borderRadius: 8,
+      cursor: "pointer",
+      fontFamily: F.m,
+      fontSize: 8,
+      color: C.muted,
+      letterSpacing: 2
+    }
+  }, icon, " ", label))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "0 20px",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    onClick: () => nav("profile"),
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      cursor: "pointer",
+      opacity: .6
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: al.c
+    }
+  }, al.icon), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: F.m,
+      fontSize: 7,
+      color: C.muted,
+      letterSpacing: 2
+    }
+  }, al.label, " \xB7 ", echoes.length, " ECHOES")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: F.m,
+      fontSize: 7,
+      color: C.border
+    }
+  }, "v1.2"), /*#__PURE__*/React.createElement("a", {
+    href: "index.html",
+    style: {
+      fontFamily: F.m,
+      fontSize: 6,
+      color: C.muted,
+      textDecoration: "none",
+      letterSpacing: 1
+    }
+  }, "\u2190 HUB"))));
 }
 
-
+// ── SCAN SCREEN ───────────────────────────────────────────────────────────────────
 function ScanScreen({
   nav,
   onCardCreated,
@@ -4254,26 +3494,7 @@ function LibraryScreen({
     onClick: () => nav('upload'),
     v: "ghost",
     full: true
-  }, "\u2191 SUBMIT TO PALE LIBRARY")), echo.ability && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 4,
-      padding: "3px 5px",
-      background: (echo.ability.color || "#8fa8ff") + "15",
-      borderRadius: 3,
-      borderLeft: "2px solid " + (echo.ability.color || "#8fa8ff") + "60",
-      display: "flex",
-      flexDirection: "column",
-      gap: 1
-    }
-  },
-    /*#__PURE__*/React.createElement("div", { style:{ fontFamily: "'Share Tech Mono',monospace", fontSize: 5, color: echo.ability.color || "#8fa8ff", letterSpacing: 1, opacity: 0.8 } },
-      "◈ ON " + echo.ability.trigger
-    ),
-    /*#__PURE__*/React.createElement("div", { style:{ fontFamily: "'Share Tech Mono',monospace", fontSize: 5, color: "#d8ecfc", opacity: 0.75 } },
-      echo.ability.effect
-    )
-  ),
-  modal && /*#__PURE__*/React.createElement(GModal, {
+  }, "\u2191 SUBMIT TO PALE LIBRARY")), modal && /*#__PURE__*/React.createElement(GModal, {
     term: modal,
     onClose: () => setModal(null)
   }));
@@ -4495,7 +3716,7 @@ function DeckScreen({
       style: {
         fontSize: 12
       }
-    }, React.createElement(ElementIcon, {element: f, size: 14})), /*#__PURE__*/React.createElement("div", {
+    }, el.i), /*#__PURE__*/React.createElement("div", {
       style: {
         fontFamily: F.m,
         fontSize: 7,
@@ -4731,26 +3952,7 @@ function DeckScreen({
         }
       }, card.effect));
     })));
-  })(), echo.ability && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 4,
-      padding: "3px 5px",
-      background: (echo.ability.color || "#8fa8ff") + "15",
-      borderRadius: 3,
-      borderLeft: "2px solid " + (echo.ability.color || "#8fa8ff") + "60",
-      display: "flex",
-      flexDirection: "column",
-      gap: 1
-    }
-  },
-    /*#__PURE__*/React.createElement("div", { style:{ fontFamily: "'Share Tech Mono',monospace", fontSize: 5, color: echo.ability.color || "#8fa8ff", letterSpacing: 1, opacity: 0.8 } },
-      "◈ ON " + echo.ability.trigger
-    ),
-    /*#__PURE__*/React.createElement("div", { style:{ fontFamily: "'Share Tech Mono',monospace", fontSize: 5, color: "#d8ecfc", opacity: 0.75 } },
-      echo.ability.effect
-    )
-  ),
-  modal && /*#__PURE__*/React.createElement(GModal, {
+  })(), modal && /*#__PURE__*/React.createElement(GModal, {
     term: modal,
     onClose: () => setModal(null)
   }));
@@ -4931,7 +4133,7 @@ function LegionSetup({
       style: {
         fontSize: 14
       }
-    }, React.createElement(ElementIcon, {element: f, size: 14})), /*#__PURE__*/React.createElement("div", {
+    }, el.i), /*#__PURE__*/React.createElement("div", {
       style: {
         fontFamily: F.m,
         fontSize: 6,
@@ -4951,26 +4153,7 @@ function LegionSetup({
     v: ready ? "solid" : "ghost",
     full: true,
     disabled: !ready
-  }, ready ? "→ CHOOSE RIVAL" : `PLACE ${6 - placed.length} MORE`), echo.ability && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 4,
-      padding: "3px 5px",
-      background: (echo.ability.color || "#8fa8ff") + "15",
-      borderRadius: 3,
-      borderLeft: "2px solid " + (echo.ability.color || "#8fa8ff") + "60",
-      display: "flex",
-      flexDirection: "column",
-      gap: 1
-    }
-  },
-    /*#__PURE__*/React.createElement("div", { style:{ fontFamily: "'Share Tech Mono',monospace", fontSize: 5, color: echo.ability.color || "#8fa8ff", letterSpacing: 1, opacity: 0.8 } },
-      "◈ ON " + echo.ability.trigger
-    ),
-    /*#__PURE__*/React.createElement("div", { style:{ fontFamily: "'Share Tech Mono',monospace", fontSize: 5, color: "#d8ecfc", opacity: 0.75 } },
-      echo.ability.effect
-    )
-  ),
-  modal && /*#__PURE__*/React.createElement(GModal, {
+  }, ready ? "→ CHOOSE RIVAL" : `PLACE ${6 - placed.length} MORE`), modal && /*#__PURE__*/React.createElement(GModal, {
     term: modal,
     onClose: () => setModal(null)
   }));
@@ -5125,26 +4308,7 @@ function RivalsScreen({
         letterSpacing: 2
       }
     }, "\u2694 CHALLENGE ", rival.name)));
-  }), echo.ability && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 4,
-      padding: "3px 5px",
-      background: (echo.ability.color || "#8fa8ff") + "15",
-      borderRadius: 3,
-      borderLeft: "2px solid " + (echo.ability.color || "#8fa8ff") + "60",
-      display: "flex",
-      flexDirection: "column",
-      gap: 1
-    }
-  },
-    /*#__PURE__*/React.createElement("div", { style:{ fontFamily: "'Share Tech Mono',monospace", fontSize: 5, color: echo.ability.color || "#8fa8ff", letterSpacing: 1, opacity: 0.8 } },
-      "◈ ON " + echo.ability.trigger
-    ),
-    /*#__PURE__*/React.createElement("div", { style:{ fontFamily: "'Share Tech Mono',monospace", fontSize: 5, color: "#d8ecfc", opacity: 0.75 } },
-      echo.ability.effect
-    )
-  ),
-  modal && /*#__PURE__*/React.createElement(GModal, {
+  }), modal && /*#__PURE__*/React.createElement(GModal, {
     term: modal,
     onClose: () => setModal(null)
   }));
@@ -5424,26 +4588,7 @@ function BattleScreen({
     onClick: () => nav("rivals"),
     v: "ghost",
     sz: "sm"
-  }, "RETREAT"))), echo.ability && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 4,
-      padding: "3px 5px",
-      background: (echo.ability.color || "#8fa8ff") + "15",
-      borderRadius: 3,
-      borderLeft: "2px solid " + (echo.ability.color || "#8fa8ff") + "60",
-      display: "flex",
-      flexDirection: "column",
-      gap: 1
-    }
-  },
-    /*#__PURE__*/React.createElement("div", { style:{ fontFamily: "'Share Tech Mono',monospace", fontSize: 5, color: echo.ability.color || "#8fa8ff", letterSpacing: 1, opacity: 0.8 } },
-      "◈ ON " + echo.ability.trigger
-    ),
-    /*#__PURE__*/React.createElement("div", { style:{ fontFamily: "'Share Tech Mono',monospace", fontSize: 5, color: "#d8ecfc", opacity: 0.75 } },
-      echo.ability.effect
-    )
-  ),
-  modal && /*#__PURE__*/React.createElement(GModal, {
+  }, "RETREAT"))), modal && /*#__PURE__*/React.createElement(GModal, {
     term: modal,
     onClose: () => setModal(null)
   }));
@@ -5588,26 +4733,7 @@ function ProfileScreen({
         letterSpacing: 2
       }
     }, "CURRENT ALIGNMENT")));
-  }), echo.ability && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 4,
-      padding: "3px 5px",
-      background: (echo.ability.color || "#8fa8ff") + "15",
-      borderRadius: 3,
-      borderLeft: "2px solid " + (echo.ability.color || "#8fa8ff") + "60",
-      display: "flex",
-      flexDirection: "column",
-      gap: 1
-    }
-  },
-    /*#__PURE__*/React.createElement("div", { style:{ fontFamily: "'Share Tech Mono',monospace", fontSize: 5, color: echo.ability.color || "#8fa8ff", letterSpacing: 1, opacity: 0.8 } },
-      "◈ ON " + echo.ability.trigger
-    ),
-    /*#__PURE__*/React.createElement("div", { style:{ fontFamily: "'Share Tech Mono',monospace", fontSize: 5, color: "#d8ecfc", opacity: 0.75 } },
-      echo.ability.effect
-    )
-  ),
-  modal && /*#__PURE__*/React.createElement(GModal, {
+  }), modal && /*#__PURE__*/React.createElement(GModal, {
     term: modal,
     onClose: () => setModal(null)
   }));
@@ -5732,26 +4858,7 @@ function GlossaryScreen({
     color: C.dim,
     size: 12,
     onModal: setModal
-  })))), echo.ability && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 4,
-      padding: "3px 5px",
-      background: (echo.ability.color || "#8fa8ff") + "15",
-      borderRadius: 3,
-      borderLeft: "2px solid " + (echo.ability.color || "#8fa8ff") + "60",
-      display: "flex",
-      flexDirection: "column",
-      gap: 1
-    }
-  },
-    /*#__PURE__*/React.createElement("div", { style:{ fontFamily: "'Share Tech Mono',monospace", fontSize: 5, color: echo.ability.color || "#8fa8ff", letterSpacing: 1, opacity: 0.8 } },
-      "◈ ON " + echo.ability.trigger
-    ),
-    /*#__PURE__*/React.createElement("div", { style:{ fontFamily: "'Share Tech Mono',monospace", fontSize: 5, color: "#d8ecfc", opacity: 0.75 } },
-      echo.ability.effect
-    )
-  ),
-  modal && /*#__PURE__*/React.createElement(GModal, {
+  })))), modal && /*#__PURE__*/React.createElement(GModal, {
     term: modal,
     onClose: () => setModal(null)
   }));
@@ -5985,60 +5092,6 @@ function OnlineBanner() {
     }
   }, "\u2715"));
 }
-
-// ── RPG → TCG ECHO SYNC ───────────────────────────────────────────────
-// Reads pale_signal_v3 localStorage, converts capturedEchoes to TCG format.
-// Deduplication by id prevents double-import across sessions.
-
-const RPG_TRAITS = {
-  pale_wisp:          'Signal Drift: On deploy, target Echo loses 5 Speed until end of round.',
-  stone_crawler:      'Carapace: Reduce first 8 damage received each round.',
-  briar_sprite:       'Thorn Leap: On enter, deal 3 damage to one adjacent enemy Echo.',
-  veld_wraith:        'Phase Shift: 30% chance to avoid any single attack per turn.',
-  tidecrawler:        'Undertow: Adjacent enemies lose 5 Speed when this Echo attacks.',
-  ash_gecko:          'Ember Trail: Enemy struck takes +3 damage from Fire attacks this round.',
-  thornback:          'Barbed Shell: Any attacker takes 4 reflected damage.',
-  luma_moth:          'Light Dust: Adjacent allied Echoes gain +5 Speed.',
-  saltmire_eel:       'Ambush: First attack deals +15 damage if this Echo was not attacked last turn.',
-  dusk_heron:         'Lightning Strike: Speed is tripled for the first attack, then resets.',
-  ironshell_tortoise: 'Iron Bastion: Reduce all incoming damage by 10 (minimum 1).',
-  fenwick:            'Burrow: Ignores terrain speed penalties. Can move to any adjacent open tile.',
-  pale_deer:          'Pale Grace: Adjacent Pale-element Echoes gain +3 Power and +3 Speed.',
-};
-
-const RPG_ALIGN = {
-  pale:'light', fire:'light', wind:'light',
-  water:'dark', earth:'dark', metal:'dark',
-  wood:'neutral', null:'neutral',
-};
-
-function convertRPGEcho(e) {
-  try {
-    const el = e.element || 'null';
-    // Scale RPG stats (0-10) to TCG range (20-80)
-    const power   = Math.round(20 + Math.min(10, e.atk || 4) * 5.5);
-    const defense = Math.round(15 + Math.min(25, e.hp  || 15) * 2.2);
-    const speed   = Math.round(20 + Math.min(10, e.spd || 4) * 5.5);
-    return {
-      id:         e.id,
-      name:       e.name,
-      elements:   [el],
-      align:      RPG_ALIGN[el] || 'neutral',
-      power:      Math.min(90, power),
-      defense:    Math.min(90, defense),
-      speed:      Math.min(90, speed),
-      majic:      (e.wit||0) >= 5 ? 1 : 0,
-      rarity:     e.rarity || 'Common',
-      isAberrant: false,
-      isResonant: false,
-      trait:      RPG_TRAITS[e.type] || `Captured Signal: Echo retains the resonance of its origin.`,
-      cardType:   'echo',
-      deck:       'echo',
-      fromRPG:    true,
-    };
-  } catch(_) { return null; }
-}
-
 function App() {
   const [screen, setScreen] = useState("loading");
   const [alignment, setAlignment] = useState(LS.get('alignment') || null);
@@ -6080,31 +5133,6 @@ function App() {
       reset: Date.now() + 72000000
     });
   }, [paleReach]);
-  const [rpgImportCount, setRpgImportCount] = useState(0);
-  const [rpgBanner, setRpgBanner] = useState(false);
-
-  // Auto-sync from RPG on mount — reads pale_signal_v3, imports new capturedEchoes
-  useEffect(() => {
-    try {
-      const rpgRaw = localStorage.getItem('pale_signal_v3');
-      if (!rpgRaw) return;
-      const rpgData = JSON.parse(rpgRaw);
-      const captured = rpgData.capturedEchoes;
-      if (!captured || !captured.length) return;
-      setEchoes(prev => {
-        const existingIds = new Set(prev.map(e => e.id));
-        const fresh = captured.map(convertRPGEcho).filter(e => e && !existingIds.has(e.id));
-        if (fresh.length > 0) {
-          setRpgImportCount(fresh.length);
-          setRpgBanner(true);
-          setTimeout(() => setRpgBanner(false), 4000);
-          return [...prev, ...fresh];
-        }
-        return prev;
-      });
-    } catch(_) {}
-  }, []); // run once on mount
-
   function handleLoreEnd() {
     if (!alignment) setScreen("alignment-select");else setScreen("home");
   }
@@ -6199,17 +5227,9 @@ function App() {
       background: C.bg,
       minHeight: "100vh"
     }
-  }, /*#__PURE__*/React.createElement(OnlineBanner, null),
-    rpgBanner && React.createElement('div', {
-      style: {
-        position:'fixed', top:0, left:0, right:0, zIndex:9999,
-        background:'rgba(143,168,255,0.92)', color:'#05080f',
-        fontFamily:'monospace', fontSize:'13px', fontWeight:'bold',
-        textAlign:'center', padding:'10px', letterSpacing:'1px',
-        boxShadow:'0 2px 12px rgba(0,0,0,0.5)',
-      }
-    }, `◈ ${rpgImportCount} ECHO${rpgImportCount>1?'ES':''} IMPORTED FROM RPG`), SCREENS[screen] || SCREENS.home);
+  }, /*#__PURE__*/React.createElement(OnlineBanner, null), SCREENS[screen] || SCREENS.home);
 }
+ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/React.createElement(App, null));
 ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
 </script>
 </body>

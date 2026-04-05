@@ -1,13 +1,14 @@
 // PALE SIGNAL · Service Worker v2.18
 // Cache-first. Full offline. Single repo.
-// v2.23 — RPG v3.19 mobile-first fullscreen, hair fix, TCG v1.3 fallback launcher
-const CACHE = 'pale-signal-v2.23';
-const VERSION = '2.23';
+// v2.25 — fog fix (full-screen canvas), chin bleed fix, TCG touch fix
+const CACHE = 'pale-signal-v2.25';
+const VERSION = '2.25';
 
 const CORE = [
   './index.html',
   './PaleSignalRPG-v3_19.html',
   './PaleSignalTCG-v1_3.html',
+  './PaleSignalTCG-v1_2.html',
   './pixel-engine-v1_2.html',
   './chemistry-v1_1.html',
   './lib/pale-pixel.js',

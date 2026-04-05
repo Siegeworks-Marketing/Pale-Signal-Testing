@@ -882,21 +882,58 @@ canvas#screen {
   opacity:0.75;
   touch-action:none;
 }
-#dpad-overlay .dpad { width:108px; height:108px; }
-#dpad-overlay .dpad-arm { background:rgba(143,168,255,0.14); border-radius:4px; }
+/* ━━ D-PAD POSITIONAL LAYOUT — critical for touch targeting ━━━━━
+   These position:absolute rules were in the original GBA chrome CSS.
+   Without them, all 4 buttons stack on top of each other at (0,0).
+   The .dpad MUST be position:relative for child abs positions to work.
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#dpad-overlay .dpad {
+  position:relative !important;
+  width:108px; height:108px;
+}
+#dpad-overlay .dpad-arm {
+  position:absolute !important;
+  background:rgba(143,168,255,0.13);
+  border-radius:4px;
+}
 #dpad-overlay .dpad-h { width:108px; height:36px; top:36px; left:0; }
 #dpad-overlay .dpad-v { width:36px; height:108px; left:36px; top:0; }
-#dpad-overlay .dpad-center { width:36px; height:36px; top:36px; left:36px; background:rgba(6,8,18,0.55); }
-#dpad-overlay .dpad-btn { width:36px; height:36px; }
+#dpad-overlay .dpad-center {
+  position:absolute;
+  width:36px; height:36px; top:36px; left:36px;
+  background:rgba(4,6,16,0.65);
+  border-radius:2px;
+  z-index:1;
+}
+#dpad-overlay .dpad-btn {
+  position:absolute !important;
+  width:36px; height:36px;
+  background:transparent;
+  border:none;
+  cursor:pointer;
+  z-index:2;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:none;
+  display:flex; align-items:center; justify-content:center;
+}
 #dpad-overlay #btn-up    { top:0;    left:36px; }
 #dpad-overlay #btn-down  { bottom:0; left:36px; }
 #dpad-overlay #btn-left  { top:36px; left:0;    }
 #dpad-overlay #btn-right { top:36px; right:0;   }
-#dpad-overlay .dpad-btn::after { border-color:rgba(143,168,255,0.55) !important; }
+#dpad-overlay .dpad-btn::after {
+  content:'';
+  display:block;
+  border-style:solid;
+  border-color:rgba(143,168,255,0.5) !important;
+}
+#dpad-overlay #btn-up::after    { border-width:0 6px 10px 6px; border-color:transparent transparent rgba(143,168,255,0.55) transparent !important; }
+#dpad-overlay #btn-down::after  { border-width:10px 6px 0 6px; border-color:rgba(143,168,255,0.55) transparent transparent transparent !important; }
+#dpad-overlay #btn-left::after  { border-width:6px 10px 6px 0; border-color:transparent rgba(143,168,255,0.55) transparent transparent !important; }
+#dpad-overlay #btn-right::after { border-width:6px 0 6px 10px; border-color:transparent transparent transparent rgba(143,168,255,0.55) !important; }
 #dpad-overlay .dpad-btn:active::after,
 #dpad-overlay .dpad-btn.held::after {
   border-color:var(--pale) !important;
-  filter:drop-shadow(0 0 4px var(--pale));
+  filter:drop-shadow(0 0 5px var(--pale));
 }
 #sys-overlay {
   position:fixed;
@@ -975,7 +1012,7 @@ canvas#screen {
 <div id="boot-overlay">
   <div class="boot-sigil">◈</div>
   <div class="boot-title">PALE SIGNAL RPG</div>
-  <div class="boot-sub">SOUL KERNEL v3.19 · HAIR FIX · FULLSCREEN · STATUS BAR FIX</div>
+  <div class="boot-sub">SOUL KERNEL v3.19 · FULLSCREEN · HAIR FIX · DPAD FIX · ZOOM</div>
   <div class="boot-sub" style="color:#3a4460;margin-top:4px">THE SOUL KERNEL OWNS ITSELF</div>
   <div class="boot-log" id="boot-log">...</div>
   <div class="boot-bar-wrap"><div class="boot-bar" id="boot-bar"></div></div>
@@ -1618,12 +1655,15 @@ const W=128, WS=128, TS=32; let VW=15, VH=10, CW=480, CH=320;
 // Runs once at boot and on orientation change.
 function initViewport(){
   const W2=window.innerWidth, H2=window.innerHeight;
-  // Status bar is 32px fixed overlay at top — subtract so top tile is fully visible
-  const STATUS_H = 32;
-  VW = Math.max(12, Math.floor(W2/TS));
-  VH = Math.max(8,  Math.floor((H2-STATUS_H)/TS));
-  CW = VW*TS;
-  CH = VH*TS;
+  const STATUS_H=32;
+  const playH=H2-STATUS_H;
+  // Full-screen canvas: canvas pixels = screen pixels, no stretching, no black borders.
+  // VW/VH cover every pixel. Fog reveals correctly across the full screen.
+  // TS=32: ~14 tiles wide on iPhone portrait, ~29 on landscape.
+  VW=Math.ceil(W2/TS)+1;   // +1 ensures right edge never shows black during scroll
+  VH=Math.ceil(playH/TS)+1;
+  CW=VW*TS;
+  CH=VH*TS;
   const cv=document.getElementById('screen');
   if(cv){cv.width=CW;cv.height=CH;}
 }
@@ -2607,7 +2647,7 @@ function buildWorld(seed) {
   _safePatch(w,INSTANCE.gx,INSTANCE.gy,2,T.PALE);
 
   // Shrine — northern, Pale foundation
-  _safePatch(w,INSTANCE.sx,INSTANCE.sy,3,T.PALE);
+  _safePatch(w,INSTANCE.sx,INSTANCE.sy,3,T.PALE); // shrine area
   w[INSTANCE.sy*W+INSTANCE.sx]=T.SHRINE;
 
   // Oracle stones — null-safe
@@ -2987,30 +3027,43 @@ function drawTile(sx,sy,type,wx,wy,neighbors){
     dRow(sx,sy+TS-2,TS,p.md,p.hl,0.30);
     dRow(sx,sy+TS-1,TS,p.md,p.hl,0.55);
 
-    // GRASS BLADES: upright marks — cast own shadow (2px dark base, 1px light tip)
-    const nB=type===T.TALL?20:12;
-    const bSH=_shift(hi,-12,-0.06,-0.12), bHL=_shift(hi,+12,+0.06,+0.15);
-    const bMD=_shift(hi,-4,-0.02,-0.04);
+    // GRASS BLADES — GBA quality: dense, varied, directional
+    const nB=type===T.TALL?28:16;
+    const bSH=_shift(hi,-14,-0.07,-0.15);
+    const bMD=_shift(hi,-5,-0.02,-0.05);
+    const bHL=_shift(hi,+14,+0.07,+0.18);
+    const bSP=_shift(hi,+22,+0.10,+0.28); // tip specular
     for(let i=0;i<nB;i++){
-      const bx=sx+1+Math.floor(r()*29), by=sy+2+Math.floor(r()*24);
-      const bh=type===T.TALL?3+Math.floor(r()*8):2+Math.floor(r()*4);
-      if(r()<0.75){
-        px(bx,by,  1,bh,  bSH);            // shadow left side of blade
-        px(bx+1,by,1,bh,  bMD);            // blade right half
-        px(bx,by,  1,1,   bHL);            // tip highlight
-        // Cast shadow east of tall blades
-        if(bh>4) px(bx+2,by+1,1,bh-1,_shift(hi,-6,-0.03,-0.06));
+      const bx=sx+1+Math.floor(r()*28), by2=sy+3+Math.floor(r()*22);
+      const bh=type===T.TALL?4+Math.floor(r()*10):2+Math.floor(r()*5);
+      const lean=r()<0.35?1:r()<0.55?-1:0; // directional lean
+      if(r()<0.82){
+        // 3-column blade: shadow / mid / (optional highlight)
+        px(bx,       by2,1,bh,bSH);
+        px(bx+1,     by2,1,bh,bMD);
+        if(lean!==0) px(bx+lean,by2,1,1,bHL); // lean tip
+        px(bx+lean,  by2-1,1,1,bSP);           // bright tip specular
+        // Cast shadow: ground east of blade
+        px(bx+2,by2+Math.floor(bh*0.4),1,Math.floor(bh*0.6),_shift(hi,-8,-0.04,-0.08));
       }
     }
     if(type===T.TALL){
-      // TUFT CLUSTERS: 3-5 blades close together for grass-clump feel
-      for(let t=0;t<5;t++){
-        const tx2=sx+3+Math.floor(r()*22), ty2=sy+4+Math.floor(r()*18);
-        for(let b=0;b<3;b++){
-          const bx=tx2+Math.floor(r()*5)-2, by=ty2+Math.floor(r()*3);
-          const bh=4+Math.floor(r()*7);
-          if(r()<0.8){ px(bx,by,1,bh,bSH); px(bx,by,1,1,bHL); }
+      // DENSE TUFT CLUSTERS with 3D depth
+      for(let t=0;t<6;t++){
+        const tx2=sx+2+Math.floor(r()*24), ty2=sy+3+Math.floor(r()*20);
+        const tDepth=r(); // back=darker, front=lighter
+        const tC=tDepth>0.6?bHL:tDepth>0.3?bMD:bSH;
+        for(let b=0;b<4;b++){
+          const bx=tx2+b*2-3+Math.floor(r()*3);
+          const by2=ty2-b+Math.floor(r()*2);
+          const bh=5+Math.floor(r()*8);
+          px(bx,by2,1,bh,tC);
+          px(bx,by2-1,1,1,bSP);
         }
+      }
+      // Dark rooting zones between clumps
+      for(let d=0;d<8;d++){
+        px(sx+2+Math.floor(r()*26), sy+24+Math.floor(r()*6), 2,1,_shift(hi,-18,-0.09,-0.20));
       }
     }
     // TILE EDGE: subtle dark border south+east for depth separation
@@ -3155,38 +3208,45 @@ function drawTile(sx,sy,type,wx,wy,neighbors){
 
   // ── WATER ────────────────────────────────────────────────────
   else if(type===T.WATER||type===T.DEEP){
-    px(sx,sy,TS,TS,hi);
-    // Depth gradient: center→edges slightly darker (bowl effect)
-    dGrad(sx,sy,TS,16,hi,p.sh,0.0,0.50);
-    dGrad(sx,sy+16,TS,16,p.sh,hi,0.50,0.0);
-    if(type===T.DEEP){
-      dRect(sx,sy,TS,TS,p.sh,p.dk,0.45);
-      // DEPTH RINGS: concentric dithered ellipses suggest abyss depth — darker center
-      const dc=_shift(hi,-12,-0.06,-0.18);
-      dRect(sx+6,sy+8,TS-12,TS-16,p.sh,dc,0.55);
-      dRect(sx+10,sy+11,TS-20,TS-22,p.sh,dc,0.80);
-      // Caustic suggestion: 2 bright curved marks near center
-      px(sx+11+Math.floor(r()*4),sy+12+Math.floor(r()*3),4,1,_shift(hi,+16,+0.08,+0.18));
-      px(sx+17+Math.floor(r()*3),sy+17+Math.floor(r()*3),3,1,_shift(hi,+12,+0.06,+0.14));
+    const wDark=type===T.DEEP;
+    px(sx,sy,TS,TS,wDark?p.dk:p.sh);
+    // Surface brightness bands
+    for(let band=0;band<5;band++){
+      const bby=sy+1+band*6+Math.floor(r()*2);
+      dRow(sx+Math.floor(r()*3),bby,22+Math.floor(r()*6),p.sh,p.md,0.38+band*0.05);
+      if(r()<0.45) dRow(sx+1,bby+1,18+Math.floor(r()*6),p.sh,_shift(hi,+4,+0.02,+0.05),0.25);
     }
-    // World-stable foam/shimmer marks — varied bubble geometry
-    const f1x=sx+2+Math.floor(r()*10), f2x=sx+14+Math.floor(r()*10);
-    const f1y=sy+4+Math.floor(r()*8), f2y=sy+16+Math.floor(r()*8);
-    // Foam patch 1 — horizontal streak with specular head
-    px(f1x,f1y,7,1,p.hl); px(f1x,f1y,3,1,p.sp); px(f1x+5,f1y,2,1,p.md);
-    // Foam patch 2 — angled with tail
-    px(f2x,f2y,5,1,p.hl); px(f2x,f2y,2,1,p.sp);
-    px(f2x-1,f2y+1,3,1,p.md); // trailing hint
-    // Tiny surface bubble — 1px bright dot, world-stable
-    const bx=sx+6+Math.floor(r()*18), by=sy+10+Math.floor(r()*10);
-    px(bx,by,2,2,p.md); px(bx,by,1,1,p.sp); // bubble face + specular
+    if(wDark){
+      dRect(sx+4,sy+4,TS-8,TS-8,p.dk,_shift(hi,-16,-0.08,-0.22),0.65);
+      dRect(sx+9,sy+9,TS-18,TS-18,p.dk,_shift(hi,-20,-0.10,-0.28),0.85);
+      for(let c2=0;c2<4;c2++){
+        const cx2=sx+4+Math.floor(r()*20),cy2=sy+4+Math.floor(r()*20),cw=3+Math.floor(r()*7);
+        px(cx2,cy2,cw,1,_shift(hi,+22,+0.11,+0.24));
+        px(cx2+1,cy2-1,Math.ceil(cw*.55),1,_shift(hi,+30,+0.15,+0.34));
+      }
+    }
+    // RIPPLE RINGS: elliptical surface ripples
+    for(let i=0;i<2+Math.floor(r()*3);i++){
+      const rcx=sx+5+Math.floor(r()*18),rcy=sy+5+Math.floor(r()*18),rr2=2+Math.floor(r()*5);
+      for(let a=0;a<10;a++){
+        const ang=a*Math.PI*2/10;
+        const rx2=Math.round(rcx+Math.cos(ang)*rr2),ry2=Math.round(rcy+Math.sin(ang)*rr2*0.5);
+        if(rx2>=sx&&rx2<sx+TS&&ry2>=sy&&ry2<sy+TS) px(rx2,ry2,1,1,p.md);
+      }
+      px(rcx,rcy,1,1,p.sp||p.hl);
+    }
+    // Foam streaks
+    for(let f=0;f<3;f++){
+      const fx=sx+1+Math.floor(r()*20),fy=sy+2+Math.floor(r()*24),fw=4+Math.floor(r()*8);
+      px(fx,fy,fw,1,p.hl); px(fx,fy,Math.ceil(fw*.4),1,p.sp||p.hl); px(fx+fw-1,fy,2,1,p.md);
+      if(r()<0.4) px(fx+1,fy+1,fw-2,1,_shift(hi,+5,+0.02,+0.07));
+    }
+    const sG=_shift(hi,+10,+0.05,+0.14);
+    if(N.s===T.SAND||N.s===T.GRASS) dGrad(sx,sy+TS-6,TS,6,p.md,sG,0.0,0.60);
+    if(N.n===T.SAND||N.n===T.GRASS) dGrad(sx,sy,TS,5,sG,p.md,0.60,0.0);
+    if(N.e===T.SAND) dRect(sx+TS-5,sy,5,TS,p.md,sG,0.55);
+    if(N.w===T.SAND) dRect(sx,sy,5,TS,p.md,sG,0.55);
     px(sx,sy+TS-1,TS,1,p.dk);
-    // SHORE GLOW: water near sand picks up warm reflected light from beach
-    const shoreGlow=_shift(hi,+8,+0.04,+0.12);
-    if(N.s===T.SAND) dGrad(sx,sy+TS-5,TS,5,p.md,shoreGlow,0.0,0.55);
-    if(N.n===T.SAND) dGrad(sx,sy,TS,5,shoreGlow,p.md,0.55,0.0);
-    if(N.e===T.SAND) dRect(sx+TS-4,sy,4,TS,p.md,shoreGlow,0.50);
-    if(N.w===T.SAND) dRect(sx,sy,4,TS,p.md,shoreGlow,0.50);
   }
 
   // ── SAND ────────────────────────────────────────────────────
@@ -3219,82 +3279,90 @@ function drawTile(sx,sy,type,wx,wy,neighbors){
   // ── STONE / MOUNT ────────────────────────────────────────────
   // Overhead view of rocky terrain. Rocks = raised shapes with NW highlight, SE shadow.
   else if(type===T.STONE||type===T.MOUNT){
+    // BASE ground
     px(sx,sy,TS,TS,p.md);
-    // ROCK FORMATIONS: 2-3 raised rock clusters per tile
-    const nRocks=2+Math.floor(r()*2);
+    for(let i=0;i<8;i++){
+      const gx=sx+1+Math.floor(r()*26),gy=sy+1+Math.floor(r()*26);
+      dRect(gx,gy,3+Math.floor(r()*5),2+Math.floor(r()*4),p.md,r()<0.5?_shift(hi,-4,-0.02,-0.04):_shift(hi,-8,-0.04,-0.08),0.55);
+    }
+    // ROCK FORMATIONS: 2-4 shaped masses, full 4-pass GS shading
+    const nRocks=2+Math.floor(r()*3);
     for(let i=0;i<nRocks;i++){
-      const rx=sx+4+Math.floor(r()*18), ry=sy+4+Math.floor(r()*18);
-      const rr=3+Math.floor(r()*5);
-      bCircle(rx+2,ry+2,rr,p.sh);   // SE shadow (depth)
-      bCircle(rx,  ry,  rr,p.md);   // rock face
-      bCircle(rx-1,ry-1,Math.max(1,rr-2),p.hl); // NW highlight
-      px(rx-1,ry-1,2,1,p.sp);       // specular catch
+      const rx=sx+3+Math.floor(r()*20),ry=sy+3+Math.floor(r()*20);
+      const rr=3+Math.floor(r()*6);
+      bCircle(rx+2,ry+3,rr,p.dk);
+      bCircle(rx+1,ry+2,rr,p.sh);
+      bCircle(rx,ry,rr,p.md);
+      bCircle(rx-1,ry-1,Math.max(2,rr-1),p.hl);
+      px(rx-1,ry-1,3,1,p.sp||p.hl);
+      px(rx-2,ry,1,2,p.sp||p.hl);
+      if(rr>4&&r()<0.65){
+        const crx=rx+Math.floor(r()*4)-2;
+        px(crx,ry+1,1,Math.floor(rr*0.7),_shift(hi,-16,-0.08,-0.18));
+      }
+      dRect(rx-1,ry+rr,rr*2,2,p.sh,p.dk,0.55);
     }
-    // Ground fill between rocks
-    dRect(sx,sy,TS,TS,p.md,_shift(hi,-3,-0.01,-0.03),0.30);
-    // LICHEN PATCHES: warm orange-green flecks on rock surfaces — geological age marker
-    const lichen=_shift(hi,+22,+0.14,+0.04); // warm ochre-green
-    const nL=1+Math.floor(r()*3);
-    for(let i=0;i<nL;i++){
-      const lx=sx+3+Math.floor(r()*22),ly=sy+3+Math.floor(r()*22);
-      const lw=2+Math.floor(r()*4),lh=2+Math.floor(r()*3);
-      dRect(lx,ly,lw,lh,p.md,lichen,0.60);
+    // CRACKED SURFACE: fault-line network — CRACKED SURFACE
+    for(let i=0;i<3+Math.floor(r()*2);i++){
+      const cx2=sx+3+Math.floor(r()*22),cy2=sy+3+Math.floor(r()*22);
+      const clen=4+Math.floor(r()*10),cC=_shift(hi,-14,-0.07,-0.16);
+      for(let j=0;j<clen;j++){
+        px(cx2+j+Math.floor(r()*2)-1,cy2+Math.floor(r()*3)-1,1,1,cC);
+        if(r()<0.4) px(cx2+j,cy2+1+Math.floor(r()*2),1,1,_shift(cC,+6,+0.03,+0.08));
+      }
     }
-    // GRAVEL SCATTER: 3–5 tiny 1px dark pebbles between formations
-    const nGrav=3+Math.floor(r()*3);
-    for(let i=0;i<nGrav;i++)
-      px(sx+2+Math.floor(r()*(TS-4)),sy+2+Math.floor(r()*(TS-4)),1,1,p.dk);
-    // CRACK DETAILS: thin fault lines give geological age and texture
-    const crackCol=_shift(hi,-10,-0.05,-0.16);
-    const nCracks=1+Math.floor(r()*2);
-    for(let c=0;c<nCracks;c++){
-      const cx=sx+5+Math.floor(r()*18),cy=sy+5+Math.floor(r()*20);
-      const cl=4+Math.floor(r()*7);
-      // Angled crack: primary stroke + 1px offset continuation
-      px(cx,cy,cl,1,crackCol);
-      px(cx+1,cy+1,Math.max(2,cl-2),1,crackCol);
-      if(r()<0.5) px(cx+cl,cy+2,Math.floor(r()*4)+2,1,crackCol);
+    // LICHEN ochre patches
+    const lichen=_shift(hi,+24,+0.15,+0.05);
+    for(let i=0;i<2+Math.floor(r()*3);i++){
+      const lx=sx+2+Math.floor(r()*24),ly=sy+2+Math.floor(r()*24);
+      dRect(lx,ly,2+Math.floor(r()*5),1+Math.floor(r()*3),p.md,lichen,0.65);
+      px(lx,ly,1,1,_shift(lichen,+8,+0.04,+0.10));
     }
-    px(sx,sy+TS-1,TS,1,p.dk);
+    // MOSS cool-green in crevices
+    const moss=_shift(hi,+60,+0.20,-0.08);
+    for(let i=0;i<3;i++){
+      if(r()<0.55) dRect(sx+2+Math.floor(r()*24),sy+2+Math.floor(r()*24),2,2,p.sh,moss,0.50);
+    }
+    px(sx+TS-1,sy,1,TS,_shift(hi,-8,-0.04,-0.08));
+    dRow(sx,sy+TS-1,TS,p.md,_shift(hi,-6,-0.03,-0.06),0.50);
     if(type===T.MOUNT){
-      // Independent snow seed — positions are stable and roughly over rocks, but
-      // not dependent on the rock loop's RNG consumption order.
-      const snowR=mkRNG(((wx>>>0)*0x9E3779B9^(wy>>>0)*0x6C62272E^0xF00DBABE)>>>0);
+      const snow='#dce8f8',snowS='#a8b8d0';
       for(let i=0;i<nRocks;i++){
-        const rx=sx+5+Math.floor(snowR()*16), ry=sy+4+Math.floor(snowR()*18);
-        const rr=2+Math.floor(snowR()*4);
-        bCircle(rx,ry-1,rr,'#e8eeff');        // snow cap face
-        bCircle(rx-1,ry-2,Math.max(1,rr-1),'#f0f4ff'); // brighter NW edge
-        px(rx-1,ry-2,3,1,'#ffffff');           // specular tip
+        const rx2=sx+4+Math.floor(r()*18),ry2=sy+4+Math.floor(r()*18);
+        px(rx2-2,ry2-2,6,2,snow); px(rx2-1,ry2-3,4,1,snow); px(rx2,ry2-4,2,1,snow);
+        px(rx2+3,ry2-1,3,2,snowS);
       }
     }
   }
 
   // ── PATH ────────────────────────────────────────────────────
   else if(type===T.PATH){
-    px(sx,sy,TS,TS,p.md);
-    // STONE PAVING: overhead view, mortar lines as shadow, stones as highlights
-    const stones=[[1,1,9,8],[11,1,10,8],[23,1,7,8],
-                  [0,11,8,9],[9,11,14,9],[24,11,7,9],
-                  [1,22,10,8],[12,22,11,8],[24,22,7,8]];
-    stones.forEach(([dx,dy,w,h])=>{
-      const jx=Math.floor(r()*2)-1, jy=Math.floor(r()*2)-1;
-      const fx=Math.max(0,Math.min(TS-w,dx+jx)), fy=Math.max(0,Math.min(TS-h,dy+jy));
-      px(sx+fx,sy+fy,w,h,_shift(hi,+3,+0.01,+0.04));   // stone face
-      px(sx+fx,sy+fy,w,2,_shift(hi,+8,+0.04,+0.10));   // NW highlight
-      px(sx+fx,sy+fy,2,h,_shift(hi,+6,+0.03,+0.07));   // NW left highlight
-      px(sx+fx+w-2,sy+fy,2,h,p.sh);                     // SE shadow
-      px(sx+fx,sy+fy+h-2,w,2,p.sh);                     // SE bottom shadow
-      // Center worn patch
-      if(w>5&&h>5) dRect(sx+fx+2,sy+fy+2,w-4,h-4,_shift(hi,+3,+0.01,+0.04),p.md,0.25);
-    });
-    px(sx,sy+TS-1,TS,1,p.dk);
-    // WORN EDGES: where path meets soft terrain, show a frayed transition
-    const isSoft=(tt)=>tt===T.GRASS||tt===T.TALL||tt===T.SAND;
-    if(isSoft(N.s)) dGrad(sx,sy+TS-5,TS,5,p.md,p.sh,0.0,0.55);
-    if(isSoft(N.n)) dGrad(sx,sy,TS,5,p.sh,p.md,0.55,0.0);
-    if(isSoft(N.e)) dRect(sx+TS-4,sy,4,TS,p.md,p.sh,0.50);
-    if(isSoft(N.w)) dRect(sx,sy,4,TS,p.md,p.sh,0.50);
+    // Worn dirt path — compressed earth, pebbles, ruts
+    const pC=p.md, pD=_shift(hi,-6,-0.03,-0.07), pL=_shift(hi,+5,+0.02,+0.06);
+    px(sx,sy,TS,TS,pC);
+    // Wheel ruts: two parallel dark channels
+    dRect(sx+7,sy,4,TS,pC,pD,0.55);
+    dRect(sx+20,sy,4,TS,pC,pD,0.45);
+    // Central ridge between ruts: slightly lighter
+    dRect(sx+11,sy,9,TS,pC,pL,0.35);
+    // Ground variation patches
+    for(let i=0;i<6;i++){
+      const gx=sx+1+Math.floor(r()*26),gy=sy+1+Math.floor(r()*26);
+      dRect(gx,gy,2+Math.floor(r()*5),1+Math.floor(r()*3),pC,r()<0.5?pD:pL,0.40);
+    }
+    // Pebbles: small 1–2px rocks scattered along path
+    for(let i=0;i<6+Math.floor(r()*4);i++){
+      const peX=sx+1+Math.floor(r()*28),peY=sy+1+Math.floor(r()*28);
+      px(peX,peY,1+Math.floor(r()*2),1,_shift(hi,-10,-0.05,-0.12));
+      if(r()<0.5) px(peX+1,peY-1,1,1,_shift(hi,+8,+0.04,+0.10));
+    }
+    // Edge bleed into grass
+    if(N.w===T.GRASS||N.w===T.TALL) dRect(sx,sy,2,TS,pC,_shift(hi,+3,+0.01,+0.03),0.35);
+    if(N.e===T.GRASS||N.e===T.TALL) dRect(sx+TS-2,sy,2,TS,pC,_shift(hi,+3,+0.01,+0.03),0.35);
+    // Muddy depression near water
+    if(N.s===T.WATER||N.n===T.WATER){
+      dGrad(sx,N.s===T.WATER?sy+TS-5:sy,TS,5,pC,pD,0.0,0.60);
+    }
   }
   // Crystal terrain. Diamond lattice + world-stable radiant objects.
   else if(type===T.PALE){
@@ -4022,6 +4090,101 @@ function drawGeoffAnchor(sx,sy){
   ctx.fillRect(sx+12,sy+14,8,2); ctx.fillRect(sx+12,sy+28,8,2);
 }
 
+// ── Pale mark colors (module level for zone-based drawPlayer) ──────────────
+const MCOLORS={pale:'rgba(143,168,255,1)',fire:'rgba(255,120,60,1)',earth:'rgba(100,180,80,1)',void:'rgba(180,80,255,1)',water:'rgba(60,140,220,1)',wind:'rgba(160,220,255,1)',wood:'rgba(80,180,100,1)',metal:'rgba(200,210,230,1)'};
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ZONE SPRITE SYSTEM — eliminates draw-order conflicts for human sprites
+// Pixels fill a 32×32 buffer in priority order. Higher zones always win.
+// HAIR zone (8) fills before FACE zone (9). FACE zone overwrites hair in face area.
+// FEATURES zone (10) fills after FACE — always visible on clean skin base.
+// ═══════════════════════════════════════════════════════════════════════════
+function _zp(b,x,y,c){if(x>=0&&x<32&&y>=0&&y<32&&c)b[y*32+x]=c;}
+function _zr(b,x,y,w,h,c){for(let j=0;j<h;j++)for(let i=0;i<w;i++)_zp(b,x+i,y+j,c);}
+function _zc(b,cx,cy,r,c){
+  if(r<1)return;let x=0,y=r,d=3-2*r;
+  while(y>=x){
+    const R=(py,a,e)=>{if(py<0||py>31)return;for(let px=Math.max(0,a);px<=Math.min(31,e);px++)b[py*32+px]=c;};
+    R(cy-x,cx-y,cx+y);R(cy+x,cx-y,cx+y);R(cy-y,cx-x,cx+x);R(cy+y,cx-x,cx+x);
+    if(d<0)d+=4*x+6;else{d+=4*(x-y)+10;y--;}x++;
+  }
+}
+const _ZB4=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+function _zd(b,x,y,w,h,cA,cB,t){for(let j=0;j<h;j++)for(let i=0;i<w;i++){const v=_ZB4[((y+j)%4+4)%4][((x+i)%4+4)%4];_zp(b,x+i,y+j,v<t*16?cB:cA);}}
+function _zFlush(ctx,b,sx,sy){
+  const m=new Map();
+  for(let i=0;i<1024;i++){if(!b[i])continue;if(!m.has(b[i]))m.set(b[i],[]);m.get(b[i]).push(i);}
+  for(const[c,idx]of m){ctx.fillStyle=c;for(const k of idx)ctx.fillRect(sx+(k%32),sy+Math.floor(k/32),1,1);}
+}
+
+// ── HAIR ZONE RENDERER ────────────────────────────────────────────────────
+// Draws hair into sprite buffer at buffer coordinates (cx=16,cy=5 for head center)
+// Runs as zone 8. Face zone (9) draws AFTER and overwrites hair in face area.
+// Only crown pixels (above face zone, y < 4+by) survive.
+function _zHair(b,cx,cy,by,H,style,fn,fe,fw){
+  // Crown base — every style
+  _zc(b,cx,cy+by,5,H.md);
+  _zc(b,cx-2,cy-1+by,4,H.hl);
+  _zr(b,cx-2,cy-3+by,4,1,H.sp||H.hl);
+  if(style==='crop'){
+    _zr(b,cx-5,cy+by,2,3,H.sh); _zr(b,cx+3,cy+by,2,3,H.sh);
+    _zr(b,cx-4,cy+4+by,8,1,H.dk);
+  } else if(style==='flow'){
+    _zr(b,cx-5,cy+by,2,3,H.sh); _zr(b,cx+3,cy+by,2,3,H.sh);
+    if(!fn){
+      _zr(b,cx-6,cy+2+by,2,6,H.sh); _zr(b,cx-5,cy+2+by,1,5,H.md);
+      _zr(b,cx+5,cy+2+by,2,6,H.sh); _zr(b,cx+5,cy+2+by,1,5,H.md);
+      _zp(b,cx-5,cy+7+by,H.dk); _zp(b,cx+5,cy+7+by,H.dk);
+    } else {
+      _zr(b,cx-5,cy+by,10,5,H.sh); _zr(b,cx-4,cy+by,8,4,H.md);
+      _zr(b,cx-2,cy-1+by,4,5,H.hl); _zr(b,cx-4,cy+4+by,8,1,H.dk);
+    }
+  } else if(style==='long'){
+    _zr(b,cx-5,cy+by,2,3,H.sh); _zr(b,cx+3,cy+by,2,3,H.sh);
+    if(!fn){
+      _zr(b,cx-6,cy+2+by,2,10,H.sh); _zr(b,cx-5,cy+2+by,1,9,H.md);
+      _zr(b,cx+5,cy+2+by,2,10,H.sh); _zr(b,cx+5,cy+2+by,1,9,H.md);
+      _zd(b,cx-6,cy+10+by,2,4,H.sh,H.dk,0.55); _zd(b,cx+5,cy+10+by,2,4,H.sh,H.dk,0.55);
+    } else {
+      _zr(b,cx-5,cy-1+by,10,13,H.sh); _zr(b,cx-4,cy-1+by,8,11,H.md);
+      _zr(b,cx-2,cy-2+by,4,12,H.hl); _zr(b,cx-4,cy+11+by,8,1,H.dk);
+    }
+  } else if(style==='crest'){
+    const cl=_shift(H.sh,-4,-0.02,-0.04);
+    _zr(b,cx-5,cy-1+by,2,5,cl); _zr(b,cx+3,cy-1+by,2,5,cl);
+    _zr(b,cx-3,cy-5+by,6,5,H.sh); _zr(b,cx-2,cy-5+by,4,4,H.md);
+    _zr(b,cx-1,cy-5+by,2,2,H.hl); _zr(b,cx-1,cy-5+by,2,1,H.sp||H.hl);
+    if(!fn){_zr(b,cx-4,cy-4+by,4,4,H.sh);_zr(b,cx-3,cy-4+by,3,3,H.md);_zr(b,cx-3,cy-4+by,2,2,H.hl);}
+    else{_zr(b,cx-4,cy-4+by,8,9,H.sh);_zr(b,cx-3,cy-3+by,6,7,H.md);}
+  } else if(style==='braids'){
+    _zr(b,cx-5,cy+by,2,2,H.sh); _zr(b,cx+3,cy+by,2,2,H.sh);
+    if(!fn){
+      _zr(b,cx-6,cy+3+by,3,9,H.sh); _zr(b,cx-5,cy+3+by,2,8,H.md); _zr(b,cx-5,cy+3+by,1,7,H.hl);
+      _zr(b,cx+5,cy+3+by,3,9,H.sh); _zr(b,cx+5,cy+3+by,2,8,H.md); _zr(b,cx+5,cy+3+by,1,7,H.hl);
+      _zr(b,cx-6,cy+11+by,3,2,H.dk); _zr(b,cx+5,cy+11+by,3,2,H.dk);
+    } else {
+      _zr(b,cx-5,cy-1+by,10,7,H.sh); _zr(b,cx-4,cy-1+by,8,5,H.md);
+      _zr(b,cx-6,cy+2+by,3,9,H.sh); _zr(b,cx+5,cy+2+by,3,9,H.sh);
+    }
+  } else if(style==='shaved'){
+    const sc=_shift(H.sh,-6,-0.03,-0.08);
+    _zr(b,cx-5,cy-2+by,2,6,sc); _zr(b,cx+3,cy-2+by,2,6,sc);
+    _zc(b,cx,cy-1+by,3,H.sh); _zc(b,cx-1,cy-2+by,3,H.md);
+    _zr(b,cx-2,cy-3+by,4,1,H.hl);
+  } else if(style==='fade'){
+    const dk=_shift(H.sh,-5,-0.025,-0.05);
+    _zr(b,cx-5,cy-1+by,2,5,dk); _zr(b,cx+3,cy-1+by,2,5,dk);
+    _zr(b,cx-4,cy-2+by,2,2,H.sh); _zr(b,cx+2,cy-2+by,2,2,H.sh);
+    _zr(b,cx-3,cy-5+by,6,5,H.sh); _zr(b,cx-2,cy-5+by,4,4,H.md);
+    _zr(b,cx-1,cy-5+by,2,2,H.hl); _zr(b,cx-1,cy-5+by,2,1,H.sp||H.hl);
+  } else if(style==='afro'){
+    _zc(b,cx,cy-1+by,7,H.sh); _zc(b,cx-1,cy-1+by,6,H.md);
+    _zc(b,cx-4,cy-2+by,4,H.hl); _zc(b,cx+4,cy-1+by,4,H.hl); _zc(b,cx,cy-4+by,4,H.hl);
+    _zr(b,cx-1,cy-4+by,3,2,H.sp||H.hl); _zr(b,cx-4,cy+4+by,8,1,H.dk);
+  }
+}
+
 function drawFacingArrow(sx,sy){
   const f=INSTANCE.facing||'s'; ctx.fillStyle='rgba(143,168,255,0.55)';
   if(f==='s'){ctx.fillRect(sx+13,sy+32,6,3);ctx.fillRect(sx+11,sy+34,10,2);}
@@ -4141,401 +4304,300 @@ function drawHair(sx,sy,f,H,style){
 }
 
 function drawPlayer(sx,sy){
-  // ── SETUP ─────────────────────────────────────────────────
   const ap=INSTANCE.appearance||{skin:'#e0b888',hair:'#3a2a1a',body:'#3a5a8a',
     pants:'#3a2a4a',eyes:'#1a1a2a',mark:'pale',hairStyle:'crop',
-    build:'standard',eyebrows:'std',scarf:'none',accent:'#c8a030'};
+    build:'standard',eyebrows:'std',scarf:'none',accent:'#c8a030',beard:'none',lipColor:'skin'};
   const f=INSTANCE.facing||'s',fe=f==='e',fw=f==='w',fn=f==='n',fs=f==='s';
   const P2=buildAP(ap);
-  const hs=ap.hairStyle||'crop';
-  const build=ap.build||'standard';
+  const hs=ap.hairStyle||'crop',build=ap.build||'standard';
   const c=_c();
   _ensureEquipSlots();
   const eq=INSTANCE.equip||{};
-  const weapon=eq.mainHand||null, headGear=eq.head||null;
-  const bodyArmor=eq.body||null, feetArmor=eq.feet||null, trinket=eq.trinket||null;
-  drawFacingArrow(sx,sy);
+  const weapon=eq.mainHand||null,headGear=eq.head||null;
+  const bodyArmor=eq.body||null,feetArmor=eq.feet||null,trinket=eq.trinket||null;
 
-  // ── WALK CYCLE ────────────────────────────────────────────
-  const step=INSTANCE.steps||0, walkPhase=step%8;
-  const footL=(walkPhase<4)?1:0, footR=(walkPhase>=4)?1:0;
-  const bob=(walkPhase===0||walkPhase===4)?-1:0;
-  const lyOff=footL?1:-1, ryOff=footR?1:-1;
-  const laOff=footR?-1:1, raOff=footL?-1:1;
-  const by=bob;
+  // Walk cycle
+  const step=INSTANCE.steps||0,walkPhase=step%8;
+  const footL=(walkPhase<4)?1:0,footR=(walkPhase>=4)?1:0;
+  const bob=(walkPhase===0||walkPhase===4)?-1:0,by=bob;
+  const lyOff=footL?1:-1,ryOff=footR?1:-1;
+  const laOff=footR?-1:1,raOff=footL?-1:1;
 
-  // ── BUILD — body width ────────────────────────────────────
-  // lean=11 standard=13 sturdy=16 — centred on sprite
+  // Build dimensions
   const BODY_W={lean:11,standard:13,sturdy:16}[build]||13;
-  const bSX=sx+9+Math.floor((14-BODY_W)/2);
+  const bSX=9+Math.floor((14-BODY_W)/2);
 
-  // ── EQUIPMENT ────────────────────────────────────────────
+  // Equipment
   const isHeavyBoots=feetArmor&&feetArmor.id==='iron_greaves';
   const bBase=isHeavyBoots?'#3a3a4a':_shift(ap.pants||'#3a2a4a',-10,-0.06,-0.12);
-  const bCol=bBase, bSole=_shift(bCol,-8,-0.04,-0.10), bHl=_shift(bCol,+7,+0.03,+0.09);
+  const bCol=bBase,bSole=_shift(bCol,-8,-0.04,-0.10),bHl=_shift(bCol,+7,+0.03,+0.09);
   const bootW=isHeavyBoots?7:5;
   const isScrapVest=bodyArmor&&bodyArmor.id==='scrap_vest';
-  const isPaleWrap =bodyArmor&&bodyArmor.id==='pale_wrap';
+  const isPaleWrap=bodyArmor&&bodyArmor.id==='pale_wrap';
   const bodyC=isScrapVest?gsPal('#404050'):isPaleWrap?gsPal(_shift(ap.body||'#3a5a8a',+8,+0.04,+0.08)):P2.body;
-  const isIronCap =headGear&&headGear.id==='iron_cap';
+  const isIronCap=headGear&&headGear.id==='iron_cap';
   const isPaleHood=headGear&&headGear.id==='pale_hood';
-  const hasPaleBlade=weapon&&(weapon.id==='pale_shard_w'||weapon.id==='signal_blade'||weapon.wtype==='pale');
+  const hasPaleBlade=weapon&&weapon.wtype==='pale';
   const hasIronWeapon=weapon&&weapon.wtype==='blunt';
   const hasWeapon=weapon!=null;
-
-  // ── GROUND SHADOW ─────────────────────────────────────────
-  // Ellipse anchored under boots — GS ground anchoring rule
-  dRect(sx+8,sy+30,16,2,'rgba(0,0,0,0)','rgba(0,0,0,0.28)',0.68);
-  px(sx+10,sy+30,12,1,'rgba(0,0,0,0.16)');
-
-  // ── SILHOUETTE OUTLINE ─────────────────────────────────────
-  // MMBN: skin-derived tinted dark, never pure black — reads at all backgrounds
   const OL=P2.skin.dk;
-  c.fillStyle=OL;
-  // Head: center sy+5, r=5 — top sy+0, bottom sy+10 ✓ within 32px
-  bCircle(sx+16,sy+5+by,5,OL);
-  // Torso
-  c.fillRect(bSX-1,sy+12+by,BODY_W+2,9);
-  c.fillRect(sx+10,sy+20+by,12,1); // waist
-  // Arms
-  if(!fe) c.fillRect(sx+5,sy+12+by+laOff,4,9);
-  if(!fw) c.fillRect(sx+23,sy+12+by+raOff,4,9);
-  // Legs
-  c.fillRect(sx+9,sy+21+lyOff,5,6); c.fillRect(sx+18,sy+21+ryOff,5,6);
-  // Boots
-  c.fillRect(sx+9,sy+25+lyOff,bootW+1,5); c.fillRect(sx+18,sy+25+ryOff,bootW+1,5);
-  // Weapon
-  if(hasWeapon){
-    if(fe)      c.fillRect(sx+27,sy+13+by,4,13);
-    else if(fw) c.fillRect(sx+1,sy+13+by,4,13);
-    else        c.fillRect(sx+25,sy+13+by+raOff,4,13);
-  }
 
-  // ── BOOTS ─────────────────────────────────────────────────
-  const bLY=sy+25+lyOff, bRY=sy+25+ryOff;
-  px(sx+9,bLY,bootW,4,bCol);   px(sx+9,bLY+2,bootW+1,2,bCol);
-  px(sx+9,bLY+3,bootW+1,1,bSole);
-  px(sx+9,bLY,3,2,bHl); px(sx+9,bLY,bootW,1,_shift(bCol,+4,+0.02,+0.05));
-  if(isHeavyBoots){ px(sx+9,bLY+2,bootW,1,_shift(bCol,-4,-0.02,-0.04)); }
-  px(sx+18,bRY,bootW,4,bCol);  px(sx+17,bRY+2,bootW+1,2,bCol);
-  px(sx+17,bRY+3,bootW+1,1,bSole);
-  px(sx+18,bRY,3,2,bHl); px(sx+18,bRY,bootW,1,_shift(bCol,+4,+0.02,+0.05));
-  if(isHeavyBoots){ px(sx+17,bRY+2,bootW,1,_shift(bCol,-4,-0.02,-0.04)); }
+  // Facing arrow (canvas direct, not buffered)
+  drawFacingArrow(sx,sy);
 
-  // ── LEGS ──────────────────────────────────────────────────
-  const lLeg=sy+21+lyOff, rLeg=sy+21+ryOff;
-  fillShaded(sx+10,lLeg,4,4,P2.pants); px(sx+10,lLeg+2,2,2,P2.pants.hl);
-  fillShaded(sx+18,rLeg,4,4,P2.pants); px(sx+18,rLeg+2,2,2,P2.pants.hl);
-  px(sx+14,sy+21,4,4,P2.pants.dk); // inner seam
+  // ── ZONE SPRITE BUFFER ────────────────────────────────────────────────────
+  // 32×32 pixel grid. Zones fill in order — later zones overwrite earlier.
+  // HAIR (zone 8) → FACE BASE (zone 9, overwrites hair in face area) → FEATURES (zone 10)
+  const B=new Array(1024).fill(null);
 
-  // ── BELT + BUCKLE ─────────────────────────────────────────
+  // ── Z0: GROUND SHADOW ─────────────────────────────────────────────────────
+  _zd(B,8,30+by,16,2,null,'rgba(0,0,0,0.28)',0.68);
+  _zd(B,10,30+by,12,1,null,'rgba(0,0,0,0.16)',0.35);
+
+  // ── Z1: SILHOUETTE OUTLINES ───────────────────────────────────────────────
+  _zc(B,16,5+by,6,OL);
+  _zr(B,bSX-1,12+by,BODY_W+2,9,OL); _zr(B,10,20+by,12,1,OL);
+  if(!fe){_zr(B,5,12+by+laOff,4,9,OL);} if(!fw){_zr(B,23,12+by+raOff,4,9,OL);}
+  _zr(B,9,21+lyOff,5,6,OL); _zr(B,18,21+ryOff,5,6,OL);
+  _zr(B,9,25+lyOff,bootW+1,5,OL); _zr(B,18,25+ryOff,bootW+1,5,OL);
+  if(hasWeapon){if(fe)_zr(B,27,13+by,4,13,OL);else if(fw)_zr(B,1,13+by,4,13,OL);else _zr(B,25,13+by+raOff,4,13,OL);}
+
+  // ── Z2: BOOTS ─────────────────────────────────────────────────────────────
+  const bLY=25+lyOff,bRY=25+ryOff;
+  _zr(B,9,bLY,bootW,4,bCol); _zr(B,9,bLY+2,bootW+1,2,bCol); _zr(B,9,bLY+3,bootW+1,1,bSole);
+  _zr(B,9,bLY,3,2,bHl); _zr(B,9,bLY,bootW,1,_shift(bCol,+4,+0.02,+0.05));
+  if(isHeavyBoots){_zr(B,9,bLY+2,bootW,1,_shift(bCol,-4,-0.02,-0.04));}
+  _zr(B,18,bRY,bootW,4,bCol); _zr(B,17,bRY+2,bootW+1,2,bCol); _zr(B,17,bRY+3,bootW+1,1,bSole);
+  _zr(B,18,bRY,3,2,bHl); _zr(B,18,bRY,bootW,1,_shift(bCol,+4,+0.02,+0.05));
+
+  // ── Z3: LEGS ──────────────────────────────────────────────────────────────
+  const lLeg=21+lyOff,rLeg=21+ryOff;
+  _zr(B,10,lLeg,4,4,P2.pants.sh); _zr(B,10,lLeg,3,4,P2.pants.md); _zr(B,10,lLeg+2,2,2,P2.pants.hl);
+  _zr(B,18,rLeg,4,4,P2.pants.sh); _zr(B,18,rLeg,3,4,P2.pants.md); _zr(B,18,rLeg+2,2,2,P2.pants.hl);
+  _zr(B,14,21,4,4,P2.pants.dk);
+
+  // ── Z4: BELT ──────────────────────────────────────────────────────────────
   const acC=gsPal(ap.accent||'#c8a030');
-  px(sx+10,sy+20+by,12,1,P2.pants.md); px(sx+11,sy+20+by,10,1,P2.pants.hl);
-  px(sx+14,sy+20+by,4,1,acC.md); px(sx+15,sy+20+by,2,1,acC.sp); // buckle
+  _zr(B,10,20+by,12,1,P2.pants.md); _zr(B,11,20+by,10,1,P2.pants.hl);
+  _zr(B,14,20+by,4,1,acC.md); _zr(B,15,20+by,2,1,acC.sp||acC.hl);
 
-  // ── BODY ──────────────────────────────────────────────────
-  // GS layering: shoulder highlight → chest fill → waist taper → seams
-  px(bSX,sy+12+by,BODY_W,1,bodyC.hl);                        // shoulder cap
-  px(bSX,sy+12+by,1,1,bodyC.sh); px(bSX+BODY_W-1,sy+12+by,1,1,bodyC.sh); // diagonal cuts
-  fillShaded(bSX,sy+13+by,BODY_W,6,bodyC);                   // chest
-  px(bSX,sy+19+by,1,1,bodyC.dk); px(bSX+BODY_W-1,sy+19+by,1,1,bodyC.dk); // waist taper
-  px(bSX+1,sy+19+by,BODY_W-2,1,bodyC.sh);
-  dRect(sx+15,sy+14+by,2,5,bodyC.md,bodyC.sh,0.55);           // centre crease (MMBN)
-  px(bSX+2,sy+12+by,BODY_W-4,2,bodyC.hl);                    // collar band
-  px(bSX+4,sy+12+by,BODY_W-8,1,bodyC.sp||bodyC.hl);           // collar highlight
-  px(bSX,sy+12+by,1,1,bodyC.sp||bodyC.hl);                   // L shoulder specular (GS)
-  px(bSX+BODY_W-1,sy+12+by,1,1,bodyC.sp||bodyC.hl);           // R shoulder specular
-  px(bSX+1,sy+20+by,BODY_W-2,1,bodyC.dk);                    // hem
+  // ── Z5: BODY (4-tone GBA shading) ─────────────────────────────────────────
+  _zr(B,bSX,12+by,BODY_W,8,bodyC.sh);
+  _zr(B,bSX+1,12+by,BODY_W-2,6,bodyC.md);
+  _zr(B,bSX+2,13+by,Math.floor(BODY_W*0.55),4,bodyC.hl);
+  _zr(B,bSX+2,13+by,Math.floor(BODY_W*0.35),2,bodyC.sp||bodyC.hl);
+  _zp(B,bSX,12+by,bodyC.sp||bodyC.hl); _zp(B,bSX+BODY_W-1,12+by,bodyC.sh);
+  _zr(B,bSX,13+by,1,3,bodyC.hl); _zr(B,bSX+BODY_W-1,13+by,1,3,bodyC.sh);
+  _zd(B,15,14+by,2,5,bodyC.md,bodyC.sh,0.60);
+  _zr(B,bSX+2,12+by,BODY_W-4,2,bodyC.hl); _zr(B,bSX+4,12+by,BODY_W-8,1,bodyC.sp||bodyC.hl);
+  _zr(B,bSX,18+by,BODY_W,1,bodyC.sh); _zr(B,bSX+1,19+by,BODY_W-2,1,bodyC.dk);
   if(isScrapVest){
-    px(bSX+1,sy+14+by,BODY_W-2,1,_shift('#404050',+6,+0.03,+0.08));
-    px(bSX+1,sy+17+by,BODY_W-2,1,_shift('#404050',+3,+0.01,+0.04));
-    px(bSX,sy+12+by,2,8,_shift('#404050',+8,+0.04,+0.10));
-    px(bSX+BODY_W-2,sy+12+by,2,8,_shift('#404050',+8,+0.04,+0.10));
+    _zr(B,bSX+1,14+by,BODY_W-2,1,_shift('#404050',+6,+0.03,+0.08));
+    _zr(B,bSX+1,17+by,BODY_W-2,1,_shift('#404050',+3,+0.01,+0.04));
+    _zr(B,bSX,12+by,2,8,_shift('#404050',+8,+0.04,+0.10));
+    _zr(B,bSX+BODY_W-2,12+by,2,8,_shift('#404050',+8,+0.04,+0.10));
   }
   if(isPaleWrap){
-    const pwC='rgba(143,168,255,0.55)';
-    c.fillStyle=pwC;
-    c.fillRect(bSX,sy+12+by,BODY_W,1); c.fillRect(bSX,sy+20+by,BODY_W,1);
-    c.fillRect(bSX,sy+12+by,1,9); c.fillRect(bSX+BODY_W-1,sy+12+by,1,9);
+    const pw='rgba(143,168,255,0.55)';
+    _zr(B,bSX,12+by,BODY_W,1,pw); _zr(B,bSX,20+by,BODY_W,1,pw);
+    _zr(B,bSX,12+by,1,9,pw); _zr(B,bSX+BODY_W-1,12+by,1,9,pw);
+  }
+  // Pale mark
+  const eg=Math.min(1,INSTANCE.paleResonance/50);
+  const MCOLORS={pale:'rgba(143,168,255,1)',fire:'rgba(255,120,60,1)',earth:'rgba(100,180,80,1)',void:'rgba(180,80,255,1)',water:'rgba(60,140,220,1)',wind:'rgba(160,220,255,1)',wood:'rgba(80,180,100,1)',metal:'rgba(200,210,230,1)'};
+  const mc=MCOLORS[ap.mark||'pale']||'rgba(143,168,255,1)';
+  if(!isScrapVest){
+    _zr(B,bSX+2,14+by,BODY_W-4,3,mc.replace(',1)',`,${(0.40+eg*0.55).toFixed(2)})`));
   }
 
-  // ── SCARF / COLLAR ────────────────────────────────────────
+  // ── Z6: SCARF ─────────────────────────────────────────────────────────────
   const scarf=ap.scarf||'none';
   if(scarf!=='none'){
-    const scarfC=gsPal(ap.accent||'#c8a030');
+    const sC=gsPal(ap.accent||'#c8a030');
     if(scarf==='wrap'){
-      px(bSX,sy+11+by,BODY_W,3,scarfC.md); px(bSX+1,sy+11+by,BODY_W-2,1,scarfC.hl);
-      px(bSX,sy+13+by,2,2,scarfC.sh); px(bSX+BODY_W-2,sy+13+by,2,2,scarfC.sh);
-      px(bSX,sy+13+by,3,5,scarfC.sh); px(bSX+1,sy+13+by,2,4,scarfC.md);
+      _zr(B,bSX,11+by,BODY_W,3,sC.md); _zr(B,bSX+1,11+by,BODY_W-2,1,sC.hl);
+      _zr(B,bSX,13+by,3,5,sC.sh); _zr(B,bSX+1,13+by,2,4,sC.md);
     } else if(scarf==='high'){
-      px(sx+10,sy+10+by,12,3,scarfC.md); px(sx+11,sy+10+by,10,1,scarfC.hl);
-      px(sx+10,sy+13+by,12,1,scarfC.sh);
+      _zr(B,10,10+by,12,3,sC.md); _zr(B,11,10+by,10,1,sC.hl); _zr(B,10,13+by,12,1,sC.sh);
     }
   }
 
-  // ── NECK ──────────────────────────────────────────────────
-  // Narrower than head — creates readable separation between head and torso
-  px(sx+13,sy+10+by,6,2,P2.skin.md);
-  px(sx+14,sy+10+by,4,1,P2.skin.hl);
-  px(sx+13,sy+11+by,1,1,P2.skin.sh); px(sx+18,sy+11+by,1,1,P2.skin.sh);
+  // ── Z7: NECK ──────────────────────────────────────────────────────────────
+  _zr(B,13,10+by,6,2,P2.skin.md); _zr(B,14,10+by,4,1,P2.skin.hl);
+  _zp(B,13,11+by,P2.skin.sh); _zp(B,18,11+by,P2.skin.sh);
 
-  // ── ARMS + WEAPON ─────────────────────────────────────────
-  function _arm(ax,ay,pal){
-    fillShaded(ax,ay,3,7,pal);
-    px(ax,ay+6,4,2,pal.md); px(ax+1,ay+6,2,1,pal.hl); // hand
-    px(ax,ay+7,1,1,pal.sh);
-  }
-  function _weapon(wx,wy){
+  // ── Z7b: ARMS + WEAPON ────────────────────────────────────────────────────
+  const ARM=(ax,ay,pal)=>{
+    _zd(B,ax,ay,3,7,pal.sh,pal.md,0.55); _zr(B,ax,ay,2,5,pal.md); _zr(B,ax,ay,1,5,pal.hl);
+    _zr(B,ax,ay+6,4,2,pal.md); _zr(B,ax+1,ay+6,2,1,pal.hl); _zp(B,ax,ay+7,pal.sh);
+  };
+  const WPN=(wx,wy)=>{
     if(hasPaleBlade){
-      const eg=Math.min(1,INSTANCE.paleResonance/30);
-      const bc2=_shift('#8fa8ff',0,0,eg*0.20);
-      px(wx,wy,3,12,bc2); px(wx,wy,1,12,_shift(bc2,+16,+0.08,+0.22));
-      px(wx+2,wy,1,12,_shift(bc2,-8,-0.04,-0.12)); px(wx+1,wy,1,2,_shift(bc2,+30,+0.15,+0.40));
-      c.fillStyle=`rgba(143,168,255,${0.25+eg*0.30})`; c.fillRect(wx-1,wy,5,12);
+      const eg2=Math.min(1,INSTANCE.paleResonance/30);
+      const bc2=_shift('#8fa8ff',0,0,eg2*0.20);
+      _zr(B,wx,wy,3,12,bc2); _zr(B,wx,wy,1,12,_shift(bc2,+16,+0.08,+0.22));
+      _zr(B,wx+2,wy,1,12,_shift(bc2,-8,-0.04,-0.12)); _zr(B,wx+1,wy,1,2,_shift(bc2,+30,+0.15,+0.40));
     } else if(hasIronWeapon){
       const ic=gsPal('#4a4a5a');
-      px(wx,wy,4,12,ic.md); px(wx,wy,2,12,ic.hl);
-      px(wx+3,wy,1,12,ic.dk); px(wx,wy,4,3,ic.sp); px(wx,wy+9,4,3,ic.sh);
+      _zr(B,wx,wy,4,12,ic.md); _zr(B,wx,wy,2,12,ic.hl); _zr(B,wx+3,wy,1,12,ic.dk);
+      _zr(B,wx,wy,4,3,ic.sp||ic.hl); _zr(B,wx,wy+9,4,3,ic.sh);
     } else if(hasWeapon){
       const gc=gsPal('#7a6a50');
-      px(wx,wy,3,12,gc.md); px(wx,wy,1,12,gc.hl); px(wx+2,wy,1,12,gc.sh);
+      _zr(B,wx,wy,3,12,gc.md); _zr(B,wx,wy,1,12,gc.hl); _zr(B,wx+2,wy,1,12,gc.sh);
     }
-  }
+  };
   if(fe){
-    px(sx+5,sy+12+by,3,8,P2.body.sh);
-    fillShaded(sx+23,sy+12+by,3,7,P2.skin);
-    px(sx+23,sy+18+by,4,2,P2.skin.md); px(sx+24,sy+18+by,2,1,P2.skin.hl);
-    if(hasWeapon) _weapon(sx+27,sy+12+by); else px(sx+23,sy+19+by,1,1,P2.skin.sh);
+    _zr(B,5,12+by,3,8,P2.body.sh); ARM(23,12+by,P2.skin);
+    _zr(B,23,18+by,4,2,P2.skin.md); _zr(B,24,18+by,2,1,P2.skin.hl);
+    if(hasWeapon)WPN(27,12+by); else _zp(B,23,19+by,P2.skin.sh);
   } else if(fw){
-    px(sx+24,sy+12+by,3,8,P2.body.sh);
-    fillShaded(sx+5,sy+12+by,3,7,P2.skin);
-    px(sx+5,sy+18+by,4,2,P2.skin.md); px(sx+6,sy+18+by,2,1,P2.skin.hl);
-    if(hasWeapon) _weapon(sx+1,sy+12+by); else px(sx+8,sy+19+by,1,1,P2.skin.sh);
+    _zr(B,24,12+by,3,8,P2.body.sh); ARM(5,12+by,P2.skin);
+    _zr(B,5,18+by,4,2,P2.skin.md); _zr(B,6,18+by,2,1,P2.skin.hl);
+    if(hasWeapon)WPN(1,12+by); else _zp(B,8,19+by,P2.skin.sh);
   } else {
-    px(sx+5,sy+12+by+laOff,4,3,P2.body.hl);  _arm(sx+5,sy+12+by+laOff,P2.skin);
-    px(sx+23,sy+12+by+raOff,4,3,P2.body.hl); _arm(sx+23,sy+12+by+raOff,P2.skin);
-    if(hasWeapon) _weapon(sx+27,sy+12+by+raOff);
+    _zr(B,5,12+by+laOff,4,3,P2.body.hl); ARM(5,12+by+laOff,P2.skin);
+    _zr(B,23,12+by+raOff,4,3,P2.body.hl); ARM(23,12+by+raOff,P2.skin);
+    if(hasWeapon)WPN(27,12+by+raOff);
   }
 
-  // ── HEAD — GS proportions ─────────────────────────────────
-  // Center sy+5, r=5: spans sy+0..sy+10 — fully within 32px tile
-  // Three-pass: shadow ellipse → mid fill → NW highlight patch
-  bCircle(sx+16,sy+5+by,5,P2.skin.sh);   // shadow form
-  bCircle(sx+15,sy+5+by,5,P2.skin.md);   // mid tone (NW offset)
-  // Highlight patch — only NW quadrant (GS: light source upper-left)
-  px(sx+13,sy+3+by,5,3,P2.skin.hl);
-  px(sx+14,sy+3+by,3,1,P2.skin.sp||P2.skin.hl); // specular crown
-  // Chin highlight drawn inside face block only (moved below)
+  // ── Z8: HEAD BASE (4-pass skin shading) ───────────────────────────────────
+  _zc(B,16,5+by,6,P2.skin.dk);  // outer ring
+  _zc(B,16,5+by,5,P2.skin.sh);  // shadow
+  _zc(B,15,5+by,5,P2.skin.md);  // mid (NW offset)
+  _zc(B,14,4+by,4,P2.skin.hl);  // NW highlight arc
+  _zr(B,13,3+by,3,2,P2.skin.sp||P2.skin.hl);  // specular crown
+  _zr(B,13,3+by,2,1,_shift(P2.skin.sp||P2.skin.hl,+5,+0.02,+0.06));  // super specular
 
-  // ── HELMET / HOOD ─────────────────────────────────────────
+  // ── Z9: HAIR (zone 8 in priority — fills after head skin, BEFORE face base)
+  // Hair will be overwritten in face zone by Z10 (face base) below.
+  // Only crown pixels (y < 4+by) will remain visible.
+  if(!isIronCap&&!isPaleHood) _zHair(B,16,5,by,P2.hair,hs,fn,fe,fw);
+  if(isPaleHood){
+    const hc2=gsPal(_shift(ap.body||'#3a5a8a',+6,+0.03,+0.06));
+    _zc(B,16,4+by,6,hc2.md); _zc(B,14,3+by,5,hc2.hl); _zr(B,13,2+by,4,2,hc2.sp||hc2.hl);
+    _zr(B,8,6+by,3,5,hc2.sh); _zr(B,21,6+by,3,5,hc2.sh);
+    _zc(B,16,4+by,4,P2.hair.md);
+  }
   if(isIronCap){
     const hc2=gsPal('#4a4a5a');
-    px(sx+11,sy+2+by,10,6,hc2.md); px(sx+12,sy+1+by,8,2,hc2.hl);
-    px(sx+11,sy+2+by,2,6,hc2.hl); px(sx+19,sy+2+by,2,6,hc2.sh);
-    px(sx+12,sy+1+by,8,1,hc2.sp); px(sx+11,sy+8+by,10,1,hc2.dk);
-    px(sx+12,sy+8+by,8,2,hc2.sh);
-    px(sx+13,sy+3+by,1,1,hc2.sp); px(sx+16,sy+2+by,1,1,hc2.sp); px(sx+19,sy+3+by,1,1,hc2.sp);
-  } else if(isPaleHood){
-    const hc2=gsPal(_shift(ap.body||'#3a5a8a',+6,+0.03,+0.06));
-    bCircle(sx+16,sy+4+by,6,hc2.md); bCircle(sx+14,sy+3+by,5,hc2.hl);
-    px(sx+13,sy+2+by,4,2,hc2.sp);
-    px(sx+8,sy+6+by,3,5,hc2.sh); px(sx+21,sy+6+by,3,5,hc2.sh);
-    const pg='rgba(143,168,255,0.45)';
-    c.fillStyle=pg;
-    c.fillRect(sx+9,sy+9+by,14,1); c.fillRect(sx+8,sy+6+by,1,4); c.fillRect(sx+23,sy+6+by,1,4);
+    _zr(B,11,2+by,10,6,hc2.md); _zr(B,12,1+by,8,2,hc2.hl);
+    _zr(B,11,2+by,2,6,hc2.hl); _zr(B,19,2+by,2,6,hc2.sh);
+    _zr(B,12,1+by,8,1,hc2.sp||hc2.hl); _zr(B,11,8+by,10,1,hc2.dk);
+    _zr(B,12,8+by,8,2,hc2.sh);
+    _zp(B,13,3+by,hc2.sp||hc2.hl); _zp(B,16,2+by,hc2.sp||hc2.hl); _zp(B,19,3+by,hc2.sp||hc2.hl);
   }
 
-  // ── HAIR ──────────────────────────────────────────────────
-  if(!isIronCap&&!isPaleHood) drawHair(sx,sy+by,f,P2.hair,hs);
-  if(isPaleHood) bCircle(sx+16,sy+4+by,4,P2.hair.md);
-
-  // ── FACE ──────────────────────────────────────────────────
-  // Face spans sy+4 to sy+9 — within the sy+0..sy+10 head zone
+  // ── Z10: FACE BASE ────────────────────────────────────────────────────────
   if(!fn){
-    // Face base — 12px wide starting sx+10 (covers NW hair highlight bleed at sx+10)
-    px(sx+10,sy+4+by,12,6,P2.skin.md);
-    // Forehead lighter — upper 2 rows (GS: upper face is brighter)
-    px(sx+11,sy+4+by,9,2,P2.skin.hl);
-    // Cheekbone specular — 1 bright pixel each side (GS)
-    px(sx+11,sy+6+by,1,1,P2.skin.sp||P2.skin.hl);
-    px(sx+20,sy+6+by,1,1,P2.skin.sp||P2.skin.hl);
+    _zr(B,9, 4+by,14,6,P2.skin.sh);   // wide shadow base
+    _zr(B,10,4+by,12,6,P2.skin.md);   // main face
+    _zr(B,11,4+by, 9,2,P2.skin.hl);   // forehead
+    _zp(B,11,6+by,P2.skin.sp||P2.skin.hl);
+    _zp(B,20,6+by,P2.skin.sp||P2.skin.hl);
+    // Clear chin/jaw bottom — hair circle r=5 extends to row cy+5=10
+    // Row 10 shows hair color under the face; overwrite with skin
+    _zr(B,12,10+by,8,1,P2.skin.sh);  // chin bottom row
+    _zr(B,13,10+by,6,1,P2.skin.md);  // chin highlight
+  }
 
-    // ── Eyebrows ──────────────────────────────────────────
-    // sy+4: eyebrow row — just above eye at sy+5
+  // ── Z11: FACE FEATURES (highest priority — always visible) ────────────────
+  if(!fn){
+    // Eyebrows
     const bwC=_shift(ap.hair||'#3a2a1a',+2,+0.01,+0.02);
-    const ebStyle=ap.eyebrows||'std';
-    if(fe){
-      if(ebStyle==='heavy'){ px(sx+18,sy+4+by,4,2,bwC); px(sx+24,sy+4+by,4,2,bwC); }
-      else if(ebStyle==='arch'){ px(sx+18,sy+4+by,2,1,bwC); px(sx+20,sy+4+by,2,2,bwC); px(sx+24,sy+4+by,2,1,bwC); px(sx+26,sy+4+by,2,2,bwC); }
-      else if(ebStyle==='thin'){ px(sx+19,sy+5+by,3,1,bwC); px(sx+25,sy+5+by,3,1,bwC); }
-      else{ px(sx+18,sy+4+by,3,1,bwC); px(sx+24,sy+4+by,3,1,bwC); }
-    } else if(fw){
-      if(ebStyle==='heavy'){ px(sx+8,sy+4+by,4,2,bwC); px(sx+14,sy+4+by,4,2,bwC); }
-      else if(ebStyle==='arch'){ px(sx+8,sy+4+by,2,1,bwC); px(sx+10,sy+4+by,2,2,bwC); px(sx+14,sy+4+by,2,1,bwC); px(sx+16,sy+4+by,2,2,bwC); }
-      else if(ebStyle==='thin'){ px(sx+9,sy+5+by,3,1,bwC); px(sx+15,sy+5+by,3,1,bwC); }
-      else{ px(sx+8,sy+4+by,3,1,bwC); px(sx+14,sy+4+by,3,1,bwC); }
-    } else {
-      if(ebStyle==='heavy'){ px(sx+11,sy+4+by,4,2,bwC); px(sx+17,sy+4+by,4,2,bwC); }
-      else if(ebStyle==='arch'){
-        px(sx+11,sy+5+by,1,1,bwC); px(sx+12,sy+4+by,2,1,bwC); px(sx+14,sy+4+by,1,1,bwC);
-        px(sx+17,sy+5+by,1,1,bwC); px(sx+18,sy+4+by,2,1,bwC); px(sx+20,sy+4+by,1,1,bwC);
-      } else if(ebStyle==='thin'){
-        px(sx+11,sy+5+by,3,1,bwC); px(sx+17,sy+5+by,3,1,bwC);
-      } else {
-        px(sx+11,sy+4+by,3,1,bwC); px(sx+11,sy+5+by,1,1,bwC);
-        px(sx+17,sy+4+by,3,1,bwC); px(sx+19,sy+5+by,1,1,bwC);
-      }
-    }
+    const ebs=ap.eyebrows||'std';
+    const ex1=fs?11:fe?18:9, ex2=fs?17:fe?24:15;
+    if(ebs==='heavy'){_zr(B,ex1,4+by,4,2,bwC);_zr(B,ex2,4+by,4,2,bwC);}
+    else if(ebs==='arch'){
+      _zp(B,ex1,5+by,bwC);_zr(B,ex1+1,4+by,2,1,bwC);_zp(B,ex1+3,4+by,bwC);
+      _zp(B,ex2,5+by,bwC);_zr(B,ex2+1,4+by,2,1,bwC);_zp(B,ex2+3,4+by,bwC);
+    } else if(ebs==='thin'){_zr(B,ex1,5+by,3,1,bwC);_zr(B,ex2,5+by,3,1,bwC);}
+    else{_zr(B,ex1,4+by,3,1,bwC);_zp(B,ex1,5+by,bwC);_zr(B,ex2,4+by,3,1,bwC);_zp(B,ex2+2,5+by,bwC);}
 
-    // ── Eyes — GS: crease → iris → pupil → catchlight → lower lid ──
-    // ey = sy+5 (dead centre of head). Crease at ey-1=sy+4 (shares eyebrow row intentionally).
-    const ey=sy+5+by;
-    // Eyelid crease — uses brow colour as upper rim
-    c.fillStyle=P2.skin.sh;
-    if(fe){  c.fillRect(sx+18,ey,3,1); c.fillRect(sx+24,ey,3,1); }
-    else if(fw){ c.fillRect(sx+9,ey,3,1); c.fillRect(sx+15,ey,3,1); }
-    else{        c.fillRect(sx+11,ey,3,1); c.fillRect(sx+17,ey,3,1); }
-    // Iris (eye colour, 2×2)
-    c.fillStyle=ap.eyes||'#1a1a2a';
-    if(fe){  c.fillRect(sx+18,ey,3,2); c.fillRect(sx+24,ey,3,2); }
-    else if(fw){ c.fillRect(sx+9,ey,3,2); c.fillRect(sx+15,ey,3,2); }
-    else{        c.fillRect(sx+11,ey,3,2); c.fillRect(sx+17,ey,3,2); }
-    // Pupil darker
-    c.fillStyle=_shift(ap.eyes||'#1a1a2a',-6,-0.03,-0.14);
-    if(fe){  c.fillRect(sx+19,ey,1,2); c.fillRect(sx+25,ey,1,2); }
-    else if(fw){ c.fillRect(sx+10,ey,1,2); c.fillRect(sx+16,ey,1,2); }
-    else{        c.fillRect(sx+12,ey,1,2); c.fillRect(sx+18,ey,1,2); }
-    // White catchlight — always top-right corner (GS signature)
-    c.fillStyle='rgba(255,255,255,0.95)';
-    if(fe){  c.fillRect(sx+20,ey,1,1); c.fillRect(sx+26,ey,1,1); }
-    else if(fw){ c.fillRect(sx+10,ey,1,1); c.fillRect(sx+15,ey,1,1); }
-    else{        c.fillRect(sx+13,ey,1,1); c.fillRect(sx+19,ey,1,1); }
-    // Lower eyelid — distinct darker skin tone creates socket depth
-    c.fillStyle=_shift(ap.skin||'#e0b888',-8,-0.04,-0.10);
-    if(fe){  c.fillRect(sx+18,ey+2,3,1); c.fillRect(sx+24,ey+2,3,1); }
-    else if(fw){ c.fillRect(sx+9,ey+2,3,1); c.fillRect(sx+15,ey+2,3,1); }
-    else{        c.fillRect(sx+11,ey+2,3,1); c.fillRect(sx+17,ey+2,3,1); }
+    // Eyes
+    const ey=5+by;
+    const eyC=ap.eyes||'#1a1a2a',pupC=_shift(eyC,-6,-0.03,-0.14);
+    const lidC=_shift(ap.skin||'#e0b888',-8,-0.04,-0.10);
+    _zr(B,ex1,ey,3,1,P2.skin.sh); _zr(B,ex2,ey,3,1,P2.skin.sh);  // crease
+    _zr(B,ex1,ey,3,2,eyC); _zr(B,ex2,ey,3,2,eyC);               // iris
+    _zp(B,ex1+1,ey,pupC); _zp(B,ex1+1,ey+1,pupC);                // pupil L
+    _zp(B,ex2+1,ey,pupC); _zp(B,ex2+1,ey+1,pupC);                // pupil R
+    _zp(B,ex1+2,ey,'rgba(255,255,255,0.95)');                     // catchlight L
+    _zp(B,ex2+2,ey,'rgba(255,255,255,0.95)');                     // catchlight R
+    _zr(B,ex1,ey+2,3,1,lidC); _zr(B,ex2,ey+2,3,1,lidC);         // lower lid
 
-    // Nose bridge — single shadow pixel (GS: never draw nose explicitly)
-    if(fs){ px(sx+15,sy+7+by,2,1,P2.skin.sh); }
+    // Nose
+    if(fs){_zr(B,15,7+by,2,1,P2.skin.sh);}
 
-    // Mouth + jaw (all forward-facing directions)
-    const beard=ap.beard||'none';
-    const beardC=gsPal(_shift(ap.hair||'#3a2a1a',-2,-0.01,-0.01));
-
+    // Mouth + lip
     if(fs){
-      // Philtrum shadow — tiny 1px indent above lip centre
-      px(sx+15,sy+7+by,2,1,P2.skin.sh);
-      // Mouth: lip color only — no pre-shadow row that reads as moustache
       const lipMode=ap.lipColor||'skin';
-      const lipC = lipMode==='skin'
-        ? _shift(ap.skin||'#e0b888',-4,-0.015,-0.06)
-        : lipMode==='dark'
-          ? _shift(ap.skin||'#e0b888',-10,-0.05,-0.14)
-          : _shift(ap.skin||'#e0b888',+4,+0.02,+0.03);
-      px(sx+12,sy+8+by,8,1,lipC);
-      px(sx+13,sy+8+by,5,1,_shift(lipC,+4,+0.02,+0.04));  // centre highlight
-      // Corner shadows: use skin shadow not skin.dk to avoid phantom beard look
-      px(sx+12,sy+8+by,1,1,P2.skin.sh); px(sx+19,sy+8+by,1,1,P2.skin.sh);
+      const lipC=lipMode==='skin'?_shift(ap.skin||'#e0b888',-4,-0.015,-0.06):lipMode==='dark'?_shift(ap.skin||'#e0b888',-10,-0.05,-0.14):_shift(ap.skin||'#e0b888',+4,+0.02,+0.03);
+      _zr(B,12,8+by,8,1,lipC); _zr(B,13,8+by,5,1,_shift(lipC,+4,+0.02,+0.04));
+      _zp(B,12,8+by,P2.skin.sh); _zp(B,19,8+by,P2.skin.sh);
     }
-    // Chin highlight — jaw catches ambient from below. South + east + west only.
-    if(fs||fe||fw) px(sx+13,sy+9+by,6,1,P2.skin.hl);
 
-    // ── Beard rendering ───────────────────────────────────────
-    // Drawn over jaw/chin, under nothing — always last in face pass
+    // Beard
+    const beard=ap.beard||'none';
     if(beard!=='none'){
-      const bC=beardC.md, bH=beardC.hl, bS=beardC.sh, bD=beardC.dk;
-      if(beard==='stubble'){
-        // Stubble: scattered dither at chin row — clearly below lip
-        const stubPat = [
-          [12,9],[14,9],[16,9],[18,9],[20,9],
-          [13,10],[15,10],[17,10],[19,10],
-        ];
-        stubPat.forEach(([dx,dy])=>px(sx+dx,sy+dy+by,1,1,_shift(bC,-2,-0.01,-0.02)));
+      const brdC=gsPal(_shift(ap.hair||'#3a2a1a',-2,-0.01,-0.01));
+      const bC=brdC.md,bH=brdC.hl,bS=brdC.sh,bD=brdC.dk;
+      if(beard==='stubble'&&(fs||fe||fw)){
+        [[12,9],[14,9],[16,9],[18,9],[20,9],[13,10],[15,10],[17,10],[19,10]].forEach(([dx,dy])=>_zp(B,dx,dy+by,_shift(bC,-2,-0.01,-0.02)));
+      } else if(beard==='short'&&(fs||!fn)){
+        _zr(B,12,8+by,8,2,bC); _zp(B,12,8+by,bS); _zp(B,19,8+by,bS);
+        _zr(B,13,8+by,6,1,bH); _zr(B,12,9+by,8,1,bS);
+        if(fe)_zr(B,18,7+by,4,2,bC); if(fw)_zr(B,8,7+by,4,2,bC);
+      } else if(beard==='full'&&(fs||!fn)){
+        _zr(B,11,7+by,10,4,bC); _zr(B,12,7+by,8,3,bH);
+        _zp(B,11,7+by,bS); _zp(B,20,7+by,bS); _zr(B,11,10+by,10,1,bD);
+        _zr(B,14,7+by,4,3,_shift(bC,+8,+0.04,+0.10)); _zr(B,15,7+by,2,2,bH);
+        if(fe){_zr(B,17,6+by,5,4,bC);_zp(B,17,6+by,bS);_zr(B,18,6+by,3,3,bH);}
+        if(fw){_zr(B,8,6+by,5,4,bC);_zp(B,12,6+by,bS);_zr(B,9,6+by,3,3,bH);}
+      } else if(beard==='goatee'&&fs){
+        _zr(B,14,8+by,4,3,bC); _zr(B,15,8+by,2,2,bH);
+        _zr(B,14,10+by,4,1,bD); _zp(B,14,8+by,bS); _zp(B,17,8+by,bS);
+      } else if(beard==='moustache'&&!fn){
+        const mx=fs?12:fe?18:8,mw=8;
+        _zr(B,mx,7+by,mw,1,bC); _zr(B,mx,7+by,mw>>1,1,bH);
+        _zr(B,mx+(mw>>1),7+by,mw>>1,1,_shift(bC,-4,-0.02,-0.05));
       }
-      else if(beard==='short'){
-        // Short beard: covers chin and jaw line (sy+8..sy+9), wide coverage
-        if(fs||!fn){
-          px(sx+12,sy+8+by,8,2,bC);
-          px(sx+12,sy+8+by,1,2,bS); px(sx+19,sy+8+by,1,2,bS);
-          px(sx+13,sy+8+by,6,1,bH); // highlight across top
-          px(sx+12,sy+9+by,8,1,bS); // shadow at base
-        }
-        if(fe){ px(sx+18,sy+7+by,4,2,bC); px(sx+18,sy+7+by,1,2,bS); }
-        if(fw){ px(sx+8,sy+7+by,4,2,bC); px(sx+11,sy+7+by,1,2,bS); }
-      }
-      else if(beard==='full'){
-        // Full beard: thick coverage, 3D shading, distinct from hair
-        if(fs||!fn){
-          px(sx+11,sy+7+by,10,4,bC);
-          px(sx+12,sy+7+by,8,3,bH);
-          px(sx+11,sy+7+by,1,4,bS); px(sx+20,sy+7+by,1,4,bS);
-          px(sx+11,sy+10+by,10,1,bD); // beard bottom edge
-          // Centre highlight stripe (GS: always one stripe of highlight)
-          px(sx+14,sy+7+by,4,3,_shift(bC,+8,+0.04,+0.10));
-          px(sx+15,sy+7+by,2,2,bH);
-        }
-        if(fe){ px(sx+17,sy+6+by,5,4,bC); px(sx+17,sy+6+by,1,4,bS); px(sx+18,sy+6+by,3,3,bH); }
-        if(fw){ px(sx+8,sy+6+by,5,4,bC); px(sx+12,sy+6+by,1,4,bS); px(sx+9,sy+6+by,3,3,bH); }
-      }
-      else if(beard==='goatee'){
-        // Goatee: chin only, tight vertical shape
-        if(fs){
-          px(sx+14,sy+8+by,4,3,bC);
-          px(sx+15,sy+8+by,2,2,bH);
-          px(sx+14,sy+10+by,4,1,bD);
-          px(sx+14,sy+8+by,1,3,bS); px(sx+17,sy+8+by,1,3,bS);
-        }
-        if(fe||fw){ px(sx+(fe?17:8),sy+8+by,3,2,bC); }
-      }
-      else if(beard==='moustache'){
-        // Moustache only — sits just above lip, two curved lobes
-        if(!fn){
-          const mx=fs?12:fe?18:8, mw=8;
-          px(sx+mx,sy+7+by,mw,1,bD);         // shadow strip
-          px(sx+mx,sy+7+by,mw,1,bC);
-          px(sx+mx,sy+7+by,mw/2|0,1,bH);     // L lobe highlight
-          px(sx+mx+(mw/2|0),sy+7+by,mw/2|0,1,_shift(bC,-4,-0.02,-0.05)); // R lobe shadow
-        }
+      // Short beard side views
+      if(beard==='short'){
+        if(fe){_zr(B,18,7+by,4,2,bC);_zp(B,18,7+by,bS);}
+        if(fw){_zr(B,8,7+by,4,2,bC);_zp(B,11,7+by,bS);}
       }
     }
 
-    // Ear / side-face shadow
-    px(sx+11,sy+5+by,1,3,P2.skin.sh); px(sx+11,sy+6+by,1,2,P2.skin.md);
-    px(sx+20,sy+5+by,1,3,P2.skin.sh); px(sx+20,sy+6+by,1,2,P2.skin.md);
+    // Chin highlight + ear shadows
+    _zr(B,13,9+by,6,1,P2.skin.hl);
+    _zp(B,11,5+by,P2.skin.sh);_zp(B,11,6+by,P2.skin.sh);_zp(B,11,7+by,P2.skin.sh);
+    _zp(B,11,6+by,P2.skin.md);
+    _zp(B,20,5+by,P2.skin.sh);_zp(B,20,6+by,P2.skin.sh);_zp(B,20,7+by,P2.skin.sh);
+    _zp(B,20,6+by,P2.skin.md);
   } else {
-    px(sx+11,sy+5+by,1,3,P2.skin.sh); px(sx+20,sy+5+by,1,3,P2.skin.sh);
+    // North: ear shadows only
+    _zp(B,11,5+by,P2.skin.sh); _zp(B,20,5+by,P2.skin.sh);
   }
 
-  // ── PALE MARK ─────────────────────────────────────────────
-  const eg=Math.min(1,INSTANCE.paleResonance/50);
-  const MARK_COLORS={pale:'rgba(143,168,255,1)',fire:'rgba(255,120,60,1)',
-    earth:'rgba(100,180,80,1)',void:'rgba(180,80,255,1)',water:'rgba(60,140,220,1)',
-    wind:'rgba(160,220,255,1)',wood:'rgba(80,180,100,1)',metal:'rgba(200,210,230,1)'};
-  const mc=MARK_COLORS[ap.mark||'pale']||'rgba(143,168,255,1)';
-  if(!isScrapVest){
-    c.fillStyle=mc.replace(',1)',`,${0.40+eg*0.55})`);
-    c.fillRect(bSX+2,sy+14+by,BODY_W-4,3);
-    if(eg>0.1){
-      c.fillStyle=mc.replace(',1)',`,${eg*0.90})`); c.fillRect(bSX+4,sy+15+by,BODY_W-8,1);
-      c.fillStyle=mc.replace(',1)',`,${eg*0.55})`); c.fillRect(bSX+5,sy+15+by,BODY_W-10,1);
-    }
-  }
+  // ── FLUSH BUFFER TO CANVAS ────────────────────────────────────────────────
+  _zFlush(c,B,sx,sy);
+
+  // ── CANVAS OVERLAYS (transparency/glow — not in pixel buffer) ────────────
   if(INSTANCE.paleResonance>20){
-    c.fillStyle=mc.replace(',1)',`,${eg*0.16})`);
-    c.fillRect(sx+11,sy+1,10,1); c.fillRect(sx+10,sy+30,12,1);
+    const eg2=Math.min(1,INSTANCE.paleResonance/50);
+    const mc2=(MCOLORS[ap.mark||'pale']||mc).replace(',1)',`,${(eg2*0.16).toFixed(2)})`);
+    c.fillStyle=mc2; c.fillRect(sx+11,sy+1,10,1); c.fillRect(sx+10,sy+30,12,1);
   }
-
-  // ── TRINKET GLOW ──────────────────────────────────────────
   if(trinket&&trinket.id==='blue_covenant'){
     const teg=Math.min(1,INSTANCE.paleResonance/30);
     const tpulse=0.40+0.35*Math.sin(frame*0.06);
     c.fillStyle=`rgba(120,160,255,${(tpulse*(0.55+teg*0.30)).toFixed(2)})`;
-    c.fillRect(sx+13,sy+14+by,6,3);
+    c.fillRect(sx+bSX+2,sy+14+by,BODY_W-4,3);
     c.fillStyle=`rgba(200,220,255,${(tpulse*0.70).toFixed(2)})`;
-    c.fillRect(sx+15,sy+14+by,2,2);
+    c.fillRect(sx+bSX+4,sy+14+by,BODY_W-8,2);
   }
 }
+
 const NPC_BODY_COLOR={civilian:'#6a8050',wanderer:'#7a6040',thief:'#383848',bully:'#582828',raider:'#581818',abuser:'#482030',corrupt:'#486040'};
 const NPC_ALIGN_COLOR={light:'#88ff88',neutral:'#ffcc44',dark:'#ff5544'};
 function drawNPC(sx,sy,npc){
@@ -6538,7 +6600,7 @@ document.getElementById('dialog-wrap').addEventListener('pointerdown',()=>Dialog
 // ══ EXPLORE REVEAL ════════════════════════════════════════════
 function reveal(){
   const {px,py}=INSTANCE;
-  const r=3;
+  const r=8; // reveal radius covers full visible area
   for(let dy=-r;dy<=r;dy++) for(let dx=-r;dx<=r;dx++){
     if(dx*dx+dy*dy>r*r+1)continue;
     const wx=px+dx,wy=py+dy;
@@ -9897,6 +9959,8 @@ function startGame(){
   WORLD=buildWorld(INSTANCE.worldSeed);
   scatterNPCs(INSTANCE.worldSeed);
   scatterCreatures(INSTANCE.worldSeed);
+  // Initial reveal: larger radius so player sees context immediately
+  {const {px,py}=INSTANCE;const r0=8;for(let dy=-r0;dy<=r0;dy++)for(let dx=-r0;dx<=r0;dx++){if(dx*dx+dy*dy>r0*r0+r0)continue;const wx=px+dx,wy=py+dy;if(wx>=0&&wx<W&&wy>=0&&wy<W)INSTANCE.see(wx,wy);}}
   document.getElementById('app').style.display='block';
   scaleApp();
   _lockLandscape(); // request landscape lock or show rotate prompt on portrait touch devices
