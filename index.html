@@ -1394,17 +1394,8 @@ function nav(id){
 }
 
 // ── LAUNCHERS ─────────────────────────────────────────────────────────
-function launchRPG(){
-  fetch('PaleSignalRPG-v3_19.html',{method:'HEAD'})
-    .then(r=>window.open(r.ok?'PaleSignalRPG-v3_19.html':'PaleSignalRPG-v3_18.html','_blank'))
-    .catch(()=>window.open('PaleSignalRPG-v3_18.html','_blank'));
-}
-function launchTCG(){
-  // Version-check: try v1_3 first, fall back to v1_2 (for deployments without v1_3)
-  fetch('PaleSignalTCG-v1_3.html',{method:'HEAD'})
-    .then(r=>window.open(r.ok?'PaleSignalTCG-v1_3.html':'PaleSignalTCG-v1_2.html','_blank'))
-    .catch(()=>window.open('PaleSignalTCG-v1_2.html','_blank'));
-}
+function launchRPG(){ window.open('PaleSignalRPG-v3_19.html','_blank'); }
+function launchTCG(){ window.open('PaleSignalTCG-v1_3.html','_blank'); }
 function launchArt(){window.open('pixel-engine-v1_2.html','_blank')}
 function launchChem(){window.open('chemistry-v1_1.html','_blank')}
 
